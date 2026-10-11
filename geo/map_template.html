@@ -158,6 +158,81 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .tip-float b { font-weight: 600; font-variant-numeric: tabular-nums; }
 .tip-float span { color: var(--ink-2); }
 
+
+/* ---- daily trend, stand-outs, call mix */
+.wide { grid-column: 1 / -1; }
+.trend-box { position: relative; min-width: 0; }
+.trend-box svg { display: block; width: 100%; height: 240px; overflow: visible; }
+.trend-box text { font: 11px var(--f-body); fill: var(--muted); }
+.trend-box .grid { stroke: var(--line); stroke-width: 1; }
+.trend-box .raw { fill: none; stroke: var(--q2); stroke-width: 1.25; }
+.trend-box .avg { fill: none; stroke: var(--q6); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
+.trend-box .dotday { fill: var(--q4); }
+.trend-box .gap { stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: 1; }
+.trend-box .gaplab { font-size: 10px; }
+.trend-box .spike circle { fill: var(--panel); stroke: var(--ink); stroke-width: 1.5; }
+.trend-box .spike text { fill: var(--ink); font-weight: 600; }
+.trend-box .hair { stroke: var(--ink-2); stroke-width: 1; }
+.trend-box .sel { fill: var(--select); }
+.legend-line { display: flex; gap: 16px; flex-wrap: wrap; font-size: .78rem; color: var(--ink-2); align-items: center; }
+.legend-line i { display: inline-block; width: 18px; height: 0; border-top: 2.25px solid var(--q6); vertical-align: middle; margin-right: 6px; }
+.legend-line i.raw { border-top: 1.25px solid var(--q2); }
+
+.so { display: grid; gap: 14px; }
+.so h3 { margin: 0 0 6px; font: 600 .8rem/1.2 var(--f-body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.so-list { display: grid; gap: 2px; }
+.so-row { display: grid; grid-template-columns: minmax(0, 1fr) 4.2rem; gap: 2px 12px; padding: 6px 8px; border-radius: 6px; cursor: pointer; align-items: center; }
+.so-row:hover { background: var(--dot-soft); }
+.so-row .nm { font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.so-row .lift { font: 600 1.05rem/1 var(--f-display); text-align: right; font-variant-numeric: tabular-nums; }
+.so-row .lift.under { color: var(--ink-2); }
+.so-row .meta { grid-column: 1 / -1; font-size: .76rem; color: var(--ink-2); display: flex; gap: 10px; align-items: center; }
+.so-row .bars { display: grid; gap: 2px; width: 7rem; flex: none; }
+.so-row .bars i { display: block; height: 4px; border-radius: 2px; }
+.so-row .bars .here { background: var(--q5); }
+.so-row .bars .cty { background: var(--q2); }
+.so-note { margin: 0; font-size: .84rem; color: var(--ink-2); }
+
+.mix { display: grid; grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr)); gap: 10px; }
+.mix-card { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px 6px; cursor: pointer; display: grid; gap: 4px; min-width: 0; background: none; text-align: left; font: inherit; color: inherit; }
+.mix-card:hover, .mix-card.on { border-color: var(--dot); background: var(--dot-soft); }
+.mix-card .t { font-weight: 600; font-size: .86rem; overflow-wrap: anywhere; }
+.mix-card .m { font-size: .74rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.mix-card .bars { display: grid; grid-template-columns: repeat(24, 1fr); gap: 1px; align-items: end; height: 46px; }
+.mix-card .bars i { display: block; background: var(--q4); border-radius: 1px 1px 0 0; min-height: 1px; }
+.mix-card .bars i.pk { background: var(--q7); }
+.mix-card .bars i.hs { background: var(--select); }
+.mix-card .ax { display: flex; justify-content: space-between; font-size: .64rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+
+/* ---- share, search, downloads, about */
+.link-btn { font: inherit; font-size: .8rem; color: var(--dot); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.link-btn:hover { color: var(--ink); }
+.dl { display: flex; flex-wrap: wrap; gap: 4px 14px; padding-top: 2px; }
+.btn.ok { border-color: var(--dot); background: var(--dot-soft); }
+.search { width: 17rem; max-width: calc(100vw - 80px); background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.14); font: 13px/1.4 var(--f-body); color: var(--ink); }
+.search input { width: 100%; box-sizing: border-box; font: inherit; font-size: .9rem; color: var(--ink); background: none; border: 0;
+  padding: 9px 12px; outline: none; }
+.search input::placeholder { color: var(--muted); }
+.search:focus-within { border-color: var(--dot); }
+.search ul { list-style: none; margin: 0; padding: 4px 0; border-top: 1px solid var(--line); max-height: 20rem; overflow-y: auto; }
+.search ul:empty { display: none; }
+.search li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 6px 12px; cursor: pointer; }
+.search li small { grid-column: 1; color: var(--muted); font-size: .76rem; }
+.search li b { font-weight: 500; overflow-wrap: anywhere; }
+.search li span { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.search li[aria-selected="true"], .search li:hover { background: var(--dot-soft); }
+.search .note { padding: 6px 12px 8px; font-size: .78rem; color: var(--ink-2); border-top: 1px solid var(--line); }
+.search .note:empty { display: none; }
+
+.about { padding: 18px 20px 20px; display: grid; gap: 14px; }
+.about-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 14px 28px; }
+.about h3 { margin: 0 0 4px; font: 600 .95rem/1.25 var(--f-body); }
+.about p { margin: 0; color: var(--ink-2); font-size: .86rem; max-width: 62ch; }
+.about p b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.about a { color: var(--dot); }
+
 /* ---- map overlays */
 .town-label { color: var(--muted); font: 600 .7rem/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase;
   white-space: nowrap; text-align: center; pointer-events: none;
@@ -210,7 +285,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <label class="check" for="outside"><input type="checkbox" id="outside"> Show mutual-aid calls in neighboring counties</label>
       <div class="chips" id="chips" aria-label="Time filters"></div>
       <button type="button" class="btn" id="reset" hidden>Reset filters</button>
-      <a class="btn push" href="#patterns">Time patterns &amp; coverage ↓</a>
+      <button type="button" class="btn push" id="copy" title="Copy a link to this exact view">Copy link</button>
+      <a class="btn" href="#patterns">Time patterns &amp; coverage ↓</a>
+      <a class="btn" href="#about">About the data</a>
     </div>
 
     <div class="main">
@@ -223,6 +300,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
             <div><dt>No location in the report</dt><dd id="s-unloc"></dd></div>
             <div id="s-hidden-row"><dt>Outside the county, hidden</dt><dd id="s-hidden"></dd></div>
           </dl>
+          <div class="dl"><button type="button" class="link-btn" id="dl-calls">Download these calls (CSV)</button><button type="button" class="link-btn" id="dl-places">Download places (CSV)</button></div>
         </div>
         <div class="list" id="list"></div>
         <div class="legend">
@@ -250,6 +328,45 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       </div>
       <div class="scroll-x"><div class="cal-wrap" id="cal"></div></div>
       <div class="ramp" id="cal-ramp"></div>
+    </div>
+    <div class="chart card wide">
+      <div class="chart-head">
+        <h2>Daily trend</h2>
+        <p>Dispatches on each report day for the current filters, with a 7-day average. Days without a report are left out; dashed lines mark the gaps. The 2026 reports come from a newer dispatch system that lists fewer dispatches per day, so part of the later drop is a reporting change. Click a day to filter the map.</p>
+      </div>
+      <div class="trend-box" id="trend"></div>
+      <div class="legend-line"><span><i class="raw"></i>Each report day</span><span><i></i>7-day average</span><span>○ Unusual spikes</span></div>
+      <div class="insight" id="trend-insight"></div>
+    </div>
+    <div class="chart card">
+      <div class="chart-head">
+        <h2>What stands out here</h2>
+        <p id="so-sub">Pick a town, responder, year, day or hour to see which call types are unusually common or rare there.</p>
+      </div>
+      <div class="so" id="so"></div>
+    </div>
+    <div class="chart card">
+      <div class="chart-head">
+        <h2 id="mix-title">Call mix by hour</h2>
+        <p id="mix-sub">Average dispatches per report day for the largest categories. Each chart has its own scale so the shape of the day compares; darkest bar is the peak hour. Click one to filter.</p>
+      </div>
+      <div class="mix" id="mix"></div>
+    </div>
+    <div class="card about wide" id="about">
+      <div class="chart-head">
+        <h2>About this data</h2>
+        <p>What the numbers on this page are, and what they are not.</p>
+      </div>
+      <div class="about-grid">
+        <div><h3>Source</h3><p>Public daily 911 media reports (PDF) published by Oneida County, New York, at <a href="https://oneidacountyny.gov/" target="_blank" rel="noopener">oneidacountyny.gov</a>. Each row in a report is one agency dispatched to a call: time, agency, call type, street and town.</p></div>
+        <div><h3>Coverage has gaps</h3><p id="about-coverage"></p></div>
+        <div><h3>Dispatches, not emergencies</h3><p>When fire, an ambulance and police all go to one emergency, the report lists three rows, and this page counts three dispatches. Counts here measure workload by agency, not the number of distinct incidents.</p></div>
+        <div><h3>Two report formats</h3><p>Reports from 2024–2025 come from one dispatch system and give times to the second. The 2026 reports come from a newer system that gives times to the minute, groups rows by agency, uses some different call-type names (harmonized here), and lists about 30% fewer dispatches per day. Compare 2026 with earlier years with care.</p></div>
+        <div><h3>Call types are what dispatch heard</h3><p>A call type is the dispatcher's category when the call came in, not a confirmed outcome. Medical calls use Medical Priority Dispatch codes (for example 17B01 = Fall); this page groups them by complaint. The reports have no arrival or clear times, so response times cannot be measured.</p></div>
+        <div><h3>How locations were placed</h3><p id="about-location"></p></div>
+        <div><h3>Mutual aid</h3><p>A few dispatches went to towns in Herkimer, Oswego, Madison and Lewis counties. They count in the totals but are hidden from the map unless you turn them on or pick that county.</p></div>
+        <div><h3>Built with</h3><p>Street and town boundaries: US Census TIGER/Line 2024. Map: Leaflet. All processing is reproducible from the original PDFs with the scripts in this project's repository.</p></div>
+      </div>
     </div>
   </section>
 </div>
@@ -562,6 +679,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       fill: false, interactive: false });
     dots.addLayer(ring);
     document.querySelector(`.row[data-li="${li}"]`)?.classList.add("on");
+    syncUrl();
   }
 
   // ---------- time patterns (DOM built once, recolored on update)
@@ -705,6 +823,199 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     $("cal-ramp").innerHTML = rampHtml(fmt(calMin), fmt(calMax), "calls per day", true);
   }
 
+
+  // ---------- call-type groups: medical codes roll up by complaint ("17B01-FALL" -> "Fall (medical)")
+  const MPDS = /^\d\d[A-EO]\d\d[A-Z]?-(.*)$/;
+  const groupKey = D.types.map(([name, cat]) => { const m = name.match(MPDS); return cat + "|" + (m ? m[1].replace(/\s*\(.*$/, "") : name); });
+  const groups = [...new Set(groupKey)];
+  const gIdx = new Map(groups.map((g, i) => [g, i]));
+  const typeGroup = groupKey.map(k => gIdx.get(k));
+  const groupCat = groups.map(g => g.split("|")[0]);
+  const groupTypes = groups.map(() => []);
+  typeGroup.forEach((g, t) => groupTypes[g].push(t));
+  const groupLabel = groups.map((g, i) => {
+    const name = g.split("|")[1];
+    const pretty = name.length <= 4 ? name : titleCase(name).replace(/\bMva\b/g, "MVA").replace(/\bMhl\b/g, "MHL").replace(/\bEms\b/g, "EMS")
+      .replace(/\bAbc\b/g, "ABC").replace(/\bAtl\b/g, "ATL").replace(/\bDss\b/g, "DSS").replace(/\bSora\b/g, "SORA").replace(/\bEdp\b/g, "EDP");
+    return groupTypes[i].some(t => MPDS.test(D.types[t][0])) ? `${pretty} (medical)` : pretty;
+  });
+  // county-wide baseline
+  const groupAll = new Float64Array(groups.length);
+  for (let i = 0; i < N; i++) groupAll[typeGroup[R.t[i]]]++;
+  const pick = { group: g => {
+    if (groupTypes[g].length === 1) { st.cat = typeCat[groupTypes[g][0]]; fillTypes(); st.type = groupTypes[g][0]; }
+    else { st.cat = groupCat[g]; st.type = -1; fillTypes(); }
+    update();
+  } };
+
+  function selectionLabel() {
+    const parts = [];
+    if (st.place) parts.push(citySel.options[citySel.selectedIndex].dataset.label.replace(/ \(town, all\)| \(city\)/, ""));
+    if (st.agency >= 0) parts.push(LABEL[D.agencyTypes[st.agency]] || D.agencyTypes[st.agency]);
+    if (st.date >= 0) parts.push(dateLabel(D.dates[st.date]));
+    else if (st.year >= 0) parts.push(String(D.years[st.year]));
+    if (st.dow >= 0) parts.push(DOW_LONG[st.dow] + "s");
+    if (st.hour >= 0) parts.push(`${hourLabel(st.hour)}–${hourLabel((st.hour + 1) % 24)}`);
+    return parts.join(" · ");
+  }
+
+  function renderStandout(typeN) {
+    const box = $("so"), label = selectionLabel();
+    if (!label) {
+      $("so-sub").textContent = "Pick a town, responder, year, day or hour to see which call types are unusually common or rare there, compared with the whole county.";
+      box.innerHTML = `<p class="so-note">For example, choose a village in the City / town / village menu, or click an hour in the heatmap.</p>`;
+      return;
+    }
+    const sel = new Float64Array(groups.length); let selTotal = 0;
+    typeN.forEach((n, t) => { sel[typeGroup[t]] += n; selTotal += n; });
+    $("so-sub").textContent = `Call types over- and under-represented in ${label}${st.cat !== "ALL" ? ` (${LABEL[st.cat].toLowerCase()} calls)` : ""}, compared with all of Oneida County.`;
+    if (selTotal < 30) { box.innerHTML = `<p class="so-note">Only ${fmt(selTotal)} calls match; too few to compare reliably.</p>`; return; }
+    const allTotal = N, rows = [];
+    groups.forEach((g, i) => {
+      if (st.cat !== "ALL" && groupCat[i] !== st.cat) return;
+      const here = sel[i] / selTotal, cty = groupAll[i] / allTotal, expected = cty * selTotal;
+      if (!cty) return;
+      rows.push({ i, n: sel[i], here, cty, lift: here / cty, expected });
+    });
+    const over = rows.filter(r => r.n >= 8 && r.lift >= 1.3).sort((a, b) => b.lift - a.lift).slice(0, 6);
+    const under = rows.filter(r => r.expected >= 12 && r.lift <= 0.6).sort((a, b) => a.lift - b.lift).slice(0, 4);
+    const pct = v => v >= 0.1 ? `${(v * 100).toFixed(0)}%` : v >= 0.01 ? `${(v * 100).toFixed(1)}%` : `${(v * 100).toFixed(2)}%`;
+    const row = (r, kind, maxShare = Math.max(r.here, r.cty)) => `<div class="so-row" data-g="${r.i}" tabindex="0" role="button">
+        <span class="nm">${esc(groupLabel[r.i])}</span>
+        <span class="lift ${kind}">${r.lift >= 10 ? Math.round(r.lift) : r.lift.toFixed(1)}×</span>
+        <span class="meta"><span class="bars"><i class="here" style="width:${(100 * r.here / maxShare).toFixed(1)}%"></i><i class="cty" style="width:${(100 * r.cty / maxShare).toFixed(1)}%"></i></span>
+        <span>${fmt(r.n)} calls · ${pct(r.here)} here vs ${pct(r.cty)} county-wide</span></span></div>`;
+    box.innerHTML =
+      `<div><h3>More common than county-wide</h3><div class="so-list">${over.length ? over.map(r => row(r, "over")).join("") : `<p class="so-note">Nothing is more than 1.3× the county rate.</p>`}</div></div>` +
+      `<div><h3>Less common</h3><div class="so-list">${under.length ? under.map(r => row(r, "under")).join("") : `<p class="so-note">Nothing is below 0.6× the county rate.</p>`}</div></div>` +
+      `<p class="so-note">Rates are each call type's share of all calls. Upper bar: here; lower bar: county-wide.</p>`;
+  }
+  $("so").addEventListener("click", e => { const r = e.target.closest("[data-g]"); if (r) pick.group(+r.dataset.g); });
+  $("so").addEventListener("keydown", e => { const r = e.target.closest("[data-g]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pick.group(+r.dataset.g); } });
+
+  function renderMix(typeHour, daysSel) {
+    // Panels: top categories, or the top call types within the selected category.
+    const byCat = st.cat === "ALL";
+    const keys = byCat ? cats : groups.map((g, i) => i).filter(i => groupCat[i] === st.cat);
+    const hourOf = new Map(keys.map(k => [k, new Float64Array(24)]));
+    D.types.forEach((tt, t) => {
+      const k = byCat ? typeCat[t] : typeGroup[t];
+      const arr = hourOf.get(k); if (!arr) return;
+      for (let h = 0; h < 24; h++) arr[h] += typeHour[t * 24 + h];
+    });
+    const ranked = keys.map(k => [k, hourOf.get(k).reduce((a, b) => a + b, 0)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    $("mix-title").textContent = byCat ? "Call mix by hour" : `${LABEL[st.cat]} calls by hour`;
+    $("mix-sub").textContent = (byCat ? "Average dispatches per report day for the largest categories." : `The most common ${LABEL[st.cat].toLowerCase()} call types.`) +
+      " Each chart has its own scale so the shape of the day compares; the darkest bar is the peak hour. Click one to filter.";
+    if (!ranked.length || !daysSel) { $("mix").innerHTML = `<p class="so-note">No calls match these filters.</p>`; return; }
+    $("mix").innerHTML = ranked.map(([k, total]) => {
+      const arr = hourOf.get(k), mx = Math.max(...arr), pk = arr.indexOf(mx);
+      const name = byCat ? LABEL[k] : groupLabel[k];
+      const on = byCat ? st.cat === k : (st.type >= 0 && typeGroup[st.type] === k);
+      const bars = Array.from(arr, (v, h) => `<i class="${h === st.hour ? "hs" : h === pk ? "pk" : ""}" style="height:${mx ? (100 * v / mx).toFixed(1) : 0}%"></i>`).join("");
+      return `<button type="button" class="mix-card${on ? " on" : ""}" data-mix="${byCat ? "c:" + k : "g:" + k}">
+        <span class="t">${esc(name)}</span><span class="m">${fmt1(total / daysSel)} per day · peak ${hourLabel(pk)}</span>
+        <span class="bars">${bars}</span><span class="ax"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></span></button>`;
+    }).join("");
+  }
+  $("mix").addEventListener("click", e => {
+    const b = e.target.closest("[data-mix]"); if (!b) return;
+    const [kind, v] = b.dataset.mix.split(":");
+    if (kind === "c") { st.cat = st.cat === v ? "ALL" : v; st.type = -1; fillTypes(); update(); }
+    else pick.group(+v);
+  });
+
+  // ---------- daily trend (x = report days in order; gaps between runs are marked, not drawn)
+  const dayNum = D.dates.map(iso => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 864e5);
+  let trendState = null;
+  function renderTrend(dateN) {
+    const box = $("trend"), W = Math.max(320, box.clientWidth), H = 240, pad = { l: 44, r: 12, t: 22, b: 30 };
+    const n = D.dates.length, iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+    const x = i => pad.l + (n === 1 ? iw / 2 : (i / (n - 1)) * iw);
+    const vals = Array.from(dateN);
+    // 7-day average: mean of report days within ±3 calendar days
+    const avg = vals.map((v, i) => { let s = 0, c = 0; for (let j = i; j >= 0 && dayNum[i] - dayNum[j] <= 3; j--) { s += vals[j]; c++; }
+      for (let j = i + 1; j < n && dayNum[j] - dayNum[i] <= 3; j++) { s += vals[j]; c++; } return s / c; });
+    const ymax = Math.max(1, ...vals) * 1.08;
+    const y = v => pad.t + ih - (v / ymax) * ih;
+    const runs = []; let start = 0;
+    for (let i = 1; i <= n; i++) if (i === n || dayNum[i] - dayNum[i - 1] > 1) { runs.push([start, i - 1]); start = i; }
+    const path = (arr, a, b) => arr.slice(a, b + 1).map((v, k) => `${k ? "L" : "M"}${x(a + k).toFixed(1)},${y(v).toFixed(1)}`).join("");
+    let svg = "";
+    const ticks = 4;
+    for (let k = 0; k <= ticks; k++) {
+      const v = ymax / 1.08 * k / ticks, yy = y(v);
+      svg += `<line class="grid" x1="${pad.l}" x2="${W - pad.r}" y1="${yy}" y2="${yy}"/><text x="${pad.l - 6}" y="${yy + 4}" text-anchor="end">${fmt(Math.round(v))}</text>`;
+    }
+    let lastGapLab = -1e9;
+    runs.forEach(([a, b], r) => {
+      if (b > a) svg += `<path class="raw" d="${path(vals, a, b)}"/><path class="avg" d="${path(avg, a, b)}"/>`;
+      else svg += `<circle class="dotday" cx="${x(a)}" cy="${y(vals[a])}" r="2.5"/>`;
+      if (r > 0) {
+        const gapDays = dayNum[a] - dayNum[runs[r - 1][1]] - 1, gx = (x(a) + x(runs[r - 1][1])) / 2;
+        if (gapDays >= 7) svg += `<line class="gap" x1="${gx}" x2="${gx}" y1="${pad.t}" y2="${pad.t + ih}"/>`;
+        if (gapDays >= 60 && gx - lastGapLab > 90) {
+          const left = gx > W - 200;  // near the right edge, put the label before the line
+          svg += `<text class="gaplab" x="${left ? gx - 4 : gx + 4}" y="${pad.t + 10}" text-anchor="${left ? "end" : "start"}">${gapDays >= 300 ? Math.round(gapDays / 30.4) + " months" : Math.round(gapDays / 7) + " weeks"} without reports</text>`;
+          lastGapLab = gx;
+        }
+      }
+    });
+    // x labels: first day of each month in long runs, plus the start of each later run
+    let lastX = -1e9, lastYear = "";
+    D.dates.forEach((iso, i) => {
+      const newMonth = i === 0 || iso.slice(0, 7) !== D.dates[i - 1].slice(0, 7);
+      const afterGap = i > 0 && dayNum[i] - dayNum[i - 1] >= 60;
+      if (!newMonth && !afterGap) return;
+      const xx = x(i); if (xx - lastX < (afterGap ? 30 : 46) || xx > W - pad.r - 24) return;
+      const [Y, M] = iso.split("-");
+      svg += `<text x="${xx}" y="${H - 10}" text-anchor="start">${MON[+M - 1]}${Y !== lastYear ? " ’" + Y.slice(2) : ""}</text>`;
+      lastX = xx; lastYear = Y;
+    });
+    // spikes: biggest jumps above the local average
+    const spikes = vals.map((v, i) => ({ i, v, r: avg[i] ? v / avg[i] : 0 })).filter(o => o.v >= 20 && o.r >= 1.25)
+      .sort((a, b) => b.r - a.r).slice(0, 3);
+    spikes.forEach(({ i, v }) => {
+      const xx = x(i), yy = y(v), [Y, M, Dd] = D.dates[i].split("-"), right = xx > W - 140;
+      svg += `<g class="spike"><circle cx="${xx}" cy="${yy}" r="4"/><text x="${right ? xx - 8 : xx + 8}" y="${Math.max(12, yy - 6)}" text-anchor="${right ? "end" : "start"}">${MON[+M - 1]} ${+Dd}, ${Y} · ${fmt(v)}</text></g>`;
+    });
+    if (st.date >= 0) svg += `<circle class="sel" cx="${x(st.date)}" cy="${y(vals[st.date])}" r="5"/>`;
+    svg += `<line class="hair" id="hair" x1="0" x2="0" y1="${pad.t}" y2="${pad.t + ih}" visibility="hidden"/>`;
+    box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Daily dispatches with 7-day average">${svg}</svg>`;
+    trendState = { x, n, vals, avg, W, pad };
+
+    // month summary (months with at least 10 report days)
+    const months = {};
+    D.dates.forEach((iso, i) => { const m = iso.slice(0, 7); (months[m] = months[m] || { s: 0, d: 0 }); months[m].s += vals[i]; months[m].d++; });
+    // Compare months within 2024 only: the 2024-25 and 2026 reports come from different dispatch systems.
+    const full = Object.entries(months).filter(([m, o]) => o.d >= 10 && m.startsWith("2024")).map(([m, o]) => [m, o.s / o.d]);
+    const ml = m => `${MON[+m.slice(5) - 1]} ${m.slice(0, 4)}`;
+    if (full.length >= 2 && vals.some(v => v > 0)) {
+      full.sort((a, b) => b[1] - a[1]);
+      const top = spikes[0];
+      $("trend-insight").innerHTML = `<span>In 2024, the busiest month was <b>${ml(full[0][0])}</b>, ${fmt1(full[0][1])} per day; the quietest was <b>${ml(full[full.length - 1][0])}</b>, ${fmt1(full[full.length - 1][1])} per day.</span>` +
+        (top ? `<span>Biggest spike: <b>${dateLabel(D.dates[top.i])}</b> with ${fmt(top.v)} dispatches, ${top.r.toFixed(1)}× the surrounding week.</span>` : "");
+    } else $("trend-insight").innerHTML = "";
+  }
+  $("trend").addEventListener("pointermove", e => {
+    if (!trendState) return;
+    const svg = $("trend").querySelector("svg"), rect = svg.getBoundingClientRect();
+    const px = (e.clientX - rect.left) * (trendState.W / rect.width);
+    const { x, n, vals, avg } = trendState;
+    let best = 0; for (let i = 1; i < n; i++) if (Math.abs(x(i) - px) < Math.abs(x(best) - px)) best = i;
+    const hair = svg.querySelector("#hair"); hair.setAttribute("x1", x(best)); hair.setAttribute("x2", x(best)); hair.setAttribute("visibility", "visible");
+    showTip(e, `<b>${dateLabel(D.dates[best])}</b><br>${fmt(vals[best])} calls <span>· 7-day avg ${fmt1(avg[best])}</span>`);
+    trendState.hover = best;
+  });
+  $("trend").addEventListener("pointerleave", () => { tipf.hidden = true; $("trend").querySelector("#hair")?.setAttribute("visibility", "hidden"); });
+  $("trend").addEventListener("click", () => {
+    if (!trendState || trendState.hover == null) return;
+    const d = trendState.hover; st.date = st.date === d ? -1 : d; if (st.date >= 0 && st.year >= 0) st.year = dateYear[st.date];
+    update();
+  });
+  let lastDateN = null;
+  new ResizeObserver(() => { if (lastDateN) renderTrend(lastDateN); }).observe($("trend"));
+
   // ---------- update everything from one pass over the records
   function update() {
     // Each control's counts apply all the *other* filters, so they say how many calls picking that option shows.
@@ -712,6 +1023,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const typeN = new Float64Array(D.types.length), agN = new Float64Array(D.agencyTypes.length);
     const yearN = new Float64Array(D.years.length), cityN = new Float64Array(D.cities.length);
     const heatN = new Float64Array(7 * 24), dateN = new Float64Array(D.dates.length);
+    const typeHour = new Float64Array(D.types.length * 24);
     let unloc = 0, hidden = 0;
     for (let i = 0; i < N; i++) {
       const t = R.t[i], a = R.a[i], c = R.c[i], d = R.d[i], h = R.h[i];
@@ -723,6 +1035,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       if (mt && my && ma && time) cityN[c]++;
       if (mt && my && ma && mp && md) heatN[dateDow[d] * 24 + h]++;
       if (mt && ma && mp && mw && mh) dateN[d]++;
+      if (my && ma && mp && md && mw) typeHour[t * 24 + h]++;
       if (!(mt && my && ma && mp && time)) continue;
       if (!showCity(c)) hidden++;
       else if (!R.l[i]) unloc++;
@@ -744,6 +1057,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const current = [];
     per.forEach((n, i) => { if (n > 0) current.push([i, n]); });
     current.sort((a, b) => b[1] - a[1]);
+    lastCurrent = current;
     const located = current.reduce((s, x) => s + x[1], 0);
     const max = current.length ? current[0][1] : 1;
     const r = n => 2.5 + 26 * Math.sqrt(n / max);
@@ -797,6 +1111,149 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       + `<span class="cap">calls per place</span>`;
 
     renderPatterns(heatN, dateN);
+    let daysSel = 0;
+    D.dates.forEach((iso, d) => { if (yearOK(d) && dateOK(d) && dowOK(d)) daysSel++; });
+    renderStandout(typeN);
+    renderMix(typeHour, daysSel);
+    lastDateN = dateN;
+    renderTrend(dateN);
+    syncUrl();
+  }
+  let lastCurrent = [];
+
+  // ---------- shareable links: the address bar mirrors the current view
+  const DOW_KEY = DOW.map(d => d.toLowerCase());
+  function toQuery() {
+    const q = new URLSearchParams();
+    if (st.cat !== "ALL") q.set("cat", st.cat);
+    if (st.type >= 0) q.set("type", D.types[st.type][0]);
+    if (st.place) q.set("place", st.place);
+    if (st.agency >= 0) q.set("responder", D.agencyTypes[st.agency]);
+    if (st.year >= 0) q.set("year", D.years[st.year]);
+    if (st.date >= 0) q.set("date", D.dates[st.date]);
+    if (st.dow >= 0) q.set("day", DOW_KEY[st.dow]);
+    if (st.hour >= 0) q.set("hour", st.hour);
+    if (st.outside) q.set("outside", "1");
+    if (selected != null) q.set("street", `${D.locations[selected][2]}|${D.locations[selected][3]}`);
+    return q.toString();
+  }
+  function syncUrl() {
+    const qs = toQuery();
+    try { history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + location.hash); } catch (e) {}
+  }
+  function fromQuery() {
+    const q = new URLSearchParams(location.search);
+    if (cats.includes(q.get("cat"))) st.cat = q.get("cat");
+    fillTypes();
+    const ti = D.types.findIndex(t => t[0] === q.get("type"));
+    if (ti >= 0) { st.cat = typeCat[ti]; fillTypes(); st.type = ti; }
+    if (q.get("place") && placeCities[q.get("place")]) setPlace(q.get("place"));
+    const ai = D.agencyTypes.indexOf(q.get("responder")); if (ai >= 0) st.agency = ai;
+    const yi = D.years.indexOf(+q.get("year")); if (yi >= 0) st.year = yi;
+    if (dateIdx.has(q.get("date"))) st.date = dateIdx.get(q.get("date"));
+    const di = DOW_KEY.indexOf(q.get("day")); if (di >= 0) st.dow = di;
+    const h = q.get("hour"); if (h !== null && /^\d{1,2}$/.test(h) && +h < 24) st.hour = +h;
+    st.outside = q.get("outside") === "1";
+    const sk = q.get("street");
+    return sk ? D.locations.findIndex(l => `${l[2]}|${l[3]}` === sk) : -1;
+  }
+  $("copy").onclick = () => {
+    syncUrl();
+    const b = $("copy"), done = text => { b.textContent = text; b.classList.add("ok"); setTimeout(() => { b.textContent = "Copy link"; b.classList.remove("ok"); }, 1800); };
+    navigator.clipboard?.writeText(location.href).then(() => done("Link copied"), () => done("Copy the address bar"))
+      ?? done("Copy the address bar");
+  };
+
+  // ---------- downloads (CSV of the current view)
+  const csvCell = v => { v = v == null ? "" : String(v); return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
+  function saveCsv(name, rows) {
+    const blob = new Blob(["﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+  const fileStem = () => {
+    const q = decodeURIComponent(toQuery().replace(/\+/g, " ")).replace(/(^|&)street=[^&]*/, "");
+    const slug = q.replace(/[=&|:\s]+/g, "-").replace(/[^\w-]+/g, "").replace(/-+/g, "-").replace(/^-|-$/g, "").toLowerCase().slice(0, 80);
+    return "oneida-911" + (slug ? "-" + slug : "");
+  };
+  $("dl-calls").onclick = () => {
+    const rows = [["date", "weekday", "hour", "call_type", "category", "responder_type", "reported_city", "town", "village", "street",
+      "map_latitude", "map_longitude", "location_precision", "typical_location_error_m"]];
+    for (let i = 0; i < N; i++) {
+      if (!fullMatch(i) || !showCity(R.c[i])) continue;
+      const city = D.cities[R.c[i]], [town, village] = info(city), loc = R.l[i] ? D.locations[R.l[i] - 1] : null;
+      rows.push([D.dates[R.d[i]], DOW_LONG[dateDow[R.d[i]]], R.h[i], D.types[R.t[i]][0], typeCat[R.t[i]], D.agencyTypes[R.a[i]], city,
+        town, village, loc ? loc[2] : "", loc ? loc[0] : "", loc ? loc[1] : "", loc ? loc[4] : "none", loc ? loc[5] ?? "" : ""]);
+    }
+    saveCsv(fileStem() + "-calls.csv", rows);
+  };
+  $("dl-places").onclick = () => {
+    const rows = [["rank", "street", "place", "calls", "latitude", "longitude", "location_precision", "typical_location_error_m"]];
+    lastCurrent.forEach(([li, n], k) => { const l = D.locations[li]; rows.push([k + 1, l[2] || "Town center", placeLabel(l[3]), n, l[0], l[1], l[4], l[5] ?? ""]); });
+    saveCsv(fileStem() + "-places.csv", rows);
+  };
+
+  // ---------- street search (map control)
+  const locTotal = D.locations.map((l, i) => locStart[i + 1] - locStart[i]);
+  const SearchCtl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const div = L.DomUtil.create("div", "search");
+    div.innerHTML = `<input id="q" type="search" placeholder="Find a street…" autocomplete="off" aria-label="Find a street" role="combobox" aria-expanded="false" aria-controls="sugg">` +
+      `<ul id="sugg" role="listbox"></ul><div class="note" id="qnote"></div>`;
+    L.DomEvent.disableClickPropagation(div); L.DomEvent.disableScrollPropagation(div);
+    return div;
+  } });
+  map.addControl(new SearchCtl());
+  const qIn = $("q"), sugg = $("sugg");
+  let hits = [], active = -1;
+  function renderSugg() {
+    sugg.innerHTML = hits.map((i, k) => `<li role="option" data-i="${i}" aria-selected="${k === active}"><b>${esc(D.locations[i][2])}</b>` +
+      `<small>${esc(placeLabel(D.locations[i][3]))}</small><span>${fmt(locTotal[i])}</span></li>`).join("");
+    qIn.setAttribute("aria-expanded", hits.length > 0);
+  }
+  qIn.addEventListener("input", () => {
+    const q = qIn.value.trim().toUpperCase().replace(/\s+/g, " ");
+    $("qnote").textContent = "";
+    if (q.length < 2) { hits = []; active = -1; renderSugg(); return; }
+    const score = s => s.startsWith(q) ? 2 : s.includes(" " + q) ? 1 : s.includes(q) ? 0 : -1;
+    hits = D.locations.map((l, i) => [i, score(l[2] || "")]).filter(x => x[1] >= 0)
+      .sort((a, b) => b[1] - a[1] || locTotal[b[0]] - locTotal[a[0]]).slice(0, 8).map(x => x[0]);
+    active = hits.length ? 0 : -1; renderSugg();
+    if (!hits.length) $("qnote").textContent = "No street by that name in the reports.";
+  });
+  function goTo(li) {
+    hits = []; active = -1; renderSugg();
+    const l = D.locations[li];
+    qIn.value = l[2];
+    map.flyTo([l[0], l[1]], Math.max(map.getZoom(), 15.5), { duration: reduceMotion() ? 0 : 0.8 });
+    if (markers.has(li)) { select(li); map.once("moveend", () => markers.get(li)?.openTooltip()); $("qnote").textContent = ""; }
+    else $("qnote").textContent = `No calls on ${l[2]} (${placeLabel(l[3])}) match the current filters.`;
+  }
+  sugg.addEventListener("click", e => { const li = e.target.closest("[data-i]"); if (li) goTo(+li.dataset.i); });
+  qIn.addEventListener("keydown", e => {
+    if (e.key === "ArrowDown" && hits.length) { active = (active + 1) % hits.length; renderSugg(); e.preventDefault(); }
+    else if (e.key === "ArrowUp" && hits.length) { active = (active - 1 + hits.length) % hits.length; renderSugg(); e.preventDefault(); }
+    else if (e.key === "Enter" && active >= 0) { goTo(hits[active]); e.preventDefault(); }
+    else if (e.key === "Escape") { hits = []; renderSugg(); }
+  });
+
+  // ---------- about: figures computed from the data
+  {
+    let errW = [], town = 0, none = 0;
+    for (let li = 0; li < D.locations.length; li++) {
+      const l = D.locations[li], n = locTotal[li];
+      if (l[4] === "municipality") town += n; else if (l[5] != null) errW.push([l[5], n]);
+    }
+    for (let i = 0; i < N; i++) if (!R.l[i]) none++;
+    errW.sort((a, b) => a[0] - b[0]);
+    const tot = errW.reduce((s, x) => s + x[1], 0); let acc = 0, med = 0, within500 = 0;
+    for (const [e, n] of errW) { acc += n; if (!med && acc >= tot / 2) med = e; if (e <= 500) within500 += n; }
+    const pct = v => `${(100 * v).toFixed(0)}%`;
+    const days = D.yearDays.reduce((a, b) => a + b, 0);
+    $("about-coverage").innerHTML = `The collection has reports for <b>${days}</b> days: ${D.years.map((y, i) => `<b>${D.yearDays[i]}</b> in ${y}`).join(", ")}. ` +
+      `It is what could be recovered from the county's website, not a complete archive, so a day without a report means no report was found, not that no calls happened. The coverage calendar shows exactly which days are included.`;
+    $("about-location").innerHTML = `The reports give a street and a town but no house number. Each street is matched to Census roads within its town and placed where that street's addresses are concentrated, so a circle stands for a whole street. ` +
+      `Typical placement error is about <b>${fmt(Math.round(med / 10) * 10)} m</b> (${pct(within500 / tot)} of mapped calls within 500 m); long rural roads can be off by several kilometers. ` +
+      `<b>${pct(town / N)}</b> of calls are on streets that could not be matched and sit at the town center (dashed circles), and <b>${pct(none / N)}</b> had no location in the report at all.`;
   }
 
   const days = D.yearDays.reduce((a, b) => a + b, 0);
@@ -807,13 +1264,18 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   drawBase();
   map.fitBounds(countyBounds, { padding: [12, 12], animate: false });
   syncZoom();
+  const linkedStreet = fromQuery();
   update();
+  if (st.place) zoomToPlace();
+  if (linkedStreet >= 0) { const l = D.locations[linkedStreet]; map.setView([l[0], l[1]], 15.5, { animate: false });
+    if (markers.has(linkedStreet)) { select(linkedStreet); setTimeout(() => markers.get(linkedStreet)?.openTooltip(), 300); } }
 
   // Fonts and the header settle after first paint; keep the map sized to its box and re-fit until the
   // viewer moves the map themselves.
   let userMoved = false;
   map.getContainer().addEventListener("pointerdown", () => userMoved = true);
   map.getContainer().addEventListener("wheel", () => userMoved = true, { passive: true });
+  if (linkedStreet >= 0) userMoved = true;
   const refit = () => { map.invalidateSize({ animate: false }); if (!userMoved && !st.place) map.fitBounds(countyBounds, { padding: [12, 12], animate: false }); };
   new ResizeObserver(refit).observe(map.getContainer());
   document.fonts?.ready.then(refit);
