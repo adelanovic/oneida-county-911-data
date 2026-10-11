@@ -249,7 +249,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .rank-row .nm small { color: var(--muted); font-size: .76rem; margin-left: 6px; }
 .rank-row .v { font-variant-numeric: tabular-nums; font-weight: 600; }
 .rank-row .v small { font-weight: 400; color: var(--muted); margin-left: 6px; }
-.rank-row .bar { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--q1); position: relative; overflow: visible; }
+.rank-row .bar { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--dot-soft); position: relative; overflow: visible; }
 .rank-row .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--q4); }
 .rank-row .bar .avgmark { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); opacity: .55; }
 .sizebar { display: flex; height: 22px; border-radius: 4px; overflow: hidden; gap: 2px; }
@@ -450,7 +450,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         <div><h3>Call types are what dispatch heard</h3><p>A call type is the dispatcher's category when the call came in, not a confirmed outcome. Medical calls use Medical Priority Dispatch codes (for example 17B01 = Fall); this page groups them by complaint. The reports have no arrival or clear times, so response times cannot be measured.</p></div>
         <div><h3>How locations were placed</h3><p id="about-location"></p></div>
         <div><h3>Mutual aid</h3><p>A few dispatches went to towns in Herkimer, Oswego, Madison and Lewis counties. They count in the totals but are hidden from the map unless you turn them on or pick that county.</p></div>
-        <div><h3>Built with</h3><p>Street and town boundaries: US Census TIGER/Line 2024. Map: Leaflet. All processing is reproducible from the original PDFs with the scripts in this project's repository.</p></div>
+        <div><h3>Built with</h3><p>Street and town boundaries: US Census TIGER/Line 2024. Population: US Census Bureau 2024 estimates for cities, towns and villages. Map: Leaflet. All processing is reproducible from the original PDFs with the scripts in this project's repository.</p></div>
       </div>
     </div>
   </section>
