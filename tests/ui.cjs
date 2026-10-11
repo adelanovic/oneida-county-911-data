@@ -391,6 +391,44 @@ async function main() {
     assert.deepEqual(errors, []);
     console.log('PASS: narrow layouts, separate yearly trends, mobile taps and large date/hour pickers');
 
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate(pageUrl + '?cat=MEDICAL');
+    await evaluate(`document.querySelector('#reset-map').click()`);
+    const countyCamera = await evaluate(`new URL(location.href).searchParams.get('view').split(',').map(Number)`);
+    await navigate(pageUrl + '?cat=MEDICAL&view=0,0,15');
+    const limitedCamera = await evaluate(`(()=>{const view=new URL(location.href).searchParams.get('view').split(',').map(Number),d=JSON.parse(document.querySelector('#data').textContent),points=[];
+      function collect(a){if(typeof a[0]==='number'){points.push(a);return}a.forEach(collect)}d.basemap.towns.forEach(t=>collect(t.rings));
+      return {view,south:Math.min(...points.map(p=>p[0])),north:Math.max(...points.map(p=>p[0])),west:Math.min(...points.map(p=>p[1])),east:Math.max(...points.map(p=>p[1]))}})()`);
+    const nearCounty = view => view[0] >= limitedCamera.south - (limitedCamera.north-limitedCamera.south)*.15 - .001 &&
+      view[0] <= limitedCamera.north + (limitedCamera.north-limitedCamera.south)*.15 + .001 &&
+      view[1] >= limitedCamera.west - (limitedCamera.east-limitedCamera.west)*.15 - .001 &&
+      view[1] <= limitedCamera.east + (limitedCamera.east-limitedCamera.west)*.15 + .001;
+    assert(nearCounty(limitedCamera.view), JSON.stringify(limitedCamera));
+    const mapPoint=await evaluate(`(()=>{const r=document.querySelector('#map').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()`);
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:mapPoint.x,y:mapPoint.y});
+    await send('Input.dispatchMouseEvent',{type:'mousePressed',x:mapPoint.x,y:mapPoint.y,button:'left',buttons:1,clickCount:1});
+    for(let step=1;step<=6;step++)await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:mapPoint.x+step*500,y:mapPoint.y+step*300,button:'left',buttons:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:mapPoint.x+3000,y:mapPoint.y+1800,button:'left',clickCount:1});await delay(250);
+    const dragged=await evaluate(`new URL(location.href).searchParams.get('view').split(',').map(Number)`);
+    assert(nearCounty(dragged), JSON.stringify(dragged));
+    const resetCounty = await evaluate(`(()=>{document.querySelector('#reset-map').click();return {view:new URL(location.href).searchParams.get('view').split(',').map(Number),category:document.querySelector('#cat').value}})()`);
+    // Leaflet rounds projected centers to pixels when fitting after a drag.
+    const countyPixel = 360 / (256 * 2 ** countyCamera[2]);
+    assert(Math.abs(resetCounty.view[0]-countyCamera[0])<=countyPixel && Math.abs(resetCounty.view[1]-countyCamera[1])<=countyPixel,JSON.stringify(resetCounty));
+    assert.equal(resetCounty.view[2],countyCamera[2]);
+    assert.equal(resetCounty.category,'MEDICAL');
+    console.log('PASS: county bounds constrain shared cameras and large drags; Show county preserves filters');
+
+    for(const [width,height,mobile] of [[390,844,true],[1440,900,false]]){
+      await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile});await delay(200);
+      const resized=await evaluate(`new URL(location.href).searchParams.get('view').split(',').map(Number)`);
+      assert(Math.abs(resized[0]-countyCamera[0])<.02 && Math.abs(resized[1]-countyCamera[1])<.02,JSON.stringify(resized));
+      await evaluate(`document.querySelector('#reset-flow-map').click()`);
+      assert.equal(await evaluate(`document.querySelector('#reset-flow-map').getAttribute('aria-label')`),'Reset map to show all of Oneida County');
+    }
+    assert.deepEqual(errors,[]);
+    console.log('PASS: county overview remains centered across mobile/desktop resizing and both maps expose reset controls');
+
     const injected = await send('Page.addScriptToEvaluateOnNewDocument', { source: `const originalParse=JSON.parse;JSON.parse=function(...args){const d=originalParse.apply(this,args);if(d&&d.records&&d.population)d.population={};return d}` });
     await navigate(pageUrl + '?test=missing-population');
     assert((await evaluate(`document.querySelector('#pc-list').innerText`)).includes('unavailable'));

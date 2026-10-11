@@ -79,6 +79,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .btn { font: inherit; font-size: .86rem; height: 36px; padding: 0 12px; border-radius: 6px; cursor: pointer; display: inline-flex;
   align-items: center; color: var(--ink); background: none; border: 1px solid var(--line); text-decoration: none; box-sizing: border-box; }
 .btn:hover { background: var(--dot-soft); }
+.section-nav { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.section-nav .btn { font-size: .8rem; padding-inline: 10px; }
+.patterns > [id] { scroll-margin-top: 12px; }
 .push { margin-left: auto; }
 
 .main { flex: 1; min-height: 320px; display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 12px; }
@@ -316,9 +319,13 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .tip li { font-variant-numeric: tabular-nums; } .tip li + li { margin-top: 1px; } .tip em { display: block; color: var(--muted); font-style: normal; font-size: .76rem; margin: 2px 0 4px; }
 .leaflet-bar a { background: var(--panel); color: var(--ink); border-bottom-color: var(--line); }
 .leaflet-bar a:hover { background: var(--dot-soft); color: var(--ink); }
+.map-home { display: block; min-height: 36px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); color: var(--ink); font: inherit; cursor: pointer; box-shadow: 0 1px 5px rgba(0,0,0,.25); }
+.map-home:hover { background: var(--dot-soft); }
 .leaflet-control-attribution { background: var(--panel) !important; color: var(--muted); font-size: 10px; }
 
 @media (max-width: 760px) {
+  .section-nav { flex-wrap: nowrap; overflow-x: auto; padding: 3px 2px 8px; }
+  .section-nav .btn { flex: 0 0 auto; min-height: 44px; }
   .screen { height: auto; min-height: 0; }
   .main { height: auto; grid-template-columns: minmax(0, 1fr); }
   #map { height: 62vh; }
@@ -359,9 +366,22 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="chips" id="chips" aria-label="Time filters"></div>
       <button type="button" class="btn" id="reset" hidden>Reset filters</button>
       <button type="button" class="btn push" id="copy" title="Copy a link to this exact view">Copy link</button>
-      <a class="btn" href="#patterns">Time patterns &amp; coverage ↓</a>
-      <a class="btn" href="#about">About the data</a>
     </div>
+    <nav class="section-nav" aria-label="Jump to a section">
+      <a class="btn" href="#patterns">Time patterns</a>
+      <a class="btn" href="#coverage-section">Report coverage</a>
+      <a class="btn" href="#trend-section">Daily trend</a>
+      <a class="btn" href="#standouts-section">What stands out</a>
+      <a class="btn" href="#mix-section">Call mix</a>
+      <a class="btn" href="#responders-section">Who responds</a>
+      <a class="btn" href="#medical-section">Medical urgency</a>
+      <a class="btn" href="#population-section">Population rates</a>
+      <a class="btn" href="#compare-section">Compare</a>
+      <a class="btn" href="#police-section">Police dispatch types</a>
+      <a class="btn" href="#outside-section">Outside home town</a>
+      <a class="btn" href="#flows-section">Response flows</a>
+      <a class="btn" href="#about">About the data</a>
+    </nav>
 
     <div class="main">
       <div id="map" aria-label="Map of call locations"></div>
@@ -397,7 +417,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="insight" id="heat-insight"></div>
       <label class="chart-picker">Filter by hour <select data-hour-picker aria-label="Filter dispatches by hour"></select></label>
     </div>
-    <div class="chart card">
+    <div class="chart card" id="coverage-section">
       <div class="chart-head">
         <h2>Report coverage</h2>
         <p>Each square is a day. Colored days have a county report; darker colors mean more dispatches for the current filters. Outlined days have no report in this collection. Click a day to filter the map.</p>
@@ -406,7 +426,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="ramp" id="cal-ramp"></div>
       <label class="chart-picker">Filter by report date <select id="report-date" aria-label="Filter by report date"></select></label>
     </div>
-    <div class="chart card wide">
+    <div class="chart card wide" id="trend-section">
       <div class="chart-head">
         <h2>Daily trend</h2>
         <p>Dispatches by report date, with a 7-day average and a separate chart for each selected year. Missing days break the line. Place, responder, call type, weekday and hour filters apply; the selected date is highlighted. The 2026 system omits traffic stops and premise checks. Tap a date to filter; use arrow keys to explore and Enter to select.</p>
@@ -415,21 +435,21 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="legend-line"><span><i class="raw"></i>Each report day</span><span><i></i>7-day average</span><span>○ Unusual spikes</span></div>
       <div class="insight" id="trend-insight"></div>
     </div>
-    <div class="chart card">
+    <div class="chart card" id="standouts-section">
       <div class="chart-head">
         <h2>What stands out here</h2>
         <p id="so-sub">Pick a town, responder, year, day or hour to see which call types are unusually common or rare there.</p>
       </div>
       <div class="so" id="so"></div>
     </div>
-    <div class="chart card">
+    <div class="chart card" id="mix-section">
       <div class="chart-head">
         <h2 id="mix-title">Call mix by hour</h2>
         <p id="mix-sub">Average dispatches per report day for the largest categories. Each chart has its own scale so the shape of the day compares; darkest bar is the peak hour. Click one to filter.</p>
       </div>
       <div class="mix" id="mix"></div>
     </div>
-    <div class="chart card">
+    <div class="chart card" id="responders-section">
       <div class="chart-head">
         <h2>Who responds</h2>
         <p>Agencies dispatched for the current filters. One emergency often gets several agencies (fire, ambulance, police); the estimate of incidents groups dispatches to the same type of call at the same place within two minutes. Click an agency to filter.</p>
@@ -438,7 +458,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div><div class="sizebar" id="resp-size"></div><div class="legend-row" id="resp-size-legend" style="margin-top:6px"></div></div>
       <div class="rank" id="resp-list"></div>
     </div>
-    <div class="chart card">
+    <div class="chart card" id="medical-section">
       <div class="chart-head">
         <h2>Medical urgency</h2>
         <p>Medical dispatches by dispatch priority (Medical Priority Dispatch levels), share of each hour's dispatches. Omega and Alpha are the lowest priority; Delta and Echo are the most serious, such as cardiac arrest or not breathing. Click an hour to filter.</p>
@@ -449,7 +469,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <label class="chart-picker">Filter by hour <select data-hour-picker aria-label="Filter medical dispatches by hour"></select></label>
       <div><h3 class="eyebrow" style="margin:4px 0 6px">Highest share of Delta and Echo dispatches, by town</h3><div class="rank" id="urg-towns"></div></div>
     </div>
-    <div class="chart card">
+    <div class="chart card" id="population-section">
       <div class="chart-head">
         <h2>Calls per 1,000 residents</h2>
         <p>Dispatches per 1,000 residents per year (scaled from the report days covered), for the current filters, using Census 2024 population estimates. The dark tick marks the county rate. Click a place to filter.</p>
@@ -458,7 +478,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="rank" id="pc-list" style="max-height:30rem;overflow-y:auto"></div>
       <p class="note-sm">Calls are counted where they happened, so towns with highways, colleges, shopping or tourism rank high for visitors' dispatches too. Small populations make rates jumpy.</p>
     </div>
-    <div class="chart card">
+    <div class="chart card" id="compare-section">
       <div class="chart-head">
         <h2>Compare</h2>
         <p>Two places or two years side by side, with the other filters applied to both.</p>
@@ -470,7 +490,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       </div>
       <div id="cmp-out" style="display:grid;gap:14px"></div>
     </div>
-    <div class="chart card">
+    <div class="chart card" id="police-section">
       <div class="chart-head">
         <h2>Police dispatch types</h2>
         <p>Dispatch types classified as likely officer-initiated (traffic stops, checks, details, parking, warrants, summonses and vehicle traffic law), administrative, or other. This estimate does not identify who requested a response or measure time worked. Click a department to filter.</p>
@@ -483,7 +503,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <label class="chart-picker">Filter by hour <select data-hour-picker aria-label="Filter police summary by hour"></select></label>
       <p class="note-sm">The 2026 reports omit traffic stops and premise checks, reducing the observed officer-initiated share. Category and call-type filters are ignored here; selecting a department clears them. The department list ignores the individual-agency filter and shows up to 12 departments with at least 20 matching dispatches, plus the selected department. Hourly comparisons ignore the hour filter and require 20 dispatches per hour; the summary applies the hour filter.</p>
     </div>
-    <div class="chart card">
+    <div class="chart card" id="outside-section">
       <div class="chart-head">
         <h2>Agencies working outside their home town</h2>
         <p>Share of each fire department's and ambulance service's dispatches that went outside its home town (the town where it responds most). Fire districts and ambulance territories often cross town lines, so this includes routine coverage as well as mutual aid. Click an agency to filter.</p>
@@ -491,7 +511,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="rank" id="out-list"></div>
       <p class="note-sm">Home town is estimated from all available reports. Percentages use dispatches with known destinations. All filters apply except the individual-agency filter, so departments remain available for comparison. Nurse Navigation is excluded because it is a phone-triage service.</p>
     </div>
-    <div class="chart card wide">
+    <div class="chart card wide" id="flows-section">
       <div class="chart-head">
         <h2>Response flows between towns</h2>
         <p>Arrows run from an agency's home town to the town it responded in; thicker arrows mean more dispatches. Hover an arrow for the agencies involved; click a route to filter the map to that town.</p>
@@ -702,7 +722,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     setPlace(""); fillTypes(); update(); zoomToPlace(); };
 
   // ---------- map + basemap (separate panes keep streets under the circles and names above them)
-  const map = L.map("map", { zoomSnap: 0.1, zoomDelta: 0.5, wheelPxPerZoomLevel: 90, minZoom: 8, maxZoom: 17 });
+  const map = L.map("map", { zoomSnap: 0.1, zoomDelta: 0.5, wheelPxPerZoomLevel: 90, minZoom: 8, maxZoom: 17, maxBoundsViscosity: 1 });
   map.attributionControl.setPrefix(false).addAttribution("Basemap: US Census TIGER/Line 2024");
   map.createPane("basePane").style.zIndex = 250;
   map.createPane("outlinePane").style.zIndex = 350;
@@ -719,6 +739,30 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   const dots = L.layerGroup().addTo(map);
   const roadLayers = {};
   let countyBounds;
+  let countyOverview = true;
+  function fitCounty() {
+    map.stop();
+    map.fitBounds(countyBounds, { padding: [12, 12], animate: false });
+    countyOverview = true;
+  }
+  function constrainCountyMap(target, bounds, padding) {
+    target.setMaxBounds(bounds.pad(0.15));
+    target.setMinZoom(Math.min(target.options.maxZoom, target.getBoundsZoom(bounds, false, L.point(padding, padding))));
+  }
+  function addCountyControl(target, id, onClick) {
+    const HomeControl = L.Control.extend({ options: { position: "topleft" }, onAdd() {
+      const button = L.DomUtil.create("button", "map-home");
+      button.id = id; button.type = "button"; button.textContent = "Show county";
+      button.setAttribute("aria-label", "Reset map to show all of Oneida County");
+      button.title = "Center and fit Oneida County without changing filters";
+      L.DomEvent.disableClickPropagation(button); L.DomEvent.disableScrollPropagation(button);
+      button.addEventListener("click", onClick); return button;
+    } });
+    target.addControl(new HomeControl());
+  }
+  addCountyControl(map, "reset-map", () => {
+    fitCounty(); userMoved = true; syncControls(); syncUrl();
+  });
 
   const decode = flat => {
     const out = []; let la = 0, lo = 0;
@@ -802,8 +846,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   }
   function zoomToPlace() {
     drawOutline();
+    countyOverview = false;
     const opts = { padding: [24, 24], maxZoom: 15, animate: !reduceMotion() };
-    if (!st.place) { map.fitBounds(countyBounds, { padding: [12, 12], animate: !reduceMotion() }); return; }
+    if (!st.place) { fitCounty(); return; }
     const rings = placeShape();
     if (rings) { map.fitBounds(L.polygon(rings).getBounds(), opts); return; }
     const inPlace = D.locations.filter((l, i) => cityOK[D.cities.indexOf(l[3])]);
@@ -1323,6 +1368,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         row.dataset.li = li;
         row.innerHTML = `<span class="rk">${k + 1}</span><span class="nm">${esc(street || "Town center")}<small>${esc(placeLabel(city))}</small></span><span class="ct">${fmt(n)}</span>`;
         const go = () => {
+          countyOverview = false;
           select(li);
           map.once("moveend", () => markers.get(li)?.openTooltip());
           map.flyTo([lat, lon], Math.max(map.getZoom(), 15), { duration: reduceMotion() ? 0 : 0.8 });
@@ -1422,7 +1468,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     }
     const view = (q.get("view") || "").split(",").map(Number);
     if (view.length === 3 && view.every(Number.isFinite) && Math.abs(view[0]) <= 90 && Math.abs(view[1]) <= 180 && view[2] >= 8 && view[2] <= 17) {
-      map.setView(view.slice(0, 2), view[2], { animate: false }); userMoved = true;
+      countyOverview = false; map.setView(view.slice(0, 2), view[2], { animate: false }); userMoved = true;
     }
     const sk = q.get("street");
     return sk ? D.locations.findIndex(l => `${l[2]}|${l[3]}` === sk) : -1;
@@ -1497,6 +1543,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   });
   function goTo(li) {
     if (!D.locations[li]) return;
+    countyOverview = false;
     hits = []; active = -1; renderSugg();
     const l = D.locations[li];
     qIn.value = l[2];
@@ -1788,9 +1835,10 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   $("flow-kind").onclick = e => { const b = e.target.closest("button"); if (!b) return; flowKind = b.dataset.k;
     markFlowKind(); renderFlows(); syncControls(); syncUrl(); };
 
-  const fmap = L.map("flowmap", { zoomSnap: 0.25, zoomControl: true, attributionControl: false, scrollWheelZoom: false, minZoom: 8, maxZoom: 13 });
+  const fmap = L.map("flowmap", { zoomSnap: 0.25, zoomControl: true, attributionControl: false, scrollWheelZoom: false, minZoom: 8, maxZoom: 13, maxBoundsViscosity: 1 });
   const fBaseR = L.canvas({ padding: 0.2 }), fBase = L.layerGroup().addTo(fmap), fFlows = L.layerGroup().addTo(fmap), fLabels = L.layerGroup().addTo(fmap);
   let fTheme = "", fBounds = null, fMoved = false;
+  addCountyControl(fmap, "reset-flow-map", () => { fmap.stop(); fmap.fitBounds(fBounds, { padding: [8, 8], animate: false }); fMoved = false; });
   fmap.getContainer().addEventListener("pointerdown", () => fMoved = true);
   // Nurse Navigation is a phone triage line, not a responding unit.
   const flowAgency = u => (D.agencyKind[u] === "FIRE" || D.agencyKind[u] === "EMS") && !/nurse navigation/i.test(D.agencies[u]) && homeTown[u];
@@ -1804,6 +1852,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     D.basemap.towns.forEach(t => fLabels.addLayer(L.marker(t.label, { interactive: false, keyboard: false,
       icon: L.divIcon({ className: "town-label", html: esc(t.name.replace(/ (town|city)$/, "")), iconSize: [120, 12], iconAnchor: [60, -8] }) })));
     fBounds = L.featureGroup(towns).getBounds();
+    constrainCountyMap(fmap, fBounds, 16);
     if (!fmap._loaded || !fMoved) fmap.fitBounds(fBounds, { padding: [8, 8], animate: false });
   }
   function curve(a, b) {
@@ -1897,7 +1946,10 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   $("out-list").addEventListener("keydown", e => { const r = e.target.closest("[data-u]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleUnit(+r.dataset.u); } });
   $("flow-list").addEventListener("click", e => { const r = e.target.closest("[data-dest]"); if (r) pickRoute(r.dataset.dest); });
   $("flow-list").addEventListener("keydown", e => { const r = e.target.closest("[data-dest]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pickRoute(r.dataset.dest); } });
-  new ResizeObserver(() => { fmap.invalidateSize({ animate: false }); if (fBounds && !fMoved) fmap.fitBounds(fBounds, { padding: [8, 8], animate: false }); }).observe($("flowmap"));
+  new ResizeObserver(() => {
+    fmap.invalidateSize({ animate: false });
+    if (fBounds) { constrainCountyMap(fmap, fBounds, 16); if (!fMoved) fmap.fitBounds(fBounds, { padding: [8, 8], animate: false }); else fmap.panInsideBounds(fBounds.pad(0.15), { animate: false }); }
+  }).observe($("flowmap"));
 
   // ---------- about: figures computed from the data
   {
@@ -1926,21 +1978,29 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     `reports usually give no house numbers.`;
 
   drawBase();
-  map.fitBounds(countyBounds, { padding: [12, 12], animate: false });
+  constrainCountyMap(map, countyBounds, 24);
+  fitCounty();
   syncZoom();
   const linkedStreet = fromQuery();
   update();
   if (st.place && !userMoved) zoomToPlace();
-  if (linkedStreet >= 0) { const l = D.locations[linkedStreet]; if (!userMoved) map.setView([l[0], l[1]], 15.5, { animate: false });
+  if (linkedStreet >= 0) { const l = D.locations[linkedStreet]; if (!userMoved) { countyOverview = false; map.setView([l[0], l[1]], 15.5, { animate: false }); }
     if (markers.has(linkedStreet)) { select(linkedStreet); setTimeout(() => markers.get(linkedStreet)?.openTooltip(), 300); } }
 
   // Fonts and the header settle after first paint; keep the map sized to its box and re-fit until the
   // viewer moves the map themselves.
+  map.on("dragstart", () => { countyOverview = false; userMoved = true; });
+  map.on("zoomstart", () => countyOverview = false);
   map.getContainer().addEventListener("pointerdown", () => userMoved = true);
   map.getContainer().addEventListener("wheel", () => userMoved = true, { passive: true });
   map.on("moveend", () => { if (userMoved) syncUrl(); });
   if (linkedStreet >= 0) userMoved = true;
-  const refit = () => { map.invalidateSize({ animate: false }); if (!userMoved && !st.place) map.fitBounds(countyBounds, { padding: [12, 12], animate: false }); };
+  const refit = () => {
+    const overview = countyOverview;
+    map.invalidateSize({ animate: false, pan: false });
+    constrainCountyMap(map, countyBounds, 24);
+    if (overview) fitCounty(); else map.panInsideBounds(countyBounds.pad(0.15), { animate: false });
+  };
   new ResizeObserver(refit).observe(map.getContainer());
   document.fonts?.ready.then(refit);
 
