@@ -7,8 +7,8 @@
 <style>body { margin: 0; } [hidden] { display: none !important; }</style>
 <title>Oneida County 911 Call Map</title>
 <script>
-  // Theme is applied before first paint: the saved choice, or light by default. "auto" follows the system setting.
-  (() => { let t = "light"; try { t = localStorage.getItem("theme") || "light"; } catch (e) {}
+  // Theme is applied before first paint: the saved choice, or "auto" (follow the system setting) by default.
+  (() => { let t = "auto"; try { t = localStorage.getItem("theme") || "auto"; } catch (e) {}
     if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,9 +23,9 @@
   --land: #fafaf8; --town: #aeb3b8; --road: #b38a4f; --road-2: #cfb58a; --street: #d2d5d8; --street-2: #e1e3e5;
   --street-ink: #6b6e72; --water: #cddff0; --dot: #2a78d6; --dot-soft: rgba(42,120,214,.16); --select: #0b0b0b;
   --focus: #2a78d6;
-  /* heat scale, low -> high (q0 = no calls): pale yellow -> orange -> deep red */
-  --q0: #f6f1e4; --q1: #ffeda0; --q2: #fed976; --q3: #feb24c; --q4: #fd8d3c; --q5: #fc4e2a; --q6: #e31a1c; --q7: #b10026;
-  --bar: #f07f2e; --bar-on: #c8341b;
+  /* sequential blue, light -> dark (q0 = no calls); q1-q7 and bars are the same in both themes */
+  --q0: #eef3f9; --q1: #cde2fb; --q2: #9ec5f4; --q3: #6da7ec; --q4: #3987e5; --q5: #256abf; --q6: #184f95; --q7: #0d366b;
+  --bar: #5598e7; --bar-on: #184f95;
   --nodata: transparent;
   --f-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
   --f-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -35,14 +35,14 @@
   --land: #1e1f1e; --town: #4d5156; --road: #9c7d4c; --road-2: #7a6646; --street: #45484d; --street-2: #36383c;
   --street-ink: #9a9da2; --water: #1c2c3b; --dot: #3987e5; --dot-soft: rgba(57,135,229,.2); --select: #f0efec;
   --focus: #6da7ec;
-  --q0: #2c2a27; /* heat colors q1-q7 and bars are shared with light mode */
+  --q0: #2a2d31; /* the blue scale q1-q7 and bars are shared with light mode */
   color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #121313; --panel: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #94938d; --line: #34352f;
   --land: #1e1f1e; --town: #4d5156; --road: #9c7d4c; --road-2: #7a6646; --street: #45484d; --street-2: #36383c;
   --street-ink: #9a9da2; --water: #1c2c3b; --dot: #3987e5; --dot-soft: rgba(57,135,229,.2); --select: #f0efec;
   --focus: #6da7ec;
-  --q0: #2c2a27; /* heat colors q1-q7 and bars are shared with light mode */
+  --q0: #2a2d31; /* the blue scale q1-q7 and bars are shared with light mode */
   color-scheme: dark; }
 
 html { scroll-behavior: smooth; }
@@ -146,11 +146,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .heat .hlab { font-size: .68rem; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
 .heat .corner { font-size: .68rem; color: var(--muted); display: flex; align-items: flex-end; }
 
-.cal-wrap { display: grid; gap: 14px; min-width: 40rem; }
+.cal-wrap { display: grid; gap: 14px; min-width: 34rem; }
 .cal-year { display: grid; gap: 4px; }
 .cal-year h3 { margin: 0; font: 600 .9rem/1.2 var(--f-body); display: flex; gap: 8px; align-items: baseline; }
 .cal-year h3 small { font-weight: 400; color: var(--muted); font-size: .78rem; }
-.cal { display: grid; grid-template-columns: 1.9rem repeat(53, minmax(9px, 1fr)); grid-template-rows: auto repeat(7, auto); gap: 2px; }
+.cal { display: grid; grid-template-columns: 1.9rem repeat(53, minmax(7px, 1fr)); grid-template-rows: auto repeat(7, auto); gap: 2px; }
 .cal .mlab { font-size: .68rem; color: var(--muted); grid-row: 1; white-space: nowrap; }
 .cal .wlab { font-size: .66rem; line-height: 1; color: var(--muted); grid-column: 1; height: 0; align-self: center;
   display: flex; align-items: center; overflow: visible; }
@@ -253,7 +253,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     <div class="chart card">
       <div class="chart-head">
         <h2>Report coverage</h2>
-        <p>Each square is a day. Colored days have a county report; hotter colors mean more dispatches for the current filters. Outlined days have no report in this collection. Click a day to filter the map.</p>
+        <p>Each square is a day. Colored days have a county report; darker colors mean more dispatches for the current filters. Outlined days have no report in this collection. Click a day to filter the map.</p>
       </div>
       <div class="scroll-x"><div class="cal-wrap" id="cal"></div></div>
       <div class="ramp" id="cal-ramp"></div>
