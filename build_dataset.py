@@ -400,17 +400,21 @@ def main():
     df["_place"] = df.street + "|" + df.city
     cluster = [0] * len(df)
     next_id = 0
-    open_by_key = {}  # (type, place) -> (cluster id, last time)
-    for i, (t, typ, place, has_loc) in enumerate(zip(df._dt, df.response_type, df._place, ~df.location_missing)):
+    open_by_key = {}  # (type, reported place) -> (cluster id, first time)
+    for i, (t, typ, place, has_loc, lat, lon, city) in enumerate(zip(
+            df._dt, df.response_type, df._place, ~df.location_missing, df.latitude, df.longitude, df.city)):
         window = 120 if has_loc else 5
-        key = (typ, place if has_loc else "")
+        # Coordinates identify a reported place even when street/city are absent.
+        # Completely unspecified locations cannot establish that two rows share an incident.
+        key = (typ, place, float(lat), float(lon)) if pd.notna(lat) else (typ, place)
         prev = open_by_key.get(key)
-        if prev and (t - prev[1]).total_seconds() <= window:
+        if prev and (has_loc or city) and (t - prev[1]).total_seconds() <= window:
             cluster[i] = prev[0]
         else:
             next_id += 1
             cluster[i] = next_id
-        open_by_key[key] = (cluster[i], t)
+        if not prev or cluster[i] != prev[0]:
+            open_by_key[key] = (cluster[i], t)
     df["incident_cluster_id"] = cluster
     df["agencies_in_cluster"] = df.groupby("incident_cluster_id").agency.transform("nunique")
     df["record_id"] = range(1, len(df) + 1)

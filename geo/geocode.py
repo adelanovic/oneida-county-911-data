@@ -297,7 +297,9 @@ class Geocoder:
                 if dc and dn and dc != dn:
                     continue  # "E LAKE ST" is not "W LAKE ST"; "HANGAR RD W" may still be "HANGAR RD"
                 risky = suffix_of(cand) != suffix_of(name) or re.findall(r"\d+", cand) != re.findall(r"\d+", name)
-                return cand, "fuzzy_risky" if risky else "fuzzy"
+                if risky:
+                    continue  # conflicting street types/numbers require a reviewed alias
+                return cand, "fuzzy"
         return None, None
 
     def street(self, name, city):
@@ -387,19 +389,17 @@ class Geocoder:
 def main():
     gc = Geocoder()
     df = pd.read_csv(ROOT / "output" / "oneida_911_records.csv", keep_default_na=False, low_memory=False,
-                     usecols=["street", "city", "latitude", "longitude"])
-    locs = df.groupby(["street", "city"]).agg(n=("street", "size"), lat=("latitude", "first"),
-                                              lon=("longitude", "first")).reset_index()
+                     usecols=["street", "city"])
+    locs = df.groupby(["street", "city"]).size().rename("n").reset_index()
     rows = []
     for r in locs.itertuples():
         row = {"street": r.street, "city": r.city, "records": r.n, "latitude": None, "longitude": None,
                "precision": "none", "match_method": "", "matched_name": "", "street_length_m": None,
                "expected_error_m": None, "max_error_m": None, "n_pieces": None}
         muni = gc.poly(r.city) if r.city else None
-        if r.lat != "" and r.lon != "":
-            row.update(latitude=float(r.lat), longitude=float(r.lon), precision="coordinates",
-                       match_method="reported", expected_error_m=0, max_error_m=0)
-        elif r.street:
+        # Coordinate-only dispatches are preserved individually by attach_geocodes.py.
+        # A (blank street, city) lookup must never stand in for a reported point.
+        if r.street:
             parts = [norm_cad(p) for p in r.street.split(" / ")]
             if len(parts) == 2:
                 a, b = gc.street(parts[0], r.city), gc.street(parts[1], r.city)
@@ -428,7 +428,7 @@ def main():
                     rad = math.sqrt(lm[2].area / math.pi) if lm[2].area else 0
                     row.update(latitude=lat, longitude=lon, precision="landmark", match_method="landmark",
                                matched_name=lm[1], expected_error_m=round(rad / 2), max_error_m=round(rad))
-        if row["precision"] == "none" and muni is not None:
+        if r.street and row["precision"] == "none" and muni is not None:
             p, err, mx = gc.municipality_point(r.city)
             lat, lon = to_deg(Point(p))
             row.update(latitude=lat, longitude=lon, precision="municipality", match_method="municipality",

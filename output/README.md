@@ -8,6 +8,8 @@ python -I build_dataset.py          # raw  -> output/oneida_911_records.csv + ma
 python -I geo/geocode.py            # street + town -> geo/locations.csv
 python -I geo/attach_geocodes.py    # adds geo_* columns to output/oneida_911_records.csv
 python -I geo/evaluate_geocoding.py # optional: method comparison + match review
+python -I geo/build_map_data.py    # dataset + Census layers -> packed map data
+python -I geo/make_map_page.py geo/vendor/leaflet-1.9.4.css # publishable HTML
 ```
 
 ## Files
@@ -49,13 +51,13 @@ python -I geo/evaluate_geocoding.py # optional: method comparison + match review
 | `district` | Sub-area qualifier: `INSIDE`/`OUTSIDE` (Rome's inner and outer districts), `HINCKLEY` (Trenton). |
 | `county` | `ONEIDA`, or the neighboring county for the few mutual-aid calls (Herkimer, Oswego, Madison, Lewis). |
 | `outside_county` | True for those 15 mutual-aid calls. |
-| `latitude` `longitude` | Present only when a 2026 report printed coordinates in place of a street (39 rows). |
+| `latitude` `longitude` | Present when a 2026 report printed coordinates in place of a street (33 retained rows). Preserved individually in the geocoded columns and map. |
 | `location_missing` | No street and no coordinates (about 16%; mostly traffic stops and some police calls). |
 | `geo_latitude` `geo_longitude` | Estimated point for the street within its town, from `geo/geocode.py` (Census TIGER/Line 2024). The point sits where the street's addresses are concentrated. |
 | `geo_precision` | `street` (80%), `municipality` (3%, street not found, so the town center is used), `intersection`, `street_nearby`, `landmark`, `coordinates`, `none` (16%, no location in the report). |
 | `geo_match_method` | How the street name was matched: `exact`, `ordinal`, `spelling` (punctuation or abbreviation only), `fuzzy`, `fuzzy_risky` (street type or number differs; treat with care), `landmark`, `municipality`. |
-| `geo_expected_error_m` | Typical distance between the point and the call's true spot on the street. The median is about 430 m; long roads run to several km. Use it as a weight or a filter for spatial models. |
-| `incident_cluster_id` | Heuristic group of rows that look like one incident handled by several agencies: same type and place within 120 s (within 5 s when there is no location). |
+| `geo_expected_error_m` | Modeled expected distance under an assumed distribution of addresses/road lengths. This is not a measured distance to the incident or a validated accuracy probability. Long roads can have several km of uncertainty. |
+| `incident_cluster_id` | Heuristic group with the same type and reported place, bounded to 120 s from its first row (5 s for municipality-only records). Coordinates distinguish coordinate-only locations. Completely unspecified locations are not merged. |
 | `agencies_in_cluster` | Number of distinct agencies in that cluster. |
 | `agency_raw` `response_type_raw` `location_raw` | Cleaned text before normalization, for auditing. |
 | `report_date` `report_format` `report_version` `source_file` `page` `row_in_file` | Where the row came from. Format `A` = 2024–25 "Media Summary Report"; format `B` = 2026 "Oneida County Media Report". |

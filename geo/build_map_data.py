@@ -148,12 +148,23 @@ def place_population(df):
 def main():
     df = pd.read_csv(ROOT / "output" / "oneida_911_records.csv", keep_default_na=False, low_memory=False,
                      usecols=["street", "city", "response_type", "category", "year", "agency_type", "town", "village",
-                              "county", "call_datetime", "hour", "agency", "mpds_level", "incident_cluster_id"])
+                              "county", "call_datetime", "hour", "agency", "mpds_level", "incident_cluster_id",
+                              "agencies_in_cluster", "latitude", "longitude", "location_missing", "time_precision",
+                              "geo_latitude", "geo_longitude", "geo_precision", "geo_match_method", "geo_expected_error_m",
+                              "source_file", "page", "row_in_file"])
     loc = pd.read_csv(ROOT / "geo" / "locations.csv", keep_default_na=False)
-    loc = loc[loc.precision != "none"].reset_index(drop=True)
+    df = df.merge(loc[["street", "city", "matched_name"]], on=["street", "city"], how="left", validate="many_to_one")
+    geo_cols = ["street", "city", "geo_latitude", "geo_longitude", "geo_precision", "geo_expected_error_m", "geo_match_method", "matched_name"]
+    loc = df[df.geo_precision != "none"][geo_cols].drop_duplicates().reset_index(drop=True)
+    loc = loc.rename(columns={"geo_latitude": "latitude", "geo_longitude": "longitude", "geo_precision": "precision",
+                              "geo_expected_error_m": "expected_error_m", "geo_match_method": "match_method"})
     loc[["latitude", "longitude"]] = loc[["latitude", "longitude"]].astype(float)
     loc["loc_id"] = loc.index
-    df = df.merge(loc[["street", "city", "loc_id"]], on=["street", "city"], how="left")
+    keys = ["street", "city", "geo_latitude", "geo_longitude", "geo_precision"]
+    lookup = loc.rename(columns={"latitude": "geo_latitude", "longitude": "geo_longitude", "precision": "geo_precision"})
+    for col in ["geo_latitude", "geo_longitude"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    df = df.merge(lookup[keys + ["loc_id"]], on=keys, how="left", validate="many_to_one", sort=False)
 
     types = (df.groupby(["response_type", "category"]).size().rename("n").reset_index()
              .sort_values("n", ascending=False).reset_index(drop=True))
@@ -166,7 +177,9 @@ def main():
     cities = df.city.value_counts().index.tolist()
     agencies = df.agency.value_counts().index.tolist()
     levels = ["", "O", "A", "B", "C", "D", "E"]  # medical priority, lowest -> highest
-    cluster_n = df.groupby("incident_cluster_id").incident_cluster_id.transform("size").clip(upper=255)
+    streets = df.street.drop_duplicates().tolist()
+    sources = df.source_file.drop_duplicates().tolist()
+    seconds = pd.to_datetime(df.call_datetime).dt.hour * 3600 + pd.to_datetime(df.call_datetime).dt.minute * 60 + pd.to_datetime(df.call_datetime).dt.second
     dates = sorted(df.call_datetime.str[:10].unique().tolist())
     # One packed row per dispatch (column arrays, base64): call type, responder, reported city, date, hour, place.
     records = {
@@ -178,7 +191,15 @@ def main():
         "l": pack(df.loc_id.fillna(-1).astype(int) + 1, np.uint16),  # 0 = no location
         "u": pack(df.agency.map({a: i for i, a in enumerate(agencies)}), np.uint8),
         "m": pack(df.mpds_level.map({v: i for i, v in enumerate(levels)}), np.uint8),
-        "k": pack(cluster_n, np.uint8),  # dispatches in the same incident group (heuristic)
+        "i": pack(df.incident_cluster_id, np.uint32),
+        "k": pack(df.agencies_in_cluster, np.uint16),
+        "s": pack(df.street.map({s: i for i, s in enumerate(streets)}), np.uint16),
+        "z": pack(seconds, np.uint32),
+        "q": pack(df.location_missing.astype(int), np.uint8),
+        "p": pack(df.time_precision.eq("second").astype(int), np.uint8),
+        "f": pack(df.source_file.map({s: i for i, s in enumerate(sources)}), np.uint16),
+        "v": pack(df.page, np.uint16),
+        "r": pack(df.row_in_file, np.uint16),
     }
 
     # Basemap
@@ -215,6 +236,9 @@ def main():
                       for r in loc.itertuples()],
         "dates": dates,
         "agencies": agencies,
+        "streets": streets,
+        "sources": sources,
+        "reportedCoordinates": {str(i): [float(r.latitude), float(r.longitude)] for i, r in enumerate(df.itertuples()) if r.latitude != "" and r.longitude != ""},
         "agencyKind": [df.loc[df.agency == a, "agency_type"].iloc[0] for a in agencies],
         "population": place_population(df),
         "records": records,

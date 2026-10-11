@@ -16,7 +16,7 @@
   --land: #fafaf8; --town: #aeb3b8; --road: #b38a4f; --road-2: #cfb58a; --street: #d2d5d8; --street-2: #e1e3e5;
   --street-ink: #6b6e72; --water: #cddff0; --dot: #2a78d6; --dot-soft: rgba(42,120,214,.16); --select: #0b0b0b;
   --focus: #2a78d6;
-  /* sequential blue, light -> dark (q0 = no calls); q1-q7 and bars are the same in both themes */
+  /* sequential blue, light -> dark (q0 = no dispatches); q1-q7 and bars are the same in both themes */
   --q0: #eef3f9; --q1: #cde2fb; --q2: #9ec5f4; --q3: #6da7ec; --q4: #3987e5; --q5: #256abf; --q6: #184f95; --q7: #0d366b;
   --bar: #5598e7; --bar-on: #184f95;
   --nodata: transparent;
@@ -42,7 +42,7 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--f-body); }
 .app { padding: 0 16px; }
-.screen { height: 100vh; height: 100dvh; display: flex; flex-direction: column; gap: 12px; padding-block: 14px; box-sizing: border-box; }
+.screen { height: 100vh; height: 100dvh; min-height: min-content; display: flex; flex-direction: column; gap: 12px; padding-block: 14px; box-sizing: border-box; }
 
 header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 24px; }
 header .sub { flex: 1 1 28rem; }
@@ -81,7 +81,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .btn:hover { background: var(--dot-soft); }
 .push { margin-left: auto; }
 
-.main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 12px; }
+.main { flex: 1; min-height: 320px; display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 12px; }
 #map { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); min-height: 320px; }
 .leaflet-container { background: var(--bg); font: inherit; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
@@ -298,11 +298,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .leaflet-control-attribution { background: var(--panel) !important; color: var(--muted); font-size: 10px; }
 
 @media (max-width: 760px) {
-  .screen { height: auto; }
-  .main { grid-template-columns: minmax(0, 1fr); }
+  .screen { height: auto; min-height: 0; }
+  .main { height: auto; grid-template-columns: minmax(0, 1fr); }
   #map { height: 62vh; }
   .filters .field { flex: 1 1 100%; }
-  .filters select { width: 100%; }
+  .filters select:is(#cat, #type, #city, #agency) { width: 100%; }
   .push { margin-left: 0; }
   .list { max-height: 26rem; }
 }
@@ -327,7 +327,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="field"><label for="city">City / town / village</label><select id="city"></select></div>
       <div class="field"><label for="agency">Responder</label><select id="agency"></select></div>
       <div class="field"><span class="eyebrow" id="year-lbl">Year · report days</span><div class="seg" id="year" role="group" aria-labelledby="year-lbl"></div></div>
-      <label class="check" for="outside"><input type="checkbox" id="outside"> Show mutual-aid calls in neighboring counties</label>
+      <label class="check" for="outside"><input type="checkbox" id="outside"> Show mutual-aid dispatches in neighboring counties</label>
       <div class="chips" id="chips" aria-label="Time filters"></div>
       <button type="button" class="btn" id="reset" hidden>Reset filters</button>
       <button type="button" class="btn push" id="copy" title="Copy a link to this exact view">Copy link</button>
@@ -339,13 +339,15 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div id="map" aria-label="Map of call locations"></div>
       <aside class="side card" aria-label="Summary for the current filters">
         <div class="tally">
-          <div class="tally-head"><span class="big" id="total">0</span><span>calls match</span></div>
+          <div class="tally-head"><span class="big" id="total">0</span><span>dispatches match</span></div>
           <dl class="stats">
             <div><dt>Shown on the map</dt><dd id="s-mapped"></dd></div>
             <div><dt>No location in the report</dt><dd id="s-unloc"></dd></div>
+            <div><dt>Reported location not mapped</dt><dd id="s-failed"></dd></div>
+            <div><dt>Approximate town placements</dt><dd id="s-approx"></dd></div>
             <div id="s-hidden-row"><dt>Outside the county, hidden</dt><dd id="s-hidden"></dd></div>
           </dl>
-          <div class="dl"><button type="button" class="link-btn" id="dl-calls">Download these calls (CSV)</button><button type="button" class="link-btn" id="dl-places">Download places (CSV)</button></div>
+          <div class="dl"><button type="button" class="link-btn" id="dl-dispatches">Download these dispatches (CSV)</button><button type="button" class="link-btn" id="dl-places">Download places (CSV)</button></div>
         </div>
         <div class="list" id="list"></div>
         <div class="legend">
@@ -359,7 +361,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   <section class="patterns" id="patterns" aria-label="Time patterns and coverage">
     <div class="chart card">
       <div class="chart-head">
-        <h2>When calls happen</h2>
+        <h2>When dispatches happen</h2>
         <p>Average dispatches per report day, by hour and weekday, for the current filters. Click a square, an hour or a day to filter the map.</p>
       </div>
       <div class="scroll-x"><div class="heat" id="heat"></div></div>
@@ -409,12 +411,12 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     <div class="chart card">
       <div class="chart-head">
         <h2>Medical urgency</h2>
-        <p>Medical calls by dispatch priority (Medical Priority Dispatch levels), share of each hour's calls. Omega and Alpha are the lowest priority; Delta and Echo are the most serious, such as cardiac arrest or not breathing. Click an hour to filter.</p>
+        <p>Medical dispatches by dispatch priority (Medical Priority Dispatch levels), share of each hour's dispatches. Omega and Alpha are the lowest priority; Delta and Echo are the most serious, such as cardiac arrest or not breathing. Click an hour to filter.</p>
       </div>
       <div class="scroll-x"><div class="stack" id="urg-stack"></div><div class="stack-ax" id="urg-ax"></div></div>
       <div class="legend-row" id="urg-legend"></div>
       <div class="insight" id="urg-insight"></div>
-      <div><h3 class="eyebrow" style="margin:4px 0 6px">Highest share of Delta and Echo calls, by town</h3><div class="rank" id="urg-towns"></div></div>
+      <div><h3 class="eyebrow" style="margin:4px 0 6px">Highest share of Delta and Echo dispatches, by town</h3><div class="rank" id="urg-towns"></div></div>
     </div>
     <div class="chart card">
       <div class="chart-head">
@@ -423,7 +425,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       </div>
       <div class="seg" id="pc-mode" role="group" aria-label="Show towns or villages" style="width:max-content"><button type="button" data-m="T" aria-pressed="true">Cities &amp; towns</button><button type="button" data-m="V" aria-pressed="false">Villages</button></div>
       <div class="rank" id="pc-list" style="max-height:30rem;overflow-y:auto"></div>
-      <p class="note-sm">Calls are counted where they happened, so towns with highways, colleges, shopping or tourism rank high for visitors' calls too. Small populations make rates jumpy.</p>
+      <p class="note-sm">Calls are counted where they happened, so towns with highways, colleges, shopping or tourism rank high for visitors' dispatches too. Small populations make rates jumpy.</p>
     </div>
     <div class="chart card">
       <div class="chart-head">
@@ -447,7 +449,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         <div><h3>Coverage has gaps</h3><p id="about-coverage"></p></div>
         <div><h3>Dispatches, not emergencies</h3><p>When fire, an ambulance and police all go to one emergency, the report lists three rows, and this page counts three dispatches. Counts here measure workload by agency, not the number of distinct incidents.</p></div>
         <div><h3>Two report formats</h3><p>Reports from 2024–2025 come from one dispatch system and give times to the second. The 2026 reports come from a newer system that gives times to the minute, groups rows by agency, uses some different call-type names (harmonized here), and leaves out proactive police activity such as traffic stops and premise checks, which were about a fifth of earlier dispatches. That is most of why 2026 shows fewer dispatches per day. Compare 2026 with earlier years with care.</p></div>
-        <div><h3>Call types are what dispatch heard</h3><p>A call type is the dispatcher's category when the call came in, not a confirmed outcome. Medical calls use Medical Priority Dispatch codes (for example 17B01 = Fall); this page groups them by complaint. The reports have no arrival or clear times, so response times cannot be measured.</p></div>
+        <div><h3>Call types are what dispatch heard</h3><p>A call type is the dispatcher's category when the call came in, not a confirmed outcome. Medical dispatches use Medical Priority Dispatch codes (for example 17B01 = Fall); this page groups them by complaint. The reports have no arrival or clear times, so response times cannot be measured.</p></div>
         <div><h3>How locations were placed</h3><p id="about-location"></p></div>
         <div><h3>Mutual aid</h3><p>A few dispatches went to towns in Herkimer, Oswego, Madison and Lewis counties. They count in the totals but are hidden from the map unless you turn them on or pick that county.</p></div>
         <div><h3>Built with</h3><p>Street and town boundaries: US Census TIGER/Line 2024. Population: US Census Bureau 2024 estimates for cities, towns and villages. Map: Leaflet. All processing is reproducible from the original PDFs with the scripts in this project's repository.</p></div>
@@ -457,7 +459,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 </div>
 <div class="tip-float" id="tipf" hidden></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>__LEAFLET_JS__</script>
 <script id="data" type="application/json">__DATA__</script>
 <script>
 (() => {
@@ -487,8 +489,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   // ---------- records: one packed row per dispatch
   const bytes = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
   const u16 = s => { const b = bytes(s); return new Uint16Array(b.buffer, 0, b.length / 2); };
+  const u32 = s => { const b = bytes(s); return new Uint32Array(b.buffer, 0, b.length / 4); };
   const R = { t: u16(D.records.t), a: bytes(D.records.a), c: bytes(D.records.c), d: u16(D.records.d),
-    h: bytes(D.records.h), l: u16(D.records.l), u: bytes(D.records.u), m: bytes(D.records.m), k: bytes(D.records.k) };
+    h: bytes(D.records.h), l: u16(D.records.l), u: bytes(D.records.u), m: bytes(D.records.m), k: u16(D.records.k),
+    i: u32(D.records.i), s: u16(D.records.s), z: u32(D.records.z), q: bytes(D.records.q), p: bytes(D.records.p),
+    f: u16(D.records.f), v: u16(D.records.v), r: u16(D.records.r) };
   const N = R.t.length;
   const dateYear = D.dates.map(iso => D.years.indexOf(+iso.slice(0, 4)));
   const dateDow = D.dates.map(dowOf);
@@ -527,8 +532,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   }
 
   // ---------- state
-  const DEFAULT = { cat: "ALL", type: -1, year: -1, agency: -1, unit: -1, place: "", outside: false, date: -1, dow: -1, hour: -1 };
+  const DEFAULT = { cat: "ALL", type: -1, group: -1, year: -1, agency: -1, unit: -1, place: "", outside: false, date: -1, dow: -1, hour: -1 };
   const st = { ...DEFAULT };
+  let userMoved = false;
   const cityOK = new Uint8Array(D.cities.length);
   function setPlace(v) {
     st.place = v;
@@ -537,7 +543,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   }
   setPlace("");
   const showCity = i => !isOutside[i] || st.outside || st.place.startsWith("C:");
-  const typeOK = t => st.type >= 0 ? t === st.type : (st.cat === "ALL" || typeCat[t] === st.cat);
+  const typeOK = t => st.type >= 0 ? t === st.type : st.group >= 0 ? typeGroup[t] === st.group : (st.cat === "ALL" || typeCat[t] === st.cat);
 
   // ---------- controls (labels are built once; counts are refreshed on every change)
   const catSel = $("cat"), typeSel = $("type"), agSel = $("agency"), citySel = $("city"), yearSeg = $("year");
@@ -569,7 +575,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     b.setAttribute("aria-pressed", v === -1); yearSeg.append(b);
   });
   function fillTypes() {
-    typeSel.replaceChildren(opt(-1, st.cat === "ALL" ? "All call types" : `All ${LABEL[st.cat].toLowerCase()} calls`));
+    typeSel.replaceChildren(opt(-1, st.cat === "ALL" ? "All call types" : `All ${LABEL[st.cat].toLowerCase()} dispatches`));
+    if (st.group >= 0) typeSel.append(opt("group:" + st.group, groupLabel[st.group]));
     D.types.forEach((t, i) => { if (st.cat === "ALL" || t[1] === st.cat) typeSel.append(opt(i, t[0])); });
   }
   fillTypes();
@@ -587,19 +594,19 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     $("chips").innerHTML = chips.map(([k, t]) => `<button type="button" class="chip" data-clear="${k}" aria-label="Remove filter ${esc(t)}">${esc(t)}<span aria-hidden="true">×</span></button>`).join("");
   }
   function syncControls() {
-    catSel.value = st.cat; typeSel.value = st.type; agSel.value = st.agency; citySel.value = st.place;
+    catSel.value = st.cat; typeSel.value = st.group >= 0 ? "group:" + st.group : st.type; agSel.value = st.agency; citySel.value = st.place;
     $("outside").checked = st.outside;
     yearSeg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", +x.dataset.v === st.year));
     catSel.classList.toggle("active", st.cat !== "ALL");
-    typeSel.classList.toggle("active", st.type >= 0);
+    typeSel.classList.toggle("active", st.type >= 0 || st.group >= 0);
     agSel.classList.toggle("active", st.agency >= 0);
     citySel.classList.toggle("active", st.place !== "");
     renderChips();
     $("reset").hidden = Object.keys(DEFAULT).every(k => st[k] === DEFAULT[k]);
   }
 
-  catSel.onchange = () => { st.cat = catSel.value; st.type = -1; fillTypes(); update(); };
-  typeSel.onchange = () => { st.type = +typeSel.value; update(); };
+  catSel.onchange = () => { st.cat = catSel.value; st.type = -1; st.group = -1; fillTypes(); update(); };
+  typeSel.onchange = () => { if (!typeSel.value.startsWith("group:")) { st.type = +typeSel.value; st.group = -1; fillTypes(); } update(); };
   agSel.onchange = () => { st.agency = +agSel.value; update(); };
   citySel.onchange = () => { setPlace(citySel.value); update(); zoomToPlace(); };
   $("outside").onchange = e => { st.outside = e.target.checked; update(); };
@@ -614,7 +621,10 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (b.dataset.clear === "date") st.date = -1; else if (b.dataset.clear === "unit") st.unit = -1; else { st.dow = -1; st.hour = -1; }
     update();
   };
-  $("reset").onclick = () => { Object.assign(st, DEFAULT); setPlace(""); fillTypes(); update(); zoomToPlace(); };
+  $("reset").onclick = () => { Object.assign(st, DEFAULT); selected = null; userMoved = false; pcMode = "T";
+    Object.assign(cmp, { mode: "place", a: "T:UTICA", b: "T:ROME", ya: 0, yb: D.years.length - 1 });
+    fillCompare(); $("pc-mode").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === pcMode));
+    setPlace(""); fillTypes(); update(); zoomToPlace(); };
 
   // ---------- map + basemap (separate panes keep streets under the circles and names above them)
   const map = L.map("map", { zoomSnap: 0.1, zoomDelta: 0.5, wheelPxPerZoomLevel: 90, minZoom: 8, maxZoom: 17 });
@@ -745,13 +755,14 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     for (let k = locStart[li]; k < locStart[li + 1]; k++) { const i = locRecs[k]; if (fullMatch(i)) byType[R.t[i]] = (byType[R.t[i]] || 0) + 1; }
     const top = Object.entries(byType).sort((a, b) => b[1] - a[1]).slice(0, 4);
     let note = "";
-    if (prec === "municipality") note = `Street not found in Census roads; shown at the town center (typically ${dist(err)} off)`;
+    if (prec === "municipality") note = `Street not found in Census roads; approximate municipality point (modeled expected error ${dist(err)})`;
     else if (prec === "landmark") note = `Placed at landmark: ${matched}`;
     else if (prec === "intersection") note = "Exact intersection";
-    else if (err != null) note = (err < 50 ? "Short street; placement is close" : `Street-level estimate, typically ${dist(err)} off`) +
+    else if (prec === "coordinates") note = "Coordinates printed in the source report";
+    else if (err != null) note = (err < 50 ? "Short street; small modeled uncertainty" : `Street estimate; modeled expected error ${dist(err)}`) +
       (method === "fuzzy_risky" ? `; matched to ${matched}, check this` : "");
     return `<div class="tip"><b>${esc(street || "No street given")}</b><br><span class="c">${esc(placeLabel(city))}</span>` +
-      (note ? `<em>${esc(note)}</em>` : "<br>") + `<b>${fmt(n)}</b> ${n === 1 ? "call" : "calls"}` +
+      (note ? `<em>${esc(note)}</em>` : "<br>") + `<b>${fmt(n)}</b> ${n === 1 ? "call" : "dispatches"}` +
       (st.type < 0 && top.length > 1 ? `<ol>${top.map(([t, c]) => `<li>${esc(D.types[t][0])} · ${fmt(c)}</li>`).join("")}</ol>` : "") + "</div>";
   }
 
@@ -780,7 +791,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     h += `<div class="corner">per day</div>`;
     for (let y = 0; y < 7; y++) {
       h += `<div class="dlab" data-k="dow:${y}" tabindex="0" role="button">${DOW[y]}</div>`;
-      for (let x = 0; x < 24; x++) h += `<div class="cell" data-k="cell:${y}:${x}" tabindex="-1"></div>`;
+      for (let x = 0; x < 24; x++) h += `<div class="cell" data-k="cell:${y}:${x}" tabindex="${y === 0 && x === 0 ? 0 : -1}" role="button"></div>`;
       h += `<div class="dbar" data-k="dow:${y}"><i></i></div>`;
     }
     h += `<div></div>`;
@@ -811,7 +822,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       const el = document.createElement("div"); el.className = "day";
       el.style.gridColumn = 2 + Math.floor((k + off) / 7); el.style.gridRow = 2 + (k + off) % 7;
       const d = dateIdx.has(iso) ? dateIdx.get(iso) : -1;
-      if (d >= 0) { el.classList.add("has"); el.dataset.k = `date:${d}`; el.tabIndex = -1; } else { el.classList.add("none"); el.dataset.iso = iso; }
+      if (d >= 0) { el.classList.add("has"); el.dataset.k = `date:${d}`; el.tabIndex = calDays.some(v => v.d >= 0) ? -1 : 0; el.setAttribute("role", "button"); } else { el.classList.add("none"); el.dataset.iso = iso; }
       grid.append(el); calDays.push({ el, d, iso, yi });
     }
     box.append(grid); cal.append(box);
@@ -827,12 +838,12 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const [kind, a, b] = k.split(":");
     if (kind === "cell") {
       const v = heatVals.cell[+a * 24 + +b], days = dowDays[+a];
-      return days ? `<b>${DOW_LONG[a]}s, ${hourLabel(+b)}–${hourLabel((+b + 1) % 24)}</b><br>${fmt1(v.n / days)} per day <span>· ${fmt(v.n)} calls over ${days} ${DOW_LONG[a]}s</span>`
+      return days ? `<b>${DOW_LONG[a]}s, ${hourLabel(+b)}–${hourLabel((+b + 1) % 24)}</b><br>${fmt1(v.n / days)} per day <span>· ${fmt(v.n)} dispatches over ${days} ${DOW_LONG[a]}s</span>`
         : `<b>${DOW_LONG[a]}s</b><br><span>No report days match the filters</span>`;
     }
-    if (kind === "hour") return `<b>${hourLabel(+a)}–${hourLabel((+a + 1) % 24)}</b><br>${fmt1(heatVals.hour[+a] / Math.max(1, heatVals.days))} per day <span>· ${fmt(heatVals.hour[+a])} calls</span>`;
-    if (kind === "dow") return `<b>${DOW_LONG[a]}s</b><br>${fmt1(dowDays[+a] ? heatVals.dow[+a] / dowDays[+a] : 0)} per day <span>· ${fmt(heatVals.dow[+a])} calls over ${dowDays[+a]} days</span>`;
-    if (kind === "date") return `<b>${dateLabel(D.dates[+a])}</b><br>${fmt(calN[+a])} calls`;
+    if (kind === "hour") return `<b>${hourLabel(+a)}–${hourLabel((+a + 1) % 24)}</b><br>${fmt1(heatVals.hour[+a] / Math.max(1, heatVals.days))} per day <span>· ${fmt(heatVals.hour[+a])} dispatches</span>`;
+    if (kind === "dow") return `<b>${DOW_LONG[a]}s</b><br>${fmt1(dowDays[+a] ? heatVals.dow[+a] / dowDays[+a] : 0)} per day <span>· ${fmt(heatVals.dow[+a])} dispatches over ${dowDays[+a]} days</span>`;
+    if (kind === "date") return `<b>${dateLabel(D.dates[+a])}</b><br>${fmt(calN[+a])} dispatches`;
     return "";
   }
   function onChartMove(e) {
@@ -854,7 +865,21 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     box.addEventListener("pointermove", onChartMove);
     box.addEventListener("pointerleave", () => tipf.hidden = true);
     box.addEventListener("click", onChartClick);
-    box.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChartClick(e); } });
+    box.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChartClick(e); return; }
+      const cell = e.target.closest(".cell, .day.has");
+      if (!cell || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) return;
+      const calendar = cell.classList.contains("day");
+      const cells = [...box.querySelectorAll(calendar ? ".day" : ".cell")];
+      const steps = calendar ? { ArrowLeft: -7, ArrowRight: 7, ArrowUp: -1, ArrowDown: 1 } : { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -24, ArrowDown: 24 };
+      let i = e.key === "Home" ? 0 : e.key === "End" ? cells.length - 1 : cells.indexOf(cell) + steps[e.key];
+      const direction = e.key === "End" || (steps[e.key] || 1) < 0 ? -1 : 1;
+      while (calendar && i >= 0 && i < cells.length && !cells[i].classList.contains("has")) i += direction;
+      if (i >= 0 && i < cells.length) { box.querySelectorAll(".cell, .day.has").forEach(v => v.tabIndex = -1); cells[i].tabIndex = 0; cells[i].focus(); }
+      e.preventDefault();
+    });
+    box.addEventListener("focusin", e => { const el = e.target.closest("[data-k]"); if (el) { const r = el.getBoundingClientRect(); showTip({ clientX: r.left, clientY: r.bottom }, tipFor(el.dataset.k)); } });
+    box.addEventListener("focusout", () => tipf.hidden = true);
   }
 
   function rampHtml(lo, hi, unit, withNoData) {
@@ -881,9 +906,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       el.style.outline = ""; el.classList.toggle("on", st.dow === y && st.hour === x);
       el.classList.toggle("dim", (st.dow >= 0 && st.dow !== y) || (st.hour >= 0 && st.hour !== x));
       el.setAttribute("aria-label", `${DOW_LONG[y]} ${hourLabel(x)}: ${fmt1(rate)} per day`);
+      el.setAttribute("aria-pressed", st.dow === y && st.hour === x);
     });
     const hMax = Math.max(1, ...hour), dRates = dow.map((n, y) => dowDays[y] ? n / dowDays[y] : 0), dMax = Math.max(1e-9, ...dRates);
-    hbars.forEach((el, x) => { el.firstChild.style.height = `${(100 * hour[x] / hMax).toFixed(1)}%`; el.classList.toggle("on", st.hour === x && st.dow < 0); });
+    hbars.forEach((el, x) => { el.firstChild.style.height = `${(100 * hour[x] / hMax).toFixed(1)}%`; el.classList.toggle("on", st.hour === x && st.dow < 0);
+      el.setAttribute("aria-label", `${hourLabel(x)}: ${fmt(hour[x])} dispatches; filter by hour`); el.setAttribute("aria-pressed", st.hour === x && st.dow < 0); });
     dbars.forEach((el, y) => { el.firstChild.style.width = `${(100 * dRates[y] / dMax).toFixed(1)}%`; el.classList.toggle("on", st.dow === y && st.hour < 0); });
     dlabs.forEach((el, y) => el.classList.toggle("on", st.dow === y));
     $("heat-ramp").innerHTML = rampHtml(fmt1(minRate), fmt1(maxRate), "per day");
@@ -905,9 +932,10 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       el.style.background = qColor(bucket(dateN[d], calMin, calMax));
       el.classList.toggle("on", st.date === d);
       el.classList.toggle("dimyear", st.year >= 0 && yi !== st.year);
-      el.setAttribute("aria-label", `${dateLabel(D.dates[d])}: ${fmt(dateN[d])} calls`);
+      el.setAttribute("aria-label", `${dateLabel(D.dates[d])}: ${fmt(dateN[d])} dispatches`);
+      el.setAttribute("aria-pressed", st.date === d);
     }
-    $("cal-ramp").innerHTML = rampHtml(fmt(calMin), fmt(calMax), "calls per day", true);
+    $("cal-ramp").innerHTML = rampHtml(fmt(calMin), fmt(calMax), "dispatches per day", true);
   }
 
 
@@ -930,8 +958,10 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   const groupAll = new Float64Array(groups.length);
   for (let i = 0; i < N; i++) groupAll[typeGroup[R.t[i]]]++;
   const pick = { group: g => {
-    if (groupTypes[g].length === 1) { st.cat = typeCat[groupTypes[g][0]]; fillTypes(); st.type = groupTypes[g][0]; }
-    else { st.cat = groupCat[g]; st.type = -1; fillTypes(); }
+    st.cat = groupCat[g];
+    st.group = groupTypes[g].length > 1 ? g : -1;
+    st.type = st.group >= 0 ? -1 : groupTypes[g][0];
+    fillTypes();
     update();
   } };
 
@@ -956,8 +986,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     }
     const sel = new Float64Array(groups.length); let selTotal = 0;
     typeN.forEach((n, t) => { sel[typeGroup[t]] += n; selTotal += n; });
-    $("so-sub").textContent = `Call types over- and under-represented in ${label}${st.cat !== "ALL" ? ` (${LABEL[st.cat].toLowerCase()} calls)` : ""}, compared with all of Oneida County.`;
-    if (selTotal < 30) { box.innerHTML = `<p class="so-note">Only ${fmt(selTotal)} calls match; too few to compare reliably.</p>`; return; }
+    $("so-sub").textContent = `Call types over- and under-represented in ${label}${st.cat !== "ALL" ? ` (${LABEL[st.cat].toLowerCase()} dispatches)` : ""}, compared with all of Oneida County.`;
+    if (selTotal < 30) { box.innerHTML = `<p class="so-note">Only ${fmt(selTotal)} dispatches match; too few to compare reliably.</p>`; return; }
     const allTotal = N, rows = [];
     groups.forEach((g, i) => {
       if (st.cat !== "ALL" && groupCat[i] !== st.cat) return;
@@ -972,11 +1002,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         <span class="nm">${esc(groupLabel[r.i])}</span>
         <span class="lift ${kind}">${r.lift >= 10 ? Math.round(r.lift) : r.lift.toFixed(1)}×</span>
         <span class="meta"><span class="bars"><i class="here" style="width:${(100 * r.here / maxShare).toFixed(1)}%"></i><i class="cty" style="width:${(100 * r.cty / maxShare).toFixed(1)}%"></i></span>
-        <span>${fmt(r.n)} calls · ${pct(r.here)} here vs ${pct(r.cty)} county-wide</span></span></div>`;
+        <span>${fmt(r.n)} dispatches · ${pct(r.here)} here vs ${pct(r.cty)} county-wide</span></span></div>`;
     box.innerHTML =
       `<div><h3>More common than county-wide</h3><div class="so-list">${over.length ? over.map(r => row(r, "over")).join("") : `<p class="so-note">Nothing is more than 1.3× the county rate.</p>`}</div></div>` +
       `<div><h3>Less common</h3><div class="so-list">${under.length ? under.map(r => row(r, "under")).join("") : `<p class="so-note">Nothing is below 0.6× the county rate.</p>`}</div></div>` +
-      `<p class="so-note">Rates are each call type's share of all calls. Upper bar: here; lower bar: county-wide.</p>`;
+      `<p class="so-note">Rates are each call type's share of all dispatches. Upper bar: here; lower bar: county-wide.</p>`;
   }
   $("so").addEventListener("click", e => { const r = e.target.closest("[data-g]"); if (r) pick.group(+r.dataset.g); });
   $("so").addEventListener("keydown", e => { const r = e.target.closest("[data-g]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pick.group(+r.dataset.g); } });
@@ -992,14 +1022,14 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       for (let h = 0; h < 24; h++) arr[h] += typeHour[t * 24 + h];
     });
     const ranked = keys.map(k => [k, hourOf.get(k).reduce((a, b) => a + b, 0)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 6);
-    $("mix-title").textContent = byCat ? "Call mix by hour" : `${LABEL[st.cat]} calls by hour`;
+    $("mix-title").textContent = byCat ? "Call mix by hour" : `${LABEL[st.cat]} dispatches by hour`;
     $("mix-sub").textContent = (byCat ? "Average dispatches per report day for the largest categories." : `The most common ${LABEL[st.cat].toLowerCase()} call types.`) +
       " Each chart has its own scale so the shape of the day compares; the darkest bar is the peak hour. Click one to filter.";
-    if (!ranked.length || !daysSel) { $("mix").innerHTML = `<p class="so-note">No calls match these filters.</p>`; return; }
+    if (!ranked.length || !daysSel) { $("mix").innerHTML = `<p class="so-note">No dispatches match these filters.</p>`; return; }
     $("mix").innerHTML = ranked.map(([k, total]) => {
       const arr = hourOf.get(k), mx = Math.max(...arr), pk = arr.indexOf(mx);
       const name = byCat ? LABEL[k] : groupLabel[k];
-      const on = byCat ? st.cat === k : (st.type >= 0 && typeGroup[st.type] === k);
+      const on = byCat ? st.cat === k : st.group === k || (st.type >= 0 && typeGroup[st.type] === k);
       const bars = Array.from(arr, (v, h) => `<i class="${h === st.hour ? "hs" : h === pk ? "pk" : ""}" style="height:${mx ? (100 * v / mx).toFixed(1) : 0}%"></i>`).join("");
       return `<button type="button" class="mix-card${on ? " on" : ""}" data-mix="${byCat ? "c:" + k : "g:" + k}">
         <span class="t">${esc(name)}</span><span class="m">${fmt1(total / daysSel)} per day · peak ${hourLabel(pk)}</span>
@@ -1009,7 +1039,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   $("mix").addEventListener("click", e => {
     const b = e.target.closest("[data-mix]"); if (!b) return;
     const [kind, v] = b.dataset.mix.split(":");
-    if (kind === "c") { st.cat = st.cat === v ? "ALL" : v; st.type = -1; fillTypes(); update(); }
+    if (kind === "c") { st.cat = st.cat === v ? "ALL" : v; st.type = -1; st.group = -1; fillTypes(); update(); }
     else pick.group(+v);
   });
 
@@ -1092,7 +1122,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const { x, n, vals, avg } = trendState;
     let best = 0; for (let i = 1; i < n; i++) if (Math.abs(x(i) - px) < Math.abs(x(best) - px)) best = i;
     const hair = svg.querySelector("#hair"); hair.setAttribute("x1", x(best)); hair.setAttribute("x2", x(best)); hair.setAttribute("visibility", "visible");
-    showTip(e, `<b>${dateLabel(D.dates[best])}</b><br>${fmt(vals[best])} calls <span>· 7-day avg ${fmt1(avg[best])}</span>`);
+    showTip(e, `<b>${dateLabel(D.dates[best])}</b><br>${fmt(vals[best])} dispatches <span>· 7-day avg ${fmt1(avg[best])}</span>`);
     trendState.hover = best;
   });
   $("trend").addEventListener("pointerleave", () => { tipf.hidden = true; $("trend").querySelector("#hair")?.setAttribute("visibility", "hidden"); });
@@ -1106,15 +1136,16 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 
   // ---------- update everything from one pass over the records
   function update() {
-    // Each control's counts apply all the *other* filters, so they say how many calls picking that option shows.
+    // Each control's counts apply all the *other* filters, so they say how many dispatches picking that option shows.
     const per = new Float64Array(D.locations.length);
     const typeN = new Float64Array(D.types.length), agN = new Float64Array(D.agencyTypes.length);
     const yearN = new Float64Array(D.years.length), cityN = new Float64Array(D.cities.length);
     const heatN = new Float64Array(7 * 24), dateN = new Float64Array(D.dates.length);
     const typeHour = new Float64Array(D.types.length * 24);
     const unitN = new Float64Array(D.agencies.length), medHour = Array.from({ length: 24 }, () => new Float64Array(7));
-    const medCity = new Float64Array(D.cities.length * 2), inc = { inv: 0, multi: 0, size: [0, 0, 0, 0] };
-    let unloc = 0, hidden = 0;
+    const medCity = new Float64Array(D.cities.length * 2), inc = { inv: 0, multi: 0, size: [0, 0, 0, 0], dispatches: 0 };
+    const incidentSeen = new Set();
+    let unloc = 0, failed = 0, hidden = 0, approximate = 0;
     for (let i = 0; i < N; i++) {
       const t = R.t[i], a = R.a[i], c = R.c[i], d = R.d[i], h = R.h[i], u = R.u[i], m = R.m[i];
       const mt = typeOK(t), my = yearOK(d), ma = agOK(a) && unitOK(u), mp = cityOK[c] === 1, md = dateOK(d), mw = dowOK(d), mh = hourOK(h);
@@ -1129,21 +1160,25 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       if (my && ma && mp && md && mw) typeHour[t * 24 + h]++;
       if (m && mt && my && ma && mp && md && mw) medHour[h][m]++;
       if (!(mt && my && ma && mp && time)) continue;
-      const k = R.k[i] || 1; inc.inv += 1 / k; if (k >= 2) inc.multi += 1 / k; inc.size[Math.min(k, 4) - 1] += 1 / k;
+      inc.dispatches++;
+      if (!incidentSeen.has(R.i[i])) {
+        incidentSeen.add(R.i[i]);
+        const k = R.k[i] || 1; inc.inv++; if (k >= 2) inc.multi++; inc.size[Math.min(k, 4) - 1]++;
+      }
       if (!showCity(c)) hidden++;
-      else if (!R.l[i]) unloc++;
-      else per[R.l[i] - 1]++;
+      else if (!R.l[i]) { if (R.q[i]) unloc++; else failed++; }
+      else { per[R.l[i] - 1]++; if (D.locations[R.l[i] - 1][4] === "municipality") approximate++; }
     }
     const catN = {}; let allN = 0;
     typeN.forEach((n, t) => { catN[typeCat[t]] = (catN[typeCat[t]] || 0) + n; allN += n; });
     labelOptions(catSel, v => v === "ALL" ? allN : catN[v] || 0);
-    labelOptions(typeSel, v => +v < 0 ? (st.cat === "ALL" ? allN : catN[st.cat] || 0) : typeN[+v]);
+    labelOptions(typeSel, v => v.startsWith("group:") ? groupTypes[+v.slice(6)].reduce((n, t) => n + typeN[t], 0) : +v < 0 ? (st.cat === "ALL" ? allN : catN[st.cat] || 0) : typeN[+v]);
     labelOptions(agSel, v => +v < 0 ? agN.reduce((s, x) => s + x, 0) : agN[+v]);
     const placeN = key => (key ? placeCities[key] || [] : D.cities.map((c, i) => i)).reduce((s, i) => s + cityN[i], 0);
     labelOptions(citySel, v => placeN(v));
     yearSeg.querySelectorAll("button").forEach(b => {
       const v = +b.dataset.v, n = v < 0 ? yearN.reduce((s, x) => s + x, 0) : yearN[v];
-      b.title = `${fmt(n)} calls${v < 0 ? "" : ` on ${D.yearDays[v]} report days`}`;
+      b.title = `${fmt(n)} dispatches${v < 0 ? "" : ` on ${D.yearDays[v]} report days`}`;
     });
     syncControls();
 
@@ -1168,17 +1203,19 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       dots.addLayer(m);
     });
 
-    const all = located + unloc + hidden;
+    const all = located + unloc + failed + hidden;
     $("total").textContent = fmt(all);
     $("s-mapped").textContent = all ? `${fmt(located)} at ${fmt(current.length)} ${current.length === 1 ? "place" : "places"}` : "0";
     $("s-unloc").textContent = fmt(unloc);
+    $("s-failed").textContent = fmt(failed);
+    $("s-approx").textContent = fmt(approximate);
     $("s-hidden").textContent = fmt(hidden);
     $("s-hidden-row").hidden = hidden === 0;
 
     const list = $("list");
     list.replaceChildren();
     if (!current.length) {
-      list.innerHTML = `<p class="empty">${all ? "None of these calls had a location in the report." : "No calls match these filters."} ` +
+      list.innerHTML = `<p class="empty">${all ? "No matching dispatches can be shown with the current map visibility settings." : "No dispatches match these filters."} ` +
         `Try a wider category, another year, or <b>Reset filters</b>.</p>`;
     } else {
       const h = document.createElement("span"); h.className = "eyebrow"; h.textContent = "Busiest places";
@@ -1190,8 +1227,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         row.innerHTML = `<span class="rk">${k + 1}</span><span class="nm">${esc(street || "Town center")}<small>${esc(placeLabel(city))}</small></span><span class="ct">${fmt(n)}</span>`;
         const go = () => {
           select(li);
-          map.flyTo([lat, lon], Math.max(map.getZoom(), 15), { duration: reduceMotion() ? 0 : 0.8 });
           map.once("moveend", () => markers.get(li)?.openTooltip());
+          map.flyTo([lat, lon], Math.max(map.getZoom(), 15), { duration: reduceMotion() ? 0 : 0.8 });
         };
         row.onclick = go; row.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
         list.append(row);
@@ -1201,7 +1238,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 
     const steps = [max, Math.round(max / 4), Math.round(max / 20)].filter((v, i, a) => v >= 1 && a.indexOf(v) === i);
     $("sizes").innerHTML = steps.map(v => `<span><i style="width:${2 * r(v)}px;height:${2 * r(v)}px"></i>${fmt(v)}</span>`).join("")
-      + `<span class="cap">calls per place</span>`;
+      + `<span class="cap">dispatches per place</span>`;
 
     renderPatterns(heatN, dateN);
     let daysSel = 0;
@@ -1224,6 +1261,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const q = new URLSearchParams();
     if (st.cat !== "ALL") q.set("cat", st.cat);
     if (st.type >= 0) q.set("type", D.types[st.type][0]);
+    if (st.group >= 0) q.set("group", groups[st.group]);
     if (st.place) q.set("place", st.place);
     if (st.agency >= 0) q.set("responder", D.agencyTypes[st.agency]);
     if (st.unit >= 0) q.set("agency", D.agencies[st.unit]);
@@ -1232,6 +1270,13 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (st.dow >= 0) q.set("day", DOW_KEY[st.dow]);
     if (st.hour >= 0) q.set("hour", st.hour);
     if (st.outside) q.set("outside", "1");
+    if (pcMode !== "T") q.set("population", pcMode);
+    if (cmp.mode !== "place" || cmp.a !== "T:UTICA" || cmp.b !== "T:ROME" || cmp.ya !== 0 || cmp.yb !== D.years.length - 1) {
+      q.set("compare", cmp.mode);
+      q.set("compareA", cmp.mode === "place" ? cmp.a : D.years[cmp.ya]);
+      q.set("compareB", cmp.mode === "place" ? cmp.b : D.years[cmp.yb]);
+    }
+    if (userMoved) { const c = map.getCenter(); q.set("view", [c.lat.toFixed(5), c.lng.toFixed(5), map.getZoom()].join(",")); }
     if (selected != null) q.set("street", `${D.locations[selected][2]}|${D.locations[selected][3]}`);
     return q.toString();
   }
@@ -1245,6 +1290,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     fillTypes();
     const ti = D.types.findIndex(t => t[0] === q.get("type"));
     if (ti >= 0) { st.cat = typeCat[ti]; fillTypes(); st.type = ti; }
+    const gi = groups.indexOf(q.get("group"));
+    if (gi >= 0) { st.group = gi; st.type = -1; st.cat = groupCat[gi]; fillTypes(); }
     if (q.get("place") && placeCities[q.get("place")]) setPlace(q.get("place"));
     const ai = D.agencyTypes.indexOf(q.get("responder")); if (ai >= 0) st.agency = ai;
     const ui = D.agencies.indexOf(q.get("agency")); if (ui >= 0) st.unit = ui;
@@ -1253,6 +1300,23 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const di = DOW_KEY.indexOf(q.get("day")); if (di >= 0) st.dow = di;
     const h = q.get("hour"); if (h !== null && /^\d{1,2}$/.test(h) && +h < 24) st.hour = +h;
     st.outside = q.get("outside") === "1";
+    if (q.get("population") === "V") pcMode = "V";
+    $("pc-mode").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === pcMode));
+    if (["place", "year"].includes(q.get("compare"))) {
+      cmp.mode = q.get("compare");
+      if (cmp.mode === "place") {
+        if (placeCities[q.get("compareA")]) cmp.a = q.get("compareA");
+        if (placeCities[q.get("compareB")]) cmp.b = q.get("compareB");
+      } else {
+        const a = D.years.indexOf(+q.get("compareA")), b = D.years.indexOf(+q.get("compareB"));
+        if (a >= 0) cmp.ya = a; if (b >= 0) cmp.yb = b;
+      }
+      fillCompare();
+    }
+    const view = (q.get("view") || "").split(",").map(Number);
+    if (view.length === 3 && view.every(Number.isFinite) && Math.abs(view[0]) <= 90 && Math.abs(view[1]) <= 180 && view[2] >= 8 && view[2] <= 17) {
+      map.setView(view.slice(0, 2), view[2], { animate: false }); userMoved = true;
+    }
     const sk = q.get("street");
     return sk ? D.locations.findIndex(l => `${l[2]}|${l[3]}` === sk) : -1;
   }
@@ -1275,19 +1339,21 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const slug = q.replace(/[=&|:\s]+/g, "-").replace(/[^\w-]+/g, "").replace(/-+/g, "-").replace(/^-|-$/g, "").toLowerCase().slice(0, 80);
     return "oneida-911" + (slug ? "-" + slug : "");
   };
-  $("dl-calls").onclick = () => {
-    const rows = [["date", "weekday", "hour", "call_type", "category", "responder_type", "reported_city", "town", "village", "street",
-      "map_latitude", "map_longitude", "location_precision", "typical_location_error_m"]];
+  $("dl-dispatches").onclick = () => {
+    const rows = [["record_id", "call_datetime", "time_precision", "weekday", "hour", "call_type", "category", "agency", "responder_type", "reported_city", "town", "village", "street",
+      "reported_latitude", "reported_longitude", "location_missing", "map_latitude", "map_longitude", "location_precision", "modeled_expected_error_m", "incident_cluster_id", "source_file", "page", "row_in_file"]];
     for (let i = 0; i < N; i++) {
-      if (!fullMatch(i) || !showCity(R.c[i])) continue;
+      if (!fullMatch(i)) continue;
       const city = D.cities[R.c[i]], [town, village] = info(city), loc = R.l[i] ? D.locations[R.l[i] - 1] : null;
-      rows.push([D.dates[R.d[i]], DOW_LONG[dateDow[R.d[i]]], R.h[i], D.types[R.t[i]][0], typeCat[R.t[i]], D.agencyTypes[R.a[i]], city,
-        town, village, loc ? loc[2] : "", loc ? loc[0] : "", loc ? loc[1] : "", loc ? loc[4] : "none", loc ? loc[5] ?? "" : ""]);
+      const coord = D.reportedCoordinates[i] || ["", ""];
+      const seconds = R.z[i], time = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60].map(x => String(x).padStart(2, "0")).join(":");
+      rows.push([i + 1, D.dates[R.d[i]] + " " + time, R.p[i] ? "second" : "minute", DOW_LONG[dateDow[R.d[i]]], R.h[i], D.types[R.t[i]][0], typeCat[R.t[i]], D.agencies[R.u[i]], D.agencyTypes[R.a[i]], city,
+        town, village, D.streets[R.s[i]], ...coord, !!R.q[i], loc ? loc[0] : "", loc ? loc[1] : "", loc ? loc[4] : "none", loc ? loc[5] ?? "" : "", R.i[i], D.sources[R.f[i]], R.v[i], R.r[i]]);
     }
-    saveCsv(fileStem() + "-calls.csv", rows);
+    saveCsv(fileStem() + "-dispatches.csv", rows);
   };
   $("dl-places").onclick = () => {
-    const rows = [["rank", "street", "place", "calls", "latitude", "longitude", "location_precision", "typical_location_error_m"]];
+    const rows = [["rank", "street", "place", "dispatches", "latitude", "longitude", "location_precision", "typical_location_error_m"]];
     lastCurrent.forEach(([li, n], k) => { const l = D.locations[li]; rows.push([k + 1, l[2] || "Town center", placeLabel(l[3]), n, l[0], l[1], l[4], l[5] ?? ""]); });
     saveCsv(fileStem() + "-places.csv", rows);
   };
@@ -1305,9 +1371,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   const qIn = $("q"), sugg = $("sugg");
   let hits = [], active = -1;
   function renderSugg() {
-    sugg.innerHTML = hits.map((i, k) => `<li role="option" data-i="${i}" aria-selected="${k === active}"><b>${esc(D.locations[i][2])}</b>` +
+    sugg.innerHTML = hits.map((i, k) => `<li id="street-option-${i}" role="option" data-i="${i}" aria-selected="${k === active}"><b>${esc(D.locations[i][2])}</b>` +
       `<small>${esc(placeLabel(D.locations[i][3]))}</small><span>${fmt(locTotal[i])}</span></li>`).join("");
     qIn.setAttribute("aria-expanded", hits.length > 0);
+    if (active >= 0 && hits[active] != null) qIn.setAttribute("aria-activedescendant", "street-option-" + hits[active]);
+    else qIn.removeAttribute("aria-activedescendant");
   }
   qIn.addEventListener("input", () => {
     const q = qIn.value.trim().toUpperCase().replace(/\s+/g, " ");
@@ -1323,9 +1391,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     hits = []; active = -1; renderSugg();
     const l = D.locations[li];
     qIn.value = l[2];
-    map.flyTo([l[0], l[1]], Math.max(map.getZoom(), 15.5), { duration: reduceMotion() ? 0 : 0.8 });
     if (markers.has(li)) { select(li); map.once("moveend", () => markers.get(li)?.openTooltip()); $("qnote").textContent = ""; }
-    else $("qnote").textContent = `No calls on ${l[2]} (${placeLabel(l[3])}) match the current filters.`;
+    else $("qnote").textContent = `No dispatches on ${l[2]} (${placeLabel(l[3])}) match the current filters.`;
+    map.flyTo([l[0], l[1]], Math.max(map.getZoom(), 15.5), { duration: reduceMotion() ? 0 : 0.8 });
   }
   sugg.addEventListener("click", e => { const li = e.target.closest("[data-i]"); if (li) goTo(+li.dataset.i); });
   qIn.addEventListener("keydown", e => {
@@ -1340,13 +1408,13 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   const LEVELS = [["", ""], ["O", "Omega"], ["A", "Alpha"], ["B", "Bravo"], ["C", "Charlie"], ["D", "Delta"], ["E", "Echo"]];
   const LEVEL_COLOR = [null, "var(--q1)", "var(--q2)", "var(--q3)", "var(--q4)", "var(--q6)", "var(--q7)"];
   const kindLabel = k => LABEL[k] || titleCase(k.replace(/_/g, " "));
-  const COUNTY_POP = D.population.ALL;
-  const reportDays = () => D.dates.reduce((s, iso, d) => s + (yearOK(d) && dateOK(d) ? 1 : 0), 0);
+  const COUNTY_POP = D.population?.ALL;
+  const reportDays = () => D.dates.reduce((s, iso, d) => s + (yearOK(d) && dateOK(d) && dowOK(d) ? 1 : 0), 0);
 
   function renderResponders(unitN, inc) {
     const total = unitN.reduce((a, b) => a + b, 0);
     const incidents = inc.inv, multi = inc.multi;
-    $("resp-kpis").innerHTML = `<div class="kpi"><b>${fmt(total)}</b><span>dispatches</span></div>` +
+    $("resp-kpis").innerHTML = `<div class="kpi"><b>${fmt(inc.dispatches)}</b><span>dispatches</span></div>` +
       `<div class="kpi"><b>≈ ${fmt(Math.round(incidents))}</b><span>estimated incidents</span></div>` +
       `<div class="kpi"><b>${incidents ? (100 * multi / incidents).toFixed(0) : 0}%</b><span>of incidents got 2+ agencies</span></div>`;
     const sizes = inc.size, sz = sizes.reduce((a, b) => a + b, 0) || 1;
@@ -1373,10 +1441,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   }
   const urgCols = [...$("urg-stack").children];
   $("urg-stack").addEventListener("click", onChartClick);
+  $("urg-stack").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChartClick(e); } });
   $("urg-stack").addEventListener("pointermove", e => {
     const el = e.target.closest("[data-k]"); if (!el || !urgState) { tipf.hidden = true; return; }
     const x = +el.dataset.k.split(":")[1], col = urgState.hour[x], n = col.reduce((a, b) => a + b, 0);
-    showTip(e, `<b>${hourLabel(x)}–${hourLabel((x + 1) % 24)}</b><br>` + (n ? LEVELS.slice(1).map(([c, nm], k) => `${nm}: ${(100 * col[k + 1] / n).toFixed(0)}%`).reverse().join(" · ") + `<br><span>${fmt(n)} medical calls</span>` : "<span>No medical calls</span>"));
+    showTip(e, `<b>${hourLabel(x)}–${hourLabel((x + 1) % 24)}</b><br>` + (n ? LEVELS.slice(1).map(([c, nm], k) => `${nm}: ${(100 * col[k + 1] / n).toFixed(0)}%`).reverse().join(" · ") + `<br><span>${fmt(n)} medical dispatches</span>` : "<span>No medical dispatches</span>"));
   });
   $("urg-stack").addEventListener("pointerleave", () => tipf.hidden = true);
   let urgState = null;
@@ -1387,16 +1456,18 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       const col = medHour[x], n = col.reduce((a, b) => a + b, 0); all += n; de += col[5] + col[6];
       el.innerHTML = n ? Array.from(col).slice(1).map((v, k) => `<i style="flex:${v};background:${LEVEL_COLOR[k + 1]}"></i>`).join("") : "";
       el.classList.toggle("on", st.hour === x);
+      el.setAttribute("aria-label", `${hourLabel(x)}: ${fmt(n)} medical dispatches; filter by hour`);
+      el.setAttribute("aria-pressed", st.hour === x);
     });
     if (!all) {
-      $("urg-insight").innerHTML = `<span>No medical calls match these filters${st.cat !== "ALL" && st.cat !== "MEDICAL" ? ` (the category filter is ${LABEL[st.cat]})` : ""}.</span>`;
+      $("urg-insight").innerHTML = `<span>No medical dispatches match these filters${st.cat !== "ALL" && st.cat !== "MEDICAL" ? ` (the category filter is ${LABEL[st.cat]})` : ""}.</span>`;
       $("urg-towns").innerHTML = ""; return;
     }
     const share = x => { const c = medHour[x], n = c.reduce((a, b) => a + b, 0); return n >= 20 ? (c[5] + c[6]) / n : -1; };
     let hi = 0; for (let x = 1; x < 24; x++) if (share(x) > share(hi)) hi = x;
-    $("urg-insight").innerHTML = `<span><b>${(100 * de / all).toFixed(0)}%</b> of ${fmt(all)} medical calls were Delta or Echo.` +
+    $("urg-insight").innerHTML = `<span><b>${(100 * de / all).toFixed(0)}%</b> of ${fmt(all)} medical dispatches were Delta or Echo.` +
       (share(hi) > 0 ? ` The most serious share peaks at <b>${hourLabel(hi)}</b> (${(100 * share(hi)).toFixed(0)}%).</span>` : "</span>");
-    // towns: share of Delta/Echo among medical calls (other filters except place)
+    // towns: share of Delta/Echo among medical dispatches (other filters except place)
     const rows = Object.keys(placeCities).filter(k => k.startsWith("T:")).map(k => {
       let n = 0, d = 0; placeCities[k].forEach(i => { n += medCity[i * 2]; d += medCity[i * 2 + 1]; });
       return [k, n, d, n ? d / n : 0];
@@ -1404,9 +1475,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     let cn = 0, cd = 0; for (let i = 0; i < D.cities.length; i++) { cn += medCity[i * 2]; cd += medCity[i * 2 + 1]; }
     const avg = cn ? cd / cn : 0, mx = Math.max(avg, ...rows.map(r => r[3])) || 1;
     $("urg-towns").innerHTML = rows.length ? rows.map(([k, n, d, r]) => `<div class="rank-row${st.place === k ? " on" : ""}" data-place="${k}" tabindex="0" role="button">
-      <span class="nm">${esc(titleCase(k.slice(2)))}<small>${fmt(n)} medical calls</small></span><span class="v">${(100 * r).toFixed(0)}%</span>
+      <span class="nm">${esc(titleCase(k.slice(2)))}<small>${fmt(n)} medical dispatches</small></span><span class="v">${(100 * r).toFixed(0)}%</span>
       <span class="bar"><i style="width:${(100 * r / mx).toFixed(1)}%"></i><span class="avgmark" style="left:${(100 * avg / mx).toFixed(1)}%" title="County: ${(100 * avg).toFixed(0)}%"></span></span></div>`).join("") +
-      `<p class="note-sm">Towns with at least 150 medical calls. Tick = county share (${(100 * avg).toFixed(0)}%).</p>` : `<p class="so-note">Not enough medical calls per town to compare.</p>`;
+      `<p class="note-sm">Towns with at least 150 medical dispatches. Tick = county share (${(100 * avg).toFixed(0)}%).</p>` : `<p class="so-note">Not enough medical dispatches per town to compare.</p>`;
   }
   const pickPlace = k => { setPlace(st.place === k ? "" : k); update(); zoomToPlace(); };
   for (const id of ["urg-towns", "pc-list"]) {
@@ -1419,6 +1490,10 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     $("pc-mode").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); update(); };
   const placeName = k => k.startsWith("V:") ? `${titleCase(k.split("|")[1])}${Object.keys(placeCities).filter(x => x.startsWith("V:") && x.endsWith("|" + k.split("|")[1])).length > 1 ? ` (${titleCase(k.slice(2).split("|")[0])} part)` : ""}` : titleCase(k.slice(2));
   function renderPerCapita(cityN) {
+    if (!COUNTY_POP) {
+      $("pc-list").innerHTML = `<p class="so-note">Population estimates are unavailable for this build.</p>`;
+      return;
+    }
     const days = reportDays(), perYear = days ? 365 / days : 0;
     let county = 0; for (let i = 0; i < D.cities.length; i++) if (!isOutside[i]) county += cityN[i];
     const countyRate = COUNTY_POP ? county / COUNTY_POP * 1000 * perYear : 0;
@@ -1429,7 +1504,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const mx = Math.max(countyRate, ...rows.map(r => r[3])) || 1;
     $("pc-list").innerHTML = `<div class="rank-row" style="cursor:default"><span class="nm"><b>Oneida County</b><small>${fmt(COUNTY_POP)} residents</small></span><span class="v">${fmt1(countyRate)}<small>per 1,000 / yr</small></span></div>` +
       rows.map(([k, n, pop, r]) => `<div class="rank-row${st.place === k ? " on" : ""}" data-place="${k}" tabindex="0" role="button">
-      <span class="nm">${esc(placeName(k))}<small>${fmt(pop)} residents · ${fmt(n)} calls</small></span><span class="v">${fmt1(r)}</span>
+      <span class="nm">${esc(placeName(k))}<small>${fmt(pop)} residents · ${fmt(n)} dispatches</small></span><span class="v">${fmt1(r)}</span>
       <span class="bar"><i style="width:${(100 * r / mx).toFixed(1)}%"></i><span class="avgmark" style="left:${(100 * countyRate / mx).toFixed(1)}%"></span></span></div>`).join("");
   }
 
@@ -1447,9 +1522,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     }
     $("cmp-mode").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === cmp.mode));
   }
-  $("cmp-mode").onclick = e => { const b = e.target.closest("button"); if (!b) return; cmp.mode = b.dataset.m; fillCompare(); renderCompare(); };
-  $("cmp-a").onchange = e => { cmp.mode === "place" ? cmp.a = e.target.value : cmp.ya = +e.target.value; renderCompare(); };
-  $("cmp-b").onchange = e => { cmp.mode === "place" ? cmp.b = e.target.value : cmp.yb = +e.target.value; renderCompare(); };
+  $("cmp-mode").onclick = e => { const b = e.target.closest("button"); if (!b) return; cmp.mode = b.dataset.m; fillCompare(); renderCompare(); syncUrl(); };
+  $("cmp-a").onchange = e => { cmp.mode === "place" ? cmp.a = e.target.value : cmp.ya = +e.target.value; renderCompare(); syncUrl(); };
+  $("cmp-b").onchange = e => { cmp.mode === "place" ? cmp.b = e.target.value : cmp.yb = +e.target.value; renderCompare(); syncUrl(); };
   fillCompare();
 
   function renderCompare() {
@@ -1461,18 +1536,20 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     for (let i = 0; i < N; i++) {
       const t = R.t[i], d = R.d[i], c = R.c[i];
       if (!(typeOK(t) && agOK(R.a[i]) && unitOK(R.u[i]) && dowOK(d) && hourOK(R.h[i]))) continue;
-      let k;
-      if (byPlace) { if (!(yearOK(d) && dateOK(d))) continue; k = inA[c] ? 0 : inB[c] ? 1 : -1; if (inA[c] && inB[c]) k = 0; }
-      else { if (!cityOK[c]) continue; const y = dateYear[d]; k = y === cmp.ya ? 0 : y === cmp.yb ? 1 : -1; }
-      if (k < 0) continue;
-      const s = S[k]; s.n++; s.hour[R.h[i]]++; s.grp[typeGroup[t]]++;
-      if (R.m[i]) { s.med++; if (R.m[i] >= 5) s.de++; }
+      if (byPlace && !(yearOK(d) && dateOK(d))) continue;
+      if (!byPlace && !cityOK[c]) continue;
+      const matches = byPlace ? [inA[c], inB[c]] : [dateYear[d] === cmp.ya, dateYear[d] === cmp.yb];
+      matches.forEach((match, k) => {
+        if (!match) return;
+        const s = S[k]; s.n++; s.hour[R.h[i]]++; s.grp[typeGroup[t]]++;
+        if (R.m[i]) { s.med++; if (R.m[i] >= 5) s.de++; }
+      });
     }
     // report days per side
     const daysFor = y => D.dates.reduce((s, iso, d) => s + ((y == null ? yearOK(d) && dateOK(d) : dateYear[d] === y) && dowOK(d) ? 1 : 0), 0);
     const days = byPlace ? [daysFor(null), daysFor(null)] : [daysFor(cmp.ya), daysFor(cmp.yb)];
     const names = byPlace ? [cmp.a, cmp.b].map(k => placeName(k)) : [D.years[cmp.ya], D.years[cmp.yb]].map(String);
-    const pops = byPlace ? [D.population[cmp.a], D.population[cmp.b]] : [null, null];
+    const pops = byPlace ? [D.population?.[cmp.a], D.population?.[cmp.b]] : [null, null];
     const pct = (v, n) => n ? `${(100 * v / n).toFixed(1)}%` : "–";
     const rows = [
       ["Dispatches", S.map(s => fmt(s.n))],
@@ -1495,7 +1572,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     for (let h = 0; h < 24; h += 3) svg += `<text x="${X(h)}" y="${H - 6}" text-anchor="middle">${String(h).padStart(2, "0")}</text>`;
     prof.forEach((pr_, k) => svg += `<path class="${k ? "lb" : "la"}" d="${pr_.map((v, h) => `${h ? "L" : "M"}${X(h).toFixed(1)},${Y(v).toFixed(1)}`).join("")}"/>`);
     const chart = `<div><h3 class="eyebrow" style="margin:0 0 6px">Dispatches per report day, by hour</h3><div class="cmp-chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Hourly profile comparison">${svg}</svg></div></div>`;
-    // biggest differences in call mix (share of each side's calls)
+    // biggest differences in call mix (share of each side's dispatches)
     let diffs = "";
     if (S[0].n >= 30 && S[1].n >= 30) {
       const d = groups.map((g, i) => [i, S[0].grp[i] / S[0].n, S[1].grp[i] / S[1].n]).filter(r => S[0].grp[r[0]] + S[1].grp[r[0]] >= 20)
@@ -1503,50 +1580,51 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       diffs = `<div><h3 class="eyebrow" style="margin:0 0 6px">Biggest differences in call mix</h3><div class="diff">` +
         d.map(([i, a, b]) => `<div><span>${esc(groupLabel[i])}</span><span><b style="color:var(--cmp-a)">${(100 * a).toFixed(1)}%</b> vs <b style="color:var(--cmp-b)">${(100 * b).toFixed(1)}%</b></span></div>`).join("") +
         `</div><p class="note-sm" style="margin-top:6px">Share of each side's dispatches.${byPlace ? "" : " The 2026 reports leave out traffic stops and premise checks and use partly different call-type names, so year-to-year differences are partly reporting changes."}</p></div>`;
-    } else diffs = `<p class="so-note">Too few calls on one side to compare the call mix.</p>`;
+    } else diffs = `<p class="so-note">Too few dispatches on one side to compare the call mix.</p>`;
     $("cmp-out").innerHTML = (byPlace && cmp.a === cmp.b) || (!byPlace && cmp.ya === cmp.yb) ? `<p class="so-note">Pick two different ${byPlace ? "places" : "years"}.</p>` : table + chart + diffs;
   }
   new ResizeObserver(() => renderCompare()).observe($("cmp-out"));
 
   // ---------- about: figures computed from the data
   {
-    let errW = [], town = 0, none = 0;
+    let errW = [], town = 0, none = 0, failed = 0;
     for (let li = 0; li < D.locations.length; li++) {
       const l = D.locations[li], n = locTotal[li];
       if (l[4] === "municipality") town += n; else if (l[5] != null) errW.push([l[5], n]);
     }
-    for (let i = 0; i < N; i++) if (!R.l[i]) none++;
+    for (let i = 0; i < N; i++) { if (R.q[i]) none++; else if (!R.l[i]) failed++; }
     errW.sort((a, b) => a[0] - b[0]);
-    const tot = errW.reduce((s, x) => s + x[1], 0); let acc = 0, med = 0, within500 = 0;
-    for (const [e, n] of errW) { acc += n; if (!med && acc >= tot / 2) med = e; if (e <= 500) within500 += n; }
+    const tot = errW.reduce((s, x) => s + x[1], 0); let acc = 0, med = null;
+    for (const [e, n] of errW) { acc += n; if (med == null && acc >= tot / 2) med = e; }
     const pct = v => `${(100 * v).toFixed(0)}%`;
     const days = D.yearDays.reduce((a, b) => a + b, 0);
     $("about-coverage").innerHTML = `The collection has reports for <b>${days}</b> days: ${D.years.map((y, i) => `<b>${D.yearDays[i]}</b> in ${y}`).join(", ")}. ` +
-      `It is what could be recovered from the county's website, not a complete archive, so a day without a report means no report was found, not that no calls happened. The coverage calendar shows exactly which days are included.`;
-    $("about-location").innerHTML = `The reports give a street and a town but no house number. Each street is matched to Census roads within its town and placed where that street's addresses are concentrated, so a circle stands for a whole street. ` +
-      `Typical placement error is about <b>${fmt(Math.round(med / 10) * 10)} m</b> (${pct(within500 / tot)} of mapped calls within 500 m); long rural roads can be off by several kilometers. ` +
-      `<b>${pct(town / N)}</b> of calls are on streets that could not be matched and sit at the town center (dashed circles), and <b>${pct(none / N)}</b> had no location in the report at all.`;
+      `It is what could be recovered from the county's website, not a complete archive, so a day without a report means no report was found, not that no dispatches happened. The coverage calendar shows exactly which days are included.`;
+    $("about-location").innerHTML = `The reports usually give a street and a town rather than a house number. Each street is matched to Census roads within its town and placed where that street's addresses are concentrated, so a circle stands for a whole street. ` +
+      `The median modeled expected error is <b>${med == null ? "unavailable" : fmt(Math.round(med / 10) * 10) + " m"}</b>. This describes the assumed distribution along matched streets, not measured distances to actual incidents or a verified accuracy percentage; long rural roads have greater uncertainty. ` +
+      `<b>${pct(town / N)}</b> of dispatches have a reported street that could not be matched and use an approximate municipality point (dashed circles). ` +
+      `<b>${pct(none / N)}</b> have no reported location and remain unmapped; <b>${fmt(failed)}</b> have a reported location that could not be mapped. Coordinates printed in a report are preserved individually.`;
   }
 
   const days = D.yearDays.reduce((a, b) => a + b, 0);
   $("span").innerHTML = `<b>${fmt(D.total)}</b> agency dispatches from county media reports on <b>${days}</b> days ` +
     `(${D.years.map((y, i) => `${y}: ${D.yearDays[i]}`).join(", ")}). Each circle is one street within one town; ` +
-    `reports give no house numbers.`;
+    `reports usually give no house numbers.`;
 
   drawBase();
   map.fitBounds(countyBounds, { padding: [12, 12], animate: false });
   syncZoom();
   const linkedStreet = fromQuery();
   update();
-  if (st.place) zoomToPlace();
-  if (linkedStreet >= 0) { const l = D.locations[linkedStreet]; map.setView([l[0], l[1]], 15.5, { animate: false });
+  if (st.place && !userMoved) zoomToPlace();
+  if (linkedStreet >= 0) { const l = D.locations[linkedStreet]; if (!userMoved) map.setView([l[0], l[1]], 15.5, { animate: false });
     if (markers.has(linkedStreet)) { select(linkedStreet); setTimeout(() => markers.get(linkedStreet)?.openTooltip(), 300); } }
 
   // Fonts and the header settle after first paint; keep the map sized to its box and re-fit until the
   // viewer moves the map themselves.
-  let userMoved = false;
   map.getContainer().addEventListener("pointerdown", () => userMoved = true);
   map.getContainer().addEventListener("wheel", () => userMoved = true, { passive: true });
+  map.on("moveend", () => { if (userMoved) syncUrl(); });
   if (linkedStreet >= 0) userMoved = true;
   const refit = () => { map.invalidateSize({ animate: false }); if (!userMoved && !st.place) map.fitBounds(countyBounds, { padding: [12, 12], animate: false }); };
   new ResizeObserver(refit).observe(map.getContainer());

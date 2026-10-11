@@ -12,3 +12,4 @@ geo/locations.csv
 geo/map_data.json
 
 __pycache__/
+.venv/

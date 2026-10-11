@@ -17,9 +17,10 @@ SKELETON = """<!doctype html>
 """
 
 leaflet_css = Path(sys.argv[1]).read_text(encoding="utf-8")
+leaflet_js = (ROOT / "geo" / "vendor" / "leaflet-1.9.4.js").read_text(encoding="utf-8")
 data = (ROOT / "geo" / "map_data.json").read_text(encoding="utf-8").replace("</", r"<\/")
 page = (ROOT / "geo" / "map_template.html").read_text(encoding="utf-8")
-page = SKELETON + page.replace("__LEAFLET_CSS__", leaflet_css).replace("__DATA__", data) + "\n</html>\n"
+page = SKELETON + page.replace("__LEAFLET_CSS__", leaflet_css).replace("__LEAFLET_JS__", leaflet_js).replace("__DATA__", data) + "\n</html>\n"
 
 docs = ROOT / "docs"
 docs.mkdir(exist_ok=True)

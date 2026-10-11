@@ -26,6 +26,15 @@ def main():
     out = df.merge(loc[["street", "city"] + GEO_COLS], on=["street", "city"], how="left", validate="many_to_one")
     assert len(out) == len(df)
     out["geo_precision"] = out.geo_precision.replace("", "none").fillna("none")
+    out["geo_expected_error_m"] = pd.to_numeric(out.geo_expected_error_m, errors="coerce")
+    reported_lat = pd.to_numeric(out.latitude, errors="coerce")
+    reported_lon = pd.to_numeric(out.longitude, errors="coerce")
+    reported = reported_lat.notna() & reported_lon.notna()
+    out.loc[reported, "geo_latitude"] = reported_lat[reported]
+    out.loc[reported, "geo_longitude"] = reported_lon[reported]
+    out.loc[reported, "geo_precision"] = "coordinates"
+    out.loc[reported, "geo_match_method"] = "reported"
+    out.loc[reported, "geo_expected_error_m"] = 0
     # Put the geo columns right after the reported coordinates.
     cols = list(df.columns)
     i = cols.index("location_missing") + 1
