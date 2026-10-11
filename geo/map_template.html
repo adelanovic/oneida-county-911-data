@@ -85,10 +85,10 @@ select:focus-visible, button:focus-visible, .row:focus-visible { outline: 2px so
 
 @media (max-width: 760px) {
   .app { height: auto; }
-  .main { grid-template-columns: 1fr; }
+  .main { grid-template-columns: minmax(0, 1fr); }
   #map { height: 62vh; }
-  #type { width: 100%; }
-  .field.grow { flex: 1 1 100%; }
+  .filters .field { flex: 1 1 100%; }
+  .filters select, #type { width: 100%; }
   .list { max-height: 26rem; }
 }
 @media (prefers-reduced-motion: reduce) { .leaflet-zoom-anim .leaflet-zoom-animated { transition: none !important; } }

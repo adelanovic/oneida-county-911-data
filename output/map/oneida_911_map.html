@@ -1,3 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Where Oneida County, NY 911 dispatches happened in 2024-2026, filterable by call type, town, responder and year.">
+<style>body { margin: 0; } [hidden] { display: none !important; }</style>
 <title>Oneida County 911 Call Map</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -85,10 +92,10 @@ select:focus-visible, button:focus-visible, .row:focus-visible { outline: 2px so
 
 @media (max-width: 760px) {
   .app { height: auto; }
-  .main { grid-template-columns: 1fr; }
+  .main { grid-template-columns: minmax(0, 1fr); }
   #map { height: 62vh; }
-  #type { width: 100%; }
-  .field.grow { flex: 1 1 100%; }
+  .filters .field { flex: 1 1 100%; }
+  .filters select, #type { width: 100%; }
   .list { max-height: 26rem; }
 }
 @media (prefers-reduced-motion: reduce) { .leaflet-zoom-anim .leaflet-zoom-animated { transition: none !important; } }
@@ -410,3 +417,5 @@ select:focus-visible, button:focus-visible, .row:focus-visible { outline: 2px so
   new MutationObserver(repaint).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 })();
 </script>
+
+</html>
