@@ -278,6 +278,21 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .diff b { font-weight: 600; font-variant-numeric: tabular-nums; }
 .note-sm { margin: 0; font-size: .78rem; color: var(--muted); max-width: 62ch; }
 
+
+/* ---- policing mix, response flows */
+:root { --c1: #2a78d6; --c2: #eb6834; --c3: #1baf7a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c1: #3987e5; --c2: #d95926; --c3: #199e70; } }
+:root[data-theme="dark"] { --c1: #3987e5; --c2: #d95926; --c3: #199e70; }
+.mixbar { grid-column: 1 / -1; display: flex; height: 10px; border-radius: 3px; overflow: hidden; gap: 1px; background: var(--dot-soft); }
+.mixbar i { display: block; min-width: 0; }
+.pshare { display: grid; grid-template-columns: repeat(24, minmax(8px, 1fr)); gap: 2px; align-items: end; height: 64px; min-width: 20rem; }
+.pshare i { display: block; background: var(--c1); border-radius: 2px 2px 0 0; min-height: 1px; cursor: pointer; }
+.pshare i.on { background: var(--select); }
+.pshare-ax { display: grid; grid-template-columns: repeat(24, minmax(8px, 1fr)); gap: 2px; font-size: .66rem; color: var(--muted); min-width: 20rem; }
+.flow-wrap { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+#flowmap { height: 420px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+@media (max-width: 900px) { .flow-wrap { grid-template-columns: minmax(0, 1fr); } #flowmap { height: 340px; } }
+
 /* ---- map overlays */
 .town-label { color: var(--muted); font: 600 .7rem/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase;
   white-space: nowrap; text-align: center; pointer-events: none;
@@ -438,6 +453,39 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         <div class="field"><label for="cmp-b"><span class="sw" style="background:var(--cmp-b)"></span>B</label><select id="cmp-b"></select></div>
       </div>
       <div id="cmp-out" style="display:grid;gap:14px"></div>
+    </div>
+    <div class="chart card">
+      <div class="chart-head">
+        <h2>Police dispatch types</h2>
+        <p>Dispatch types classified as likely officer-initiated (traffic stops, checks, details, parking, warrants, summonses and vehicle traffic law), administrative, or other. This estimate does not identify who requested a response or measure time worked. Click a department to filter.</p>
+      </div>
+      <div class="legend-row"><span><i style="background:var(--c1)"></i>Likely officer-initiated</span><span><i style="background:var(--c3)"></i>Administrative</span><span><i style="background:var(--c2)"></i>Other dispatch types</span></div>
+      <div class="rank" id="pol-list"></div>
+      <div><h3 class="eyebrow" style="margin:6px 0 6px">Likely officer-initiated share by hour</h3>
+        <div class="scroll-x"><div class="pshare" id="pol-hour"></div><div class="pshare-ax" id="pol-ax"></div></div></div>
+      <div class="insight" id="pol-insight"></div>
+      <p class="note-sm">The 2026 reports omit traffic stops and premise checks, reducing the observed officer-initiated share. Category and call-type filters are ignored here; selecting a department clears them. The department list ignores the individual-agency filter and shows up to 12 departments with at least 20 matching dispatches, plus the selected department. Hourly comparisons ignore the hour filter and require 20 dispatches per hour; the summary applies the hour filter.</p>
+    </div>
+    <div class="chart card">
+      <div class="chart-head">
+        <h2>Agencies working outside their home town</h2>
+        <p>Share of each fire department's and ambulance service's dispatches that went outside its home town (the town where it responds most). Fire districts and ambulance territories often cross town lines, so this includes routine coverage as well as mutual aid. Click an agency to filter.</p>
+      </div>
+      <div class="rank" id="out-list"></div>
+      <p class="note-sm">Home town is estimated from all available reports. Percentages use dispatches with known destinations. All filters apply except the individual-agency filter, so departments remain available for comparison. Nurse Navigation is excluded because it is a phone-triage service.</p>
+    </div>
+    <div class="chart card wide">
+      <div class="chart-head">
+        <h2>Response flows between towns</h2>
+        <p>Arrows run from an agency's home town to the town it responded in; thicker arrows mean more dispatches. Hover an arrow for the agencies involved; click a route to filter the map to that town.</p>
+      </div>
+      <div class="seg" id="flow-kind" role="group" aria-label="Agency type" style="width:max-content"><button type="button" data-k="FIRE" aria-pressed="true">Fire departments</button><button type="button" data-k="EMS" aria-pressed="false">Ambulance services</button></div>
+      <div class="flow-wrap">
+        <div id="flowmap" aria-label="Map of response flows between towns"></div>
+        <div><h3 class="eyebrow" style="margin:0 0 6px">Busiest routes</h3><div class="rank" id="flow-list"></div></div>
+      </div>
+      <div class="insight" id="flow-insight"></div>
+      <p class="note-sm">Home town is estimated from all available reports. The agency-type toggle replaces the responder filter; routes shown touch the selected town (villages and Rome districts roll up to their town). The percentage covers all destinations under the other filters. Arrows show up to 70 routes with at least 3 dispatches and known map centers; neighboring-county routes appear only in the list.</p>
     </div>
     <div class="card about wide" id="about">
       <div class="chart-head">
@@ -1251,6 +1299,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     renderUrgency(medHour, medCity);
     renderPerCapita(cityN);
     renderCompare();
+    renderPolicing();
+    renderFlows();
     syncUrl();
   }
   let lastCurrent = [];
@@ -1429,7 +1479,17 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <span class="v">${fmt(n)}<small>${total ? (100 * n / total).toFixed(1) : 0}%</small></span>
       <span class="bar"><i style="width:${(100 * n / mx).toFixed(1)}%"></i></span></div>`).join("") : `<p class="so-note">No dispatches match these filters.</p>`;
   }
-  const toggleUnit = u => { st.unit = st.unit === u ? -1 : u; update(); };
+  const toggleUnit = (u, clearTypes = false) => {
+    if (st.unit === u) st.unit = -1;
+    else {
+      st.unit = u;
+      if (st.agency >= 0 && D.agencyTypes[st.agency] !== D.agencyKind[u]) st.agency = -1;
+      let compatible = false;
+      for (let i = 0; i < N && !compatible; i++) if (R.u[i] === u && typeOK(R.t[i])) compatible = true;
+      if (clearTypes || !compatible) { st.cat = "ALL"; st.type = -1; st.group = -1; fillTypes(); }
+    }
+    update();
+  };
   $("resp-list").addEventListener("click", e => { const r = e.target.closest("[data-u]"); if (r) toggleUnit(+r.dataset.u); });
   $("resp-list").addEventListener("keydown", e => { const r = e.target.closest("[data-u]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleUnit(+r.dataset.u); } });
 
@@ -1584,6 +1644,199 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     $("cmp-out").innerHTML = (byPlace && cmp.a === cmp.b) || (!byPlace && cmp.ya === cmp.yb) ? `<p class="so-note">Pick two different ${byPlace ? "places" : "years"}.</p>` : table + chart + diffs;
   }
   new ResizeObserver(() => renderCompare()).observe($("cmp-out"));
+
+
+  // ---------- policing: estimated dispatch-type classification
+  const POLICE = new Set(["LOCAL_POLICE", "SHERIFF", "STATE_POLICE", "CAMPUS_POLICE"]);
+  const OFFICER = new Set(["TRAFFIC STOP", "PREMISE CK", "AREA CK", "CITIZEN STOP", "TRAFFIC DETAIL", "DETAIL", "WATER DETAIL",
+    "TOBACCO DETAIL", "PARKING SUMMONS", "WARRANT", "SUMMONS", "VEHICLE TRAFFIC LAW"]);
+  const ADMIN = name => /^(DATA|RECORDS CHECK|BACKGROUND INV|PISTOL PERMIT|SORA\b.*|TEST|TRAINING|INTERNAL|DO NOT TAG|POLYGRAPH|PERSONNEL COMP|SUBPOENA SERVED)$/.test(name);
+  const typeClass = D.types.map(([name]) => OFFICER.has(name) ? 0 : ADMIN(name) ? 1 : 2);   // 0 likely officer, 1 admin, 2 other
+  const CLASS_COLOR = ["var(--c1)", "var(--c3)", "var(--c2)"];
+  const isPoliceUnit = D.agencies.map((a, u) => POLICE.has(D.agencyKind[u]));
+  {
+    let h = "", ax = "";
+    for (let x = 0; x < 24; x++) { h += `<i data-k="hour:${x}" tabindex="0" role="button"></i>`; ax += `<span>${x % 3 === 0 ? String(x).padStart(2, "0") : ""}</span>`; }
+    $("pol-hour").innerHTML = h; $("pol-ax").innerHTML = ax;
+  }
+  $("pol-hour").addEventListener("click", onChartClick);
+  $("pol-hour").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChartClick(e); } });
+  let polHour = null;
+  $("pol-hour").addEventListener("pointermove", e => {
+    const el = e.target.closest("[data-k]"); if (!el || !polHour) { tipf.hidden = true; return; }
+    const x = +el.dataset.k.split(":")[1], c = polHour[x], n = c[0] + c[1] + c[2];
+    showTip(e, `<b>${hourLabel(x)}–${hourLabel((x + 1) % 24)}</b><br>` + (n >= 20 ? `${(100 * c[0] / n).toFixed(0)}% likely officer-initiated <span>· ${fmt(n)} police dispatches</span>` : `<span>Insufficient data: ${fmt(n)} dispatches (minimum 20)</span>`));
+  });
+  $("pol-hour").addEventListener("pointerleave", () => tipf.hidden = true);
+
+  function renderPolicing() {
+    // All filters except category / call type (the split is the point) and the specific-agency filter (to list departments).
+    const dept = new Map(), hour = Array.from({ length: 24 }, () => [0, 0, 0]);
+    for (let i = 0; i < N; i++) {
+      const u = R.u[i];
+      if (!isPoliceUnit[u]) continue;
+      const d = R.d[i];
+      if (!(yearOK(d) && dateOK(d) && dowOK(d) && agOK(R.a[i]) && cityOK[R.c[i]])) continue;
+      const k = typeClass[R.t[i]];
+      if (hourOK(R.h[i])) { let row = dept.get(u); if (!row) dept.set(u, row = [0, 0, 0]); row[k]++; }
+      if (unitOK(u)) hour[R.h[i]][k]++;
+    }
+    polHour = hour;
+    const rows = [...dept.entries()].map(([u, c]) => [u, c, c[0] + c[1] + c[2]]).filter(r => r[2] >= 20).sort((a, b) => b[2] - a[2]).slice(0, 12);
+    if (st.unit >= 0 && isPoliceUnit[st.unit] && !rows.some(r => r[0] === st.unit) && dept.has(st.unit)) { const c = dept.get(st.unit); rows.push([st.unit, c, c[0] + c[1] + c[2]]); }
+    $("pol-list").innerHTML = rows.length ? rows.map(([u, c, n]) => `<div class="rank-row${st.unit === u ? " on" : ""}" data-u="${u}" tabindex="0" role="button">
+      <span class="nm">${esc(D.agencies[u])}<small>${fmt(n)} dispatches</small></span>
+      <span class="v">${(100 * c[0] / n).toFixed(0)}%<small>likely officer-initiated</small></span>
+      <span class="mixbar" title="Likely officer-initiated ${(100 * c[0] / n).toFixed(0)}% · administrative ${(100 * c[1] / n).toFixed(0)}% · other dispatch types ${(100 * c[2] / n).toFixed(0)}%">${c.map((v, k) => v ? `<i style="flex:${v};background:${CLASS_COLOR[k]}"></i>` : "").join("")}</span></div>`).join("")
+      : `<p class="so-note">${dept.size ? "Matching departments have fewer than 20 dispatches; not enough data for the ranking." : "No police dispatches match these filters."}</p>`;
+    const share = hour.map(c => { const n = c[0] + c[1] + c[2]; return n >= 20 ? c[0] / n : null; });
+    const eligible = share.map((v, x) => x).filter(x => share[x] !== null);
+    const mx = Math.max(1e-9, ...eligible.map(x => share[x]));
+    [...$("pol-hour").children].forEach((el, x) => {
+      el.style.height = `${(100 * (share[x] || 0) / mx).toFixed(1)}%`; el.classList.toggle("on", st.hour === x);
+      el.style.background = share[x] === null ? "var(--muted)" : "";
+      el.setAttribute("aria-pressed", st.hour === x);
+      el.setAttribute("aria-label", `${hourLabel(x)}: ${share[x] === null ? "insufficient data (fewer than 20 dispatches)" : (100 * share[x]).toFixed(0) + "% likely officer-initiated"}; filter by hour`);
+    });
+    const tot = [0, 0, 0]; hour.forEach((c, x) => { if (hourOK(x)) c.forEach((v, k) => tot[k] += v); });
+    const n = tot[0] + tot[1] + tot[2];
+    const pk = eligible.reduce((best, x) => best < 0 || share[x] > share[best] ? x : best, -1);
+    const lo = eligible.reduce((best, x) => best < 0 || share[x] < share[best] ? x : best, -1);
+    $("pol-insight").innerHTML = n ? `<span><b>${(100 * tot[0] / n).toFixed(0)}%</b> of ${fmt(n)} ${st.unit >= 0 && isPoliceUnit[st.unit] ? esc(D.agencies[st.unit]) : "police"} dispatches were classified as likely officer-initiated, ` +
+      `${(100 * tot[1] / n).toFixed(0)}% administrative and ${(100 * tot[2] / n).toFixed(0)}% other dispatch types.</span>` +
+      (pk >= 0 ? `<span>Across eligible hours, the likely officer-initiated share peaks at <b>${hourLabel(pk)}</b> (${(100 * share[pk]).toFixed(0)}%) and is lowest at <b>${hourLabel(lo)}</b> (${(100 * share[lo]).toFixed(0)}%).</span>` : "<span>Not enough data to compare hours.</span>") : "<span>No police dispatches match the summary filters.</span>";
+  }
+  $("pol-list").addEventListener("click", e => { const r = e.target.closest("[data-u]"); if (r) toggleUnit(+r.dataset.u, true); });
+  $("pol-list").addEventListener("keydown", e => { const r = e.target.closest("[data-u]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleUnit(+r.dataset.u, true); } });
+
+  // ---------- responses outside home town + flow map
+  const townOfCity = D.cities.map(c => { const [town, , county] = info(c); return county && county !== "ONEIDA" ? "C:" + county : town ? "T:" + town : ""; });
+  const homeTown = (() => {
+    const counts = D.agencies.map(() => new Map());
+    for (let i = 0; i < N; i++) { const k = townOfCity[R.c[i]]; if (k.startsWith("T:")) { const m = counts[R.u[i]]; m.set(k, (m.get(k) || 0) + 1); } }
+    return counts.map(m => { let best = "", n = -1; m.forEach((v, k) => { if (v > n) { n = v; best = k; } }); return best; });
+  })();
+  const townLabelOf = k => k.startsWith("C:") ? `${titleCase(k.slice(2))} County` : titleCase(k.slice(2));
+  const townCenter = (() => {
+    const out = {};
+    D.basemap.towns.forEach(t => out["T:" + t.key] = t.label);
+    D.basemap.places.forEach(p => { if (!out["T:" + p.key] && p.kind === "city") { const b = L.polygon(p.rings).getBounds().getCenter(); out["T:" + p.key] = [b.lat, b.lng]; } });
+    return out;
+  })();
+  let flowKind = "FIRE";
+  $("flow-kind").onclick = e => { const b = e.target.closest("button"); if (!b) return; flowKind = b.dataset.k;
+    $("flow-kind").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderFlows(); };
+
+  const fmap = L.map("flowmap", { zoomSnap: 0.25, zoomControl: true, attributionControl: false, scrollWheelZoom: false, minZoom: 8, maxZoom: 13 });
+  const fBaseR = L.canvas({ padding: 0.2 }), fBase = L.layerGroup().addTo(fmap), fFlows = L.layerGroup().addTo(fmap), fLabels = L.layerGroup().addTo(fmap);
+  let fTheme = "", fBounds = null, fMoved = false;
+  fmap.getContainer().addEventListener("pointerdown", () => fMoved = true);
+  // Nurse Navigation is a phone triage line, not a responding unit.
+  const flowAgency = u => (D.agencyKind[u] === "FIRE" || D.agencyKind[u] === "EMS") && !/nurse navigation/i.test(D.agencies[u]) && homeTown[u];
+  function drawFlowBase() {
+    const theme = css("--land") + css("--town");
+    if (theme === fTheme) return;
+    fTheme = theme; fBase.clearLayers(); fLabels.clearLayers();
+    const towns = D.basemap.towns.map(t => L.polygon(t.rings, { renderer: fBaseR, color: css("--town"), weight: 1, fillColor: css("--land"), fillOpacity: 1, interactive: false }));
+    towns.forEach(p => fBase.addLayer(p));
+    D.basemap.water.forEach(w => fBase.addLayer(L.polygon(w, { renderer: fBaseR, stroke: false, fillColor: css("--water"), fillOpacity: 1, interactive: false })));
+    D.basemap.towns.forEach(t => fLabels.addLayer(L.marker(t.label, { interactive: false, keyboard: false,
+      icon: L.divIcon({ className: "town-label", html: esc(t.name.replace(/ (town|city)$/, "")), iconSize: [120, 12], iconAnchor: [60, -8] }) })));
+    fBounds = L.featureGroup(towns).getBounds();
+    if (!fmap._loaded || !fMoved) fmap.fitBounds(fBounds, { padding: [8, 8], animate: false });
+  }
+  function curve(a, b) {
+    // quadratic curve bending to the right of travel, so A->B and B->A stay apart
+    const k = Math.cos(a[0] * Math.PI / 180), dx = (b[1] - a[1]) * k, dy = b[0] - a[0], len = Math.hypot(dx, dy);
+    const mx = (a[0] + b[0]) / 2 - (dx / len) * len * 0.18, my = (a[1] + b[1]) / 2 + (dy / len) * len * 0.18 / k;
+    const pts = [];
+    for (let s = 0; s <= 20; s++) { const t = s / 20, u = 1 - t; pts.push([u * u * a[0] + 2 * u * t * mx + t * t * b[0], u * u * a[1] + 2 * u * t * my + t * t * b[1]]); }
+    return pts;
+  }
+  function arrowHead(pts, size) {
+    const [p1, p2] = [pts[pts.length - 3], pts[pts.length - 1]], k = Math.cos(p2[0] * Math.PI / 180);
+    const dx = (p2[1] - p1[1]) * k, dy = p2[0] - p1[0], len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len;
+    const back = [p2[0] - uy * size, p2[1] - ux * size / k];
+    return [p2, [back[0] + ux * size * 0.55, back[1] - uy * size * 0.55 / k], [back[0] - ux * size * 0.55, back[1] + uy * size * 0.55 / k]];
+  }
+  const pickRoute = dest => { if (placeCities[dest]) {
+    if (st.agency >= 0 && D.agencyTypes[st.agency] !== flowKind) st.agency = -1;
+    setPlace(dest); update(); zoomToPlace(); $("map").scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });
+  } };
+
+  function renderFlows() {
+    drawFlowBase();
+    // All filters except place (flows are about where agencies go), category/type kept, responder type replaced by the toggle.
+    const pairs = new Map(), agOut = new Map(); let unknown = 0;
+    const placeTown = st.place ? (st.place.startsWith("C:") ? st.place : "T:" + st.place.slice(2).split("|")[0]) : "";
+    for (let i = 0; i < N; i++) {
+      const u = R.u[i];
+      if (D.agencyKind[u] !== flowKind || !flowAgency(u)) continue;
+      const d = R.d[i];
+      if (!(typeOK(R.t[i]) && yearOK(d) && dateOK(d) && dowOK(d) && hourOK(R.h[i]) && unitOK(u))) continue;
+      const dest = townOfCity[R.c[i]], home = homeTown[u];
+      if (!dest) { unknown++; continue; }
+      let a = agOut.get(u); if (!a) agOut.set(u, a = [0, 0]); a[0]++;
+      if (dest === home) continue;
+      a[1]++;
+      if (placeTown && dest !== placeTown && home !== placeTown) continue;
+      const key = home + ">" + dest;
+      let pr = pairs.get(key); if (!pr) pairs.set(key, pr = { home, dest, n: 0, by: new Map() }); pr.n++; pr.by.set(u, (pr.by.get(u) || 0) + 1);
+    }
+    const routes = [...pairs.values()].sort((a, b) => b.n - a.n);
+    const drawn = routes.filter(r => r.n >= 3 && townCenter[r.home] && townCenter[r.dest]).slice(0, 70);
+    const mx = drawn.length ? drawn[0].n : 1, color = css("--dot");
+    fFlows.clearLayers();
+    // thin first so thick routes sit on top
+    [...drawn].reverse().forEach(r => {
+      const pts = curve(townCenter[r.home], townCenter[r.dest]), w = 1.2 + 7 * Math.sqrt(r.n / mx);
+      const tip = `<div class="tip"><b>${esc(townLabelOf(r.home))} → ${esc(townLabelOf(r.dest))}</b><br>${fmt(r.n)} dispatches<ol>` +
+        [...r.by.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([u, n]) => `<li>${esc(D.agencies[u])} · ${fmt(n)}</li>`).join("") + "</ol></div>";
+      const line = L.polyline(pts, { color, weight: w, opacity: .55, lineCap: "round" }).bindTooltip(tip, { sticky: true, opacity: 1 });
+      line.on("click", () => pickRoute(r.dest));
+      fFlows.addLayer(line);
+      fFlows.addLayer(L.polygon(arrowHead(pts, 0.006 + 0.012 * Math.sqrt(r.n / mx)), { color, weight: 0, fillColor: color, fillOpacity: .8, interactive: false }));
+    });
+    // home markers
+    const homes = new Set(drawn.map(r => r.home));
+    homes.forEach(h => fFlows.addLayer(L.circleMarker(townCenter[h], { radius: 3.5, color: css("--panel"), weight: 1.5, fillColor: css("--ink"), fillOpacity: 1, interactive: false })));
+    $("flow-list").innerHTML = routes.length ? routes.slice(0, 10).map(r => {
+      const top = [...r.by.entries()].sort((a, b) => b[1] - a[1])[0];
+      return `<div class="rank-row" data-dest="${r.dest}" tabindex="0" role="button"><span class="nm">${esc(townLabelOf(r.home))} → ${esc(townLabelOf(r.dest))}<small>mostly ${esc(D.agencies[top[0]])}</small></span><span class="v">${fmt(r.n)}</span></div>`;
+    }).join("") : `<p class="so-note">No ${flowKind === "FIRE" ? "fire department" : "ambulance"} dispatches outside a home town match these filters.</p>`;
+    const outAll = [...agOut.values()].reduce((s, a) => s + a[1], 0), all = [...agOut.values()].reduce((s, a) => s + a[0], 0);
+    $("flow-insight").innerHTML = (all ? `<span><b>${(100 * outAll / all).toFixed(0)}%</b> of ${fmt(all)} ${flowKind === "FIRE" ? "fire department" : "ambulance"} dispatches with known destinations went outside the agency's home town${placeTown ? `; routes shown touch ${esc(townLabelOf(placeTown))}` : ""}.` +
+      ` The map shows ${drawn.length} of ${routes.length} routes.</span>` : "<span>No dispatches with known destinations match these filters.</span>") + `<span>${fmt(unknown)} dispatches with unknown destinations excluded.</span>`;
+
+    // agencies by share outside home town (both fire and EMS, independent of the toggle)
+    renderOutside();
+  }
+  function renderOutside() {
+    const agg = new Map(); let unknown = 0;
+    for (let i = 0; i < N; i++) {
+      const u = R.u[i];
+      if (!flowAgency(u)) continue;
+      const d = R.d[i];
+      if (!(typeOK(R.t[i]) && yearOK(d) && dateOK(d) && dowOK(d) && hourOK(R.h[i]) && agOK(R.a[i]) && cityOK[R.c[i]])) continue;
+      const dest = townOfCity[R.c[i]]; if (!dest) { unknown++; continue; }
+      let a = agg.get(u); if (!a) agg.set(u, a = [0, 0, new Map()]); a[0]++;
+      if (dest !== homeTown[u]) { a[1]++; a[2].set(dest, (a[2].get(dest) || 0) + 1); }
+    }
+    const rows = [...agg.entries()].filter(([, a]) => a[0] >= 40).map(([u, a]) => [u, a[0], a[1], a[1] / a[0], a[2]]).sort((x, y) => y[3] - x[3]).slice(0, 12);
+    $("out-list").innerHTML = rows.length ? rows.map(([u, n, out, sh, dests]) => {
+      const top = [...dests.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => townLabelOf(k)).join(", ");
+      return `<div class="rank-row${st.unit === u ? " on" : ""}" data-u="${u}" tabindex="0" role="button">
+        <span class="nm">${esc(D.agencies[u])}<small>home: ${esc(townLabelOf(homeTown[u]))}${top ? " · mostly to " + esc(top) : ""}</small></span>
+        <span class="v">${(100 * sh).toFixed(0)}%<small>${fmt(out)} of ${fmt(n)}</small></span>
+        <span class="bar"><i style="width:${(100 * sh).toFixed(1)}%"></i></span></div>`;
+    }).join("") + `<p class="note-sm">Agencies with at least 40 matching dispatches with known destinations.</p>` : `<p class="so-note">Not enough fire or ambulance dispatches match these filters.</p>`;
+    $("out-list").innerHTML += `<p class="note-sm">${fmt(unknown)} dispatches with unknown destinations excluded.</p>`;
+  }
+  $("out-list").addEventListener("click", e => { const r = e.target.closest("[data-u]"); if (r) toggleUnit(+r.dataset.u); });
+  $("out-list").addEventListener("keydown", e => { const r = e.target.closest("[data-u]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleUnit(+r.dataset.u); } });
+  $("flow-list").addEventListener("click", e => { const r = e.target.closest("[data-dest]"); if (r) pickRoute(r.dataset.dest); });
+  $("flow-list").addEventListener("keydown", e => { const r = e.target.closest("[data-dest]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pickRoute(r.dataset.dest); } });
+  new ResizeObserver(() => { fmap.invalidateSize({ animate: false }); if (fBounds && !fMoved) fmap.fitBounds(fBounds, { padding: [8, 8], animate: false }); }).observe($("flowmap"));
 
   // ---------- about: figures computed from the data
   {

@@ -1,6 +1,6 @@
 # Oneida County 911 dispatch dataset and map
 
-This project extracts public county media reports, normalizes agency and call-type names, estimates street locations, and builds a static map with filters and analytical panels. A row is an agency dispatch, not necessarily a distinct emergency. The recovered archive covers 278 days across 2024–2026 and is not a continuous time series.
+This project extracts public county media reports, normalizes agency and call-type names, estimates street locations, and builds a static map with filters and analytical panels. A row is an agency dispatch, not necessarily a distinct emergency. The recovered archive covers 386 days across 2024–2026 (364 in 2024, 9 in 2025, 13 in 2026) and is not a continuous time series.
 
 ## Rebuild
 

@@ -7,7 +7,41 @@ const { spawn } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+// Expected counts come from the dataset the page was built from, so the checks survive data updates.
+function datasetCounts() {
+  const csvPath = path.resolve(__dirname, '../output/oneida_911_records.csv');
+  const lines = fs.readFileSync(csvPath, 'utf8').replace(/^﻿/, '').split(/\r?\n/).filter(Boolean);
+  const split = line => {
+    const out = []; let cur = '', quoted = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (quoted) { if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') quoted = false; else cur += ch; }
+      else if (ch === '"') quoted = true; else if (ch === ',') { out.push(cur); cur = ''; } else cur += ch;
+    }
+    out.push(cur);
+    return out;
+  };
+  const header = split(lines[0]), town = header.indexOf('town'), village = header.indexOf('village');
+  const county = header.indexOf('county'), kind = header.indexOf('agency_type'), agency = header.indexOf('agency');
+  let total = 0, whitestown = 0, whitesboro = 0;
+  const fireUnknownBy = new Map(), hasHome = new Set();
+  for (const line of lines.slice(1)) {
+    const f = split(line); total++;
+    if (f[town] === 'WHITESTOWN') { whitestown++; if (f[village] === 'WHITESBORO') whitesboro++; }
+    // "Unknown destination" = no town and not a neighboring county (matches the flows panel).
+    const unknown = f[town] === '' && (f[county] === '' || f[county] === 'ONEIDA');
+    if (unknown && f[kind] === 'FIRE') fireUnknownBy.set(f[agency], (fireUnknownBy.get(f[agency]) || 0) + 1);
+    if (f[town] !== '' && f[county] === 'ONEIDA') hasHome.add(f[agency]);
+  }
+  // The panel only considers agencies with a home town (at least one dispatch in an Oneida County town).
+  let fireUnknown = 0;
+  fireUnknownBy.forEach((n, a) => { if (hasHome.has(a)) fireUnknown += n; });
+  return { total, whitestown, whitesboro, fireUnknown };
+}
+
 async function main() {
+  const expected = datasetCounts();
+  const fmt = n => n.toLocaleString('en-US');
   const browserPath = process.env.BROWSER_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'oneida-ui-'));
   const browser = spawn(browserPath, ['--headless=new', '--disable-gpu', '--disable-extensions', '--no-first-run',
@@ -65,7 +99,7 @@ async function main() {
     await send('Network.setBlockedURLs', { urls: ['*fonts.googleapis.com*', '*fonts.gstatic.com*', '*cdnjs.cloudflare.com*'] });
     await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
     await navigate();
-    assert.equal(await evaluate(`document.querySelector('#total').textContent`), '181,601');
+    assert.equal(await evaluate(`document.querySelector('#total').textContent`), fmt(expected.total));
     const initialGeometry = await evaluate(`({bottom:document.querySelector('#map').getBoundingClientRect().bottom, height:innerHeight})`);
     assert(initialGeometry.bottom <= initialGeometry.height + 1, 'Desktop map must fit the first screen: ' + JSON.stringify(initialGeometry));
     async function screenshot(name) {
@@ -80,8 +114,8 @@ async function main() {
       const first=[...document.querySelectorAll('#cmp-out tbody tr:first-child td')].slice(1).map(e=>e.textContent);
       a.value='V:WHITESTOWN|WHITESBORO';a.dispatchEvent(new Event('change'));b.value='T:WHITESTOWN';b.dispatchEvent(new Event('change'));
       const reverse=[...document.querySelectorAll('#cmp-out tbody tr:first-child td')].slice(1).map(e=>e.textContent);return {first,reverse}})()`);
-    assert.deepEqual(overlap.first, ['15,426', '4,370']);
-    assert.deepEqual(overlap.reverse, ['4,370', '15,426']);
+    assert.deepEqual(overlap.first, [fmt(expected.whitestown), fmt(expected.whitesboro)]);
+    assert.deepEqual(overlap.reverse, [fmt(expected.whitesboro), fmt(expected.whitestown)]);
     console.log('PASS: overlapping comparison populations are independent');
 
     const agency = await evaluate(`(()=>{document.querySelector('#reset').click();
@@ -117,7 +151,7 @@ async function main() {
       document.querySelector('#dl-dispatches').click();const csv=await blob.text(),lines=csv.split('\\r\\n');
       document.querySelector('#dl-places').click();const places=await blob.text();
       return {rows:lines.length-1,header:lines[0],placesRows:places.split('\\r\\n').length-1}} finally {URL.createObjectURL=create;HTMLAnchorElement.prototype.click=click}})()`);
-    assert.equal(downloads.rows, 181601);
+    assert.equal(downloads.rows, expected.total);
     for (const name of ['call_datetime', 'agency', 'reported_latitude', 'source_file', 'incident_cluster_id']) assert(downloads.header.includes(name));
     assert(downloads.placesRows > 0);
     console.log('PASS: downloads retain all matching dispatches and source metadata');
@@ -171,10 +205,95 @@ async function main() {
     assert.deepEqual(errors, []);
     console.log('PASS: desktop/mobile layouts, themes and no JavaScript exceptions');
 
+    await navigate(pageUrl);
+    const policeHour = await evaluate(`(()=>{
+      const d=JSON.parse(document.querySelector('#data').textContent),bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+      const units=bytes(d.records.u),hours=bytes(d.records.h),police=new Set(['LOCAL_POLICE','SHERIFF','STATE_POLICE','CAMPUS_POLICE']);
+      let expected=0;for(let i=0;i<units.length;i++)if(hours[i]===7&&police.has(d.agencyKind[units[i]]))expected++;
+      document.querySelector('#pol-hour [data-k="hour:7"]').click();
+      return {expected,text:document.querySelector('#pol-insight').innerText,legend:document.querySelector('#pol-list').parentElement.innerText};
+    })()`);
+    assert(policeHour.text.includes('of ' + policeHour.expected.toLocaleString('en-US') + ' police dispatches'));
+    assert(policeHour.legend.includes('Other dispatch types'));
+    assert(!policeHour.legend.includes('calls from the public'));
+    console.log('PASS: police summary uses the selected hour and describes estimated dispatch types');
+
+    await navigate(pageUrl + '?agency=Utica%20Police%20Department&year=2026');
+    const policeMinimum = await evaluate(`({text:document.querySelector('#pol-insight').innerText,
+      zero:document.querySelector('#pol-hour [data-k="hour:1"]').getAttribute('aria-label'),
+      sparse:document.querySelector('#pol-hour [data-k="hour:2"]').getAttribute('aria-label')})`);
+    assert(policeMinimum.text.includes('lowest at 01:00 (0%)'));
+    assert(policeMinimum.zero.includes('0% likely officer-initiated'));
+    assert(policeMinimum.sparse.includes('insufficient data'));
+    console.log('PASS: genuine zero shares remain eligible and sparse hours are marked insufficient');
+
+    await navigate(pageUrl + '?cat=MEDICAL&responder=EMS');
+    const policeClick = await evaluate(`(()=>{
+      // EMS hides police rows; restore responder while retaining the ignored medical filter.
+      const a=document.querySelector('#agency');a.value='-1';a.dispatchEvent(new Event('change'));
+      document.querySelector('#pol-list [data-u]').click();return {category:document.querySelector('#cat').value,total:document.querySelector('#total').innerText}})()`);
+    assert.equal(policeClick.category, 'ALL');
+    assert.notEqual(policeClick.total, '0');
+    await navigate(pageUrl + '?cat=MEDICAL&responder=FIRE');
+    const incompatibleClick = await evaluate(`(()=>{document.querySelector('#flow-kind [data-k="EMS"]').click();
+      document.querySelector('#flow-list [data-dest]').click();return {responder:document.querySelector('#agency').value,total:document.querySelector('#total').innerText}})()`);
+    assert.equal(incompatibleClick.responder, '-1');
+    assert.notEqual(incompatibleClick.total, '0');
+    console.log('PASS: analysis selections clear incompatible category and responder filters');
+
+    await navigate(pageUrl);
+    const outside = await evaluate(`(()=>{const before=document.querySelector('#out-list').innerText;
+      const unknown=document.querySelector('#flow-insight').innerText;
+      const c=document.querySelector('#city');c.value='T:UTICA';c.dispatchEvent(new Event('change'));
+      const changed=document.querySelector('#out-list').innerText!==before;
+      document.querySelector('#reset').click();const a=document.querySelector('#agency');
+      const d=JSON.parse(document.querySelector('#data').textContent);a.value=d.agencyTypes.indexOf('FIRE');a.dispatchEvent(new Event('change'));
+      return {changed,unknown,out:document.querySelector('#out-list').innerText,
+        kinds:[...document.querySelectorAll('#out-list [data-u]')].map(e=>d.agencyKind[+e.dataset.u])}})()`);
+    assert(outside.changed);
+    assert(outside.kinds.length > 0 && outside.kinds.every(k => k === 'FIRE'));
+    assert(outside.unknown.includes('with known destinations'));
+    assert(outside.unknown.includes(fmt(expected.fireUnknown) + ' dispatches with unknown destinations excluded'), outside.unknown + ' / expected ' + expected.fireUnknown);
+    assert(outside.out.includes(fmt(expected.fireUnknown) + ' dispatches with unknown destinations excluded'), outside.out.slice(-120) + ' / expected ' + expected.fireUnknown);
+    console.log('PASS: outside-town ranking applies place/responders and discloses unknown destinations');
+
+    await navigate(pageUrl + '?place=C%3AHERKIMER');
+    const countyRoute = await evaluate(`(()=>{const row=document.querySelector('#flow-list [data-dest="C:HERKIMER"]');
+      if(!row)return null;row.click();return {place:document.querySelector('#city').value,url:location.href}})()`);
+    assert(countyRoute);
+    assert.equal(countyRoute.place, 'C:HERKIMER');
+    assert(new URL(countyRoute.url).searchParams.get('place') === 'C:HERKIMER');
+    // A county route must also work when selected from a different place filter.
+    await navigate(pageUrl);
+    const countyClick = await evaluate(`(()=>{const list=document.querySelector('#flow-list');
+      const row=document.createElement('div');row.dataset.dest='C:HERKIMER';list.append(row);row.click();return document.querySelector('#city').value})()`);
+    assert.equal(countyClick, 'C:HERKIMER');
+    console.log('PASS: county destinations can be selected through route controls');
+
+    const smallSample = await evaluate(`(()=>{const d=JSON.parse(document.querySelector('#data').textContent),bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+      const units=bytes(d.records.u),dates=new Uint16Array(bytes(d.records.d).buffer),counts=new Map();
+      for(let i=0;i<units.length;i++)if(d.agencyKind[units[i]]==='CAMPUS_POLICE'){
+        const key=dates[i]+':'+units[i];counts.set(key,(counts.get(key)||0)+1)}
+      const days=[...new Set([...counts.keys()].map(k=>+k.split(':')[0]))];
+      return d.dates[days.find(day=>[...counts].filter(([k])=>+k.split(':')[0]===day).every(([,n])=>n<20))];})()`);
+    assert(smallSample);
+    await navigate(pageUrl + '?responder=CAMPUS_POLICE&date=' + smallSample);
+    const sampleText = await evaluate(`document.querySelector('#pol-list').innerText`);
+    assert(sampleText.includes('fewer than 20'));
+    assert(!sampleText.includes('No police dispatches'));
+    assert.deepEqual(errors, []);
+    console.log('PASS: department ranking distinguishes a small sample from no matching dispatches');
+
+    await navigate(pageUrl);
+    await evaluate(`document.documentElement.style.scrollBehavior='auto';document.querySelector('#pol-hour').scrollIntoView({behavior:'instant',block:'center'})`);
+    await screenshot('policing-mobile');
+    await evaluate(`document.querySelector('#flowmap').scrollIntoView({behavior:'instant',block:'center'})`);
+    await screenshot('flows-mobile');
+
     const injected = await send('Page.addScriptToEvaluateOnNewDocument', { source: `const originalParse=JSON.parse;JSON.parse=function(...args){const d=originalParse.apply(this,args);if(d&&d.records&&d.population)d.population={};return d}` });
     await navigate(pageUrl + '?test=missing-population');
     assert((await evaluate(`document.querySelector('#pc-list').innerText`)).includes('unavailable'));
-    assert.equal(await evaluate(`document.querySelector('#total').textContent`), '181,601');
+    assert.equal(await evaluate(`document.querySelector('#total').textContent`), fmt(expected.total));
     assert.deepEqual(errors, []);
     await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: injected.identifier });
     console.log('PASS: missing optional population data does not interrupt initialization');

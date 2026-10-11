@@ -16,8 +16,8 @@ python -I geo/make_map_page.py geo/vendor/leaflet-1.9.4.css # publishable HTML
 
 | File | Contents |
 |---|---|
-| `oneida_911_records.csv` | **Main dataset.** 181,601 rows, one per agency dispatch. |
-| `raw_records.csv` | Cell text exactly as extracted (line breaks kept), 182,532 rows including superseded report versions. |
+| `oneida_911_records.csv` | **Main dataset.** 249,065 rows, one per agency dispatch. |
+| `raw_records.csv` | Cell text exactly as extracted (line breaks kept), 249,996 rows including superseded report versions. |
 | `extraction_log.csv` | Per-PDF row count vs. the total printed in the report. All 280 match. |
 | `response_type_map.csv` | Raw response type → harmonized `response_type` + `category`, with counts. |
 | `agency_map.csv` | Raw agency name → canonical `agency` + `agency_type`, with counts. |
@@ -50,7 +50,7 @@ python -I geo/make_map_page.py geo/vendor/leaflet-1.9.4.css # publishable HTML
 | `village` | The village within the town, if any (e.g. `WHITESBORO`). New York Mills straddles two towns; the dispatch code records which part. |
 | `district` | Sub-area qualifier: `INSIDE`/`OUTSIDE` (Rome's inner and outer districts), `HINCKLEY` (Trenton). |
 | `county` | `ONEIDA`, or the neighboring county for the few mutual-aid calls (Herkimer, Oswego, Madison, Lewis). |
-| `outside_county` | True for those 15 mutual-aid calls. |
+| `outside_county` | True for the 16 mutual-aid dispatches the reports place in neighboring counties. |
 | `latitude` `longitude` | Present when a 2026 report printed coordinates in place of a street (33 retained rows). Preserved individually in the geocoded columns and map. |
 | `location_missing` | No street and no coordinates (about 16%; mostly traffic stops and some police calls). |
 | `geo_latitude` `geo_longitude` | Estimated point for the street within its town, from `geo/geocode.py` (Census TIGER/Line 2024). The point sits where the street's addresses are concentrated. |
@@ -65,7 +65,7 @@ python -I geo/make_map_page.py geo/vendor/leaflet-1.9.4.css # publishable HTML
 ## Caveats for modeling
 
 - **Rows are agency dispatches, not unique emergencies.** One crash can produce 4 rows (ambulance, fire, state police, sheriff). Deduplicate on `incident_cluster_id` when you count incidents.
-- **Coverage has gaps:** 257 days in 2024 (Jan–Sep), 8 days in 2025, and 13 days in 2026. Don't treat this as a continuous time series without accounting for missing days (see `../Oneida_County_911_Reports/coverage.csv`).
+- **Coverage has gaps:** 364 days in 2024 (all but two), 9 days in 2025, and 13 days in 2026. Don't treat this as a continuous time series without accounting for missing days (see `../Oneida_County_911_Reports/coverage.csv`).
 - **The CAD system changed in 2026:** coarser timestamps and partly different call-type wording. Include `report_format` as a feature or control for it.
 - Call types are what dispatch recorded at intake, not confirmed outcomes. There are no arrival or clear times, so response times can't be computed.
 - `September-24-2026` and `September-25-2026` each had a `-v2` reissue. Only the v2 rows are kept (931 v1 rows dropped).
