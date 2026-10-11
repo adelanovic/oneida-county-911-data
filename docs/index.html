@@ -309,6 +309,31 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 #flowmap { height: 420px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
 @media (max-width: 900px) { .flow-wrap { grid-template-columns: minmax(0, 1fr); } #flowmap { height: 340px; } }
 
+
+/* ---- seasons */
+.season-top { display: grid; grid-template-columns: repeat(12, minmax(18px, 1fr)); gap: 4px; align-items: end; height: 110px; min-width: 22rem; }
+.season-top button, .sbars button { all: unset; display: block; cursor: pointer; border-radius: 3px 3px 0 0; background: var(--q4); min-height: 2px; }
+.season-top button:hover, .sbars button:hover { background: var(--q6); }
+.season-top button.on, .sbars button.on { background: var(--select); }
+.season-top button.pk, .sbars button.pk { background: var(--q7); }
+.season-top button:disabled, .sbars button:disabled { background: transparent; border-bottom: 2px dashed var(--muted); cursor: default; }
+.season-coverage { border-collapse: collapse; font-size: .76rem; width: 100%; min-width: 52rem; margin: 12px 0; font-variant-numeric: tabular-nums; }
+.season-coverage th, .season-coverage td { padding: 7px 5px; border-bottom: 1px solid var(--line); text-align: center; }
+.season-coverage small { display: block; color: var(--muted); }
+.season-coverage .partial { background: var(--dot-soft); }
+.season-top button:focus-visible, .sbars button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.season-ax { display: grid; grid-template-columns: repeat(12, minmax(18px, 1fr)); gap: 4px; font-size: .7rem; color: var(--muted); text-align: center; min-width: 22rem; }
+.season-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: 10px; }
+.season-card { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px 6px; display: grid; gap: 4px; min-width: 0; }
+.season-card.on { border-color: var(--dot); background: var(--dot-soft); }
+.season-card .t { all: unset; font-weight: 600; font-size: .86rem; cursor: pointer; overflow-wrap: anywhere; }
+.season-card .t:hover { text-decoration: underline; }
+.season-card .t:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.season-card .m { font-size: .74rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.season-card .swing { font: 600 1rem/1 var(--f-display); color: var(--ink); }
+.sbars { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; align-items: end; height: 48px; }
+.sbars-ax { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; font-size: .6rem; color: var(--muted); text-align: center; }
+
 /* ---- map overlays */
 .town-label { color: var(--muted); font: 600 .7rem/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase;
   white-space: nowrap; text-align: center; pointer-events: none;
@@ -378,6 +403,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <a class="btn" href="#patterns">Time patterns</a>
       <a class="btn" href="#coverage-section">Report coverage</a>
       <a class="btn" href="#trend-section">Daily trend</a>
+      <a class="btn" href="#seasons-section">Seasons</a>
       <a class="btn" href="#standouts-section">What stands out</a>
       <a class="btn" href="#mix-section">Call mix</a>
       <a class="btn" href="#responders-section">Who responds</a>
@@ -436,11 +462,24 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     <div class="chart card wide" id="trend-section">
       <div class="chart-head">
         <h2>Daily trend</h2>
-        <p>Dispatches by report date, with a 7-day average and a separate chart for each selected year. Missing days break the line. Place, responder, call type, weekday and hour filters apply; the selected date is highlighted. The 2026 system omits traffic stops and premise checks. Tap a date to filter; use arrow keys to explore and Enter to select.</p>
+        <p>Dispatches by report date, with a 7-day average and a separate chart for each selected year. Missing days break the line. Place, responder, call type, month, weekday and hour filters apply; the selected date is highlighted. The 2026 system omits traffic stops and premise checks. Tap a date to filter; use arrow keys to explore and Enter to select.</p>
       </div>
       <div class="trend-box" id="trend"></div>
       <div class="legend-line"><span><i class="raw"></i>Each report day</span><span><i></i>7-day average</span><span>○ Unusual spikes</span></div>
       <div class="insight" id="trend-insight"></div>
+    </div>
+    <div class="chart card wide" id="seasons-section">
+      <div class="chart-head">
+        <h2>Seasons</h2>
+        <p>Monthly dispatches per report day across the selected years, weighted by the number of available report days. All filters apply except the month filter, so you can compare months. Click a month to filter the page; click a call type's name to filter to it. The darkest bar is the peak among observed months.</p>
+      </div>
+      <div class="scroll-x"><div class="season-top" id="season-top" role="group" aria-label="Dispatches per day by month"></div><div class="season-ax" id="season-ax"></div></div>
+      <label class="chart-picker">Filter by month <select id="season-month" aria-label="Filter by month"></select></label>
+      <div class="insight" id="season-insight"></div>
+      <div class="scroll-x" tabindex="0" role="region" aria-label="Monthly rates and report coverage by year"><table class="season-coverage" id="season-coverage"></table></div>
+      <p class="so-note">Each table cell shows dispatches/day and available/possible report days for the selected weekday. Shaded cells have incomplete coverage; missing reports are never counted as zero dispatches. Sparse months may miss storms, holidays or other peaks. Years can differ in coverage and reporting: the 2026 system omits traffic stops and premise checks, so changes are not necessarily changes in demand.</p>
+      <p class="so-note">Call-type charts use only year-months with at least 80% of possible report days, with at least six comparable calendar months and 150 matching dispatches. Each chart has its own scale. These are observed patterns, not proof of a recurring seasonal effect.</p>
+      <div class="season-grid" id="season-grid"></div>
     </div>
     <div class="chart card" id="standouts-section">
       <div class="chart-head">
@@ -567,6 +606,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const DOW_LONG = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const $ = id => document.getElementById(id);
   const fmt = n => n.toLocaleString("en-US");
   const fmt1 = n => n >= 100 ? fmt(Math.round(n)) : n >= 10 ? n.toFixed(1) : n.toFixed(2);
@@ -588,6 +628,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     f: u16(D.records.f), v: u16(D.records.v), r: u16(D.records.r) };
   const N = R.t.length;
   const dateYear = D.dates.map(iso => D.years.indexOf(+iso.slice(0, 4)));
+  const dateMonth = D.dates.map(iso => +iso.slice(5, 7));
   const dateDow = D.dates.map(dowOf);
   const dateIdx = new Map(D.dates.map((d, i) => [d, i]));
   // Records grouped by place, for tooltips.
@@ -624,7 +665,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   }
 
   // ---------- state
-  const DEFAULT = { cat: "ALL", type: -1, group: -1, year: -1, agency: -1, unit: -1, place: "", outside: false, date: -1, dow: -1, hour: -1 };
+  const DEFAULT = { cat: "ALL", type: -1, group: -1, year: -1, agency: -1, unit: -1, place: "", outside: false, date: -1, month: -1, dow: -1, hour: -1 };
   const st = { ...DEFAULT };
   let userMoved = false;
   const cityOK = new Uint8Array(D.cities.length);
@@ -678,6 +719,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   function renderChips() {
     const chips = [];
     if (st.unit >= 0) chips.push(["unit", D.agencies[st.unit]]);
+    if (st.month >= 0) chips.push(["month", MONTH_NAMES[st.month - 1]]);
     if (st.date >= 0) chips.push(["date", dateLabel(D.dates[st.date])]);
     if (st.dow >= 0 || st.hour >= 0) {
       const parts = [st.dow >= 0 ? DOW_LONG[st.dow] + "s" : "", st.hour >= 0 ? `${hourLabel(st.hour)}–${hourLabel((st.hour + 1) % 24)}` : ""];
@@ -714,14 +756,14 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   };
   $("chips").onclick = e => {
     const b = e.target.closest("[data-clear]"); if (!b) return;
-    if (b.dataset.clear === "date") st.date = -1; else if (b.dataset.clear === "unit") st.unit = -1; else { st.dow = -1; st.hour = -1; }
+    if (b.dataset.clear === "date") st.date = -1; else if (b.dataset.clear === "month") st.month = -1; else if (b.dataset.clear === "unit") st.unit = -1; else { st.dow = -1; st.hour = -1; }
     update();
   };
   document.querySelectorAll("[data-hour-picker]").forEach(el => {
     el.replaceChildren(opt(-1, "All hours"), ...Array.from({ length: 24 }, (_, h) => opt(h, `${hourLabel(h)}–${hourLabel((h + 1) % 24)}`)));
     el.onchange = () => { st.hour = +el.value; update(); };
   });
-  $("report-date").onchange = e => { st.date = +e.target.value; update(); };
+  $("report-date").onchange = e => { st.date = +e.target.value; if (st.date >= 0 && st.month >= 0) st.month = dateMonth[st.date]; update(); };
   $("reset").onclick = () => { Object.assign(st, DEFAULT); selected = null; userMoved = false; pcMode = "T"; flowKind = "FIRE"; markFlowKind();
     qIn.value = ""; hits = []; active = -1; renderSugg(); $("qnote").textContent = "";
     Object.assign(cmp, { mode: "place", a: "T:UTICA", b: "T:ROME", ya: 0, yb: D.years.length - 1 });
@@ -867,7 +909,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 
   // ---------- filters on a single record
   const yearOK = d => st.year < 0 || dateYear[d] === st.year;
-  const dateOK = d => st.date < 0 || d === st.date;
+  const monthOK = d => st.month < 0 || dateMonth[d] === st.month;
+  const dateOK = d => (st.date < 0 || d === st.date) && monthOK(d);
   const dowOK = d => st.dow < 0 || dateDow[d] === st.dow;
   const hourOK = h => st.hour < 0 || h === st.hour;
   const agOK = a => st.agency < 0 || a === st.agency;
@@ -986,7 +1029,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (kind === "cell") { const same = st.dow === +a && st.hour === +b; st.dow = same ? -1 : +a; st.hour = same ? -1 : +b; }
     if (kind === "hour") { const same = st.hour === +a && st.dow < 0; st.hour = same ? -1 : +a; st.dow = -1; }
     if (kind === "dow") { const same = st.dow === +a && st.hour < 0; st.dow = same ? -1 : +a; st.hour = -1; }
-    if (kind === "date") { st.date = st.date === +a ? -1 : +a; if (st.date >= 0 && st.year >= 0) st.year = dateYear[st.date]; }
+    if (kind === "date") { st.date = st.date === +a ? -1 : +a; if (st.date >= 0 && st.year >= 0) st.year = dateYear[st.date]; if (st.date >= 0 && st.month >= 0) st.month = dateMonth[st.date]; }
     update();
   }
   for (const box of [heat, cal]) {
@@ -1055,11 +1098,12 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 
     calN = dateN;
     const nz = [...dateN].filter(v => v > 0), calMax = nz.length ? Math.max(...nz) : 1, calMin = nz.length ? Math.min(...nz) : 0;
-    for (const { el, d, yi } of calDays) {
-      if (d < 0) { el.classList.toggle("dimyear", st.year >= 0 && yi !== st.year); continue; }
+    for (const { el, d, yi, iso } of calDays) {
+      const outMonth = st.month >= 0 && +iso.slice(5, 7) !== st.month;
+      if (d < 0) { el.classList.toggle("dimyear", (st.year >= 0 && yi !== st.year) || outMonth); continue; }
       el.style.background = qColor(bucket(dateN[d], calMin, calMax));
       el.classList.toggle("on", st.date === d);
-      el.classList.toggle("dimyear", st.year >= 0 && yi !== st.year);
+      el.classList.toggle("dimyear", (st.year >= 0 && yi !== st.year) || outMonth);
       el.setAttribute("aria-label", `${dateLabel(D.dates[d])}: ${fmt(dateN[d])} dispatches`);
       el.setAttribute("aria-pressed", st.date === d);
     }
@@ -1100,6 +1144,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (st.unit >= 0) parts.push(D.agencies[st.unit]);
     if (st.date >= 0) parts.push(dateLabel(D.dates[st.date]));
     else if (st.year >= 0) parts.push(String(D.years[st.year]));
+    if (st.month >= 0 && st.date < 0) parts.push(MONTH_NAMES[st.month - 1]);
     if (st.dow >= 0) parts.push(DOW_LONG[st.dow] + "s");
     if (st.hour >= 0) parts.push(`${hourLabel(st.hour)}–${hourLabel((st.hour + 1) % 24)}`);
     return parts.join(" · ");
@@ -1180,7 +1225,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const pad = { l: 44, r: 16, t: 24, b: 30 }, iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
     trendCharts.clear();
     let html = "";
-    const visible = D.dates.map((iso, d) => d).filter(d => yearOK(d) && dowOK(d));
+    const visible = D.dates.map((iso, d) => d).filter(d => yearOK(d) && monthOK(d) && dowOK(d));
     D.years.forEach((year, yi) => {
       const ids = visible.filter(d => dateYear[d] === yi); if (!ids.length) return;
       const first = dayNum[ids[0]], last = dayNum[ids[ids.length - 1]];
@@ -1236,14 +1281,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     box.innerHTML = html || '<p class="so-note">No report days match these filters.</p>';
     if (focusedYear) box.querySelector(`[data-year="${focusedYear}"]`)?.focus({ preventScroll: true });
     const total = visible.reduce((sum, d) => sum + dateN[d], 0);
-    const months = {};
-    visible.filter(d => D.dates[d].startsWith("2024")).forEach(d => {
-      const month = D.dates[d].slice(0, 7); const item = months[month] ||= { n: 0, days: 0 }; item.n += dateN[d]; item.days++;
-    });
-    const full = Object.entries(months).filter(([, v]) => v.days >= 10).map(([m, v]) => [m, v.n / v.days]).sort((a, b) => b[1] - a[1]);
-    const label = m => `${MON[+m.slice(5) - 1]} 2024`;
-    $("trend-insight").innerHTML = !total ? '<span>No dispatches match these filters.</span>' : full.length >= 2 ?
-      `<span>In 2024, the busiest month was <b>${label(full[0][0])}</b>, ${fmt1(full[0][1])} per day; the quietest was <b>${label(full[full.length - 1][0])}</b>, ${fmt1(full[full.length - 1][1])} per day.</span>` : '<span>Not enough matching report days per month for a seasonal comparison.</span>';
+    $("trend-insight").textContent = total ? `${fmt(total)} dispatches across ${fmt(visible.length)} matching report days. Compare monthly rates and report coverage in Seasons below.` : "No dispatches match these filters.";
   }
   const trendCursor = new Map();
   function trendDescription(year, j) {
@@ -1282,7 +1320,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   function update() {
     if ($("qnote")) $("qnote").textContent = "";
     const focused = document.activeElement;
-    const focusKey = focused?.closest("#patterns") ? ["data-u", "data-place", "data-g", "data-mix", "data-clear"].find(a => focused.hasAttribute(a)) : null;
+    const focusKey = focused?.closest("#patterns") ? ["data-u", "data-place", "data-g", "data-mix", "data-clear", "data-month"].find(a => focused.hasAttribute(a)) : null;
     const focusParent = focusKey ? focused.parentElement.closest("[id]")?.id : "";
     const focusValue = focusKey ? focused.getAttribute(focusKey) : "";
     // Each control's counts apply all the *other* filters, so they say how many dispatches picking that option shows.
@@ -1403,6 +1441,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     renderCompare();
     renderPolicing();
     renderFlows();
+    renderSeasons();
     if (focusKey && !focused.isConnected) {
       const replacement = [...(document.getElementById(focusParent)?.querySelectorAll(`[${focusKey}]`) || [])].find(el => el.getAttribute(focusKey) === focusValue);
       if (replacement) replacement.focus({ preventScroll: true });
@@ -1424,6 +1463,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (st.unit >= 0) q.set("agency", D.agencies[st.unit]);
     if (st.year >= 0) q.set("year", D.years[st.year]);
     if (st.date >= 0) q.set("date", D.dates[st.date]);
+    if (st.month >= 0) q.set("month", st.month);
     if (st.dow >= 0) q.set("day", DOW_KEY[st.dow]);
     if (st.hour >= 0) q.set("hour", st.hour);
     if (st.outside) q.set("outside", "1");
@@ -1455,6 +1495,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const ui = D.agencies.indexOf(q.get("agency")); if (ui >= 0) st.unit = ui;
     const yi = D.years.indexOf(+q.get("year")); if (yi >= 0) st.year = yi;
     if (dateIdx.has(q.get("date"))) st.date = dateIdx.get(q.get("date"));
+    const mo = q.get("month"); if (mo !== null && /^\d{1,2}$/.test(mo) && +mo >= 1 && +mo <= 12) st.month = +mo;
     const di = DOW_KEY.indexOf(q.get("day")); if (di >= 0) st.dow = di;
     const h = q.get("hour"); if (h !== null && /^\d{1,2}$/.test(h) && +h < 24) st.hour = +h;
     st.outside = q.get("outside") === "1";
@@ -1711,7 +1752,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       const t = R.t[i], d = R.d[i], c = R.c[i];
       if (!(typeOK(t) && agOK(R.a[i]) && unitOK(R.u[i]) && dowOK(d) && hourOK(R.h[i]))) continue;
       if (byPlace && !(yearOK(d) && dateOK(d))) continue;
-      if (!byPlace && !cityOK[c]) continue;
+      if (!byPlace && !(cityOK[c] && monthOK(d))) continue;
       const matches = byPlace ? [inA[c], inB[c]] : [dateYear[d] === cmp.ya, dateYear[d] === cmp.yb];
       matches.forEach((match, k) => {
         if (!match) return;
@@ -1720,7 +1761,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       });
     }
     // report days per side
-    const daysFor = y => D.dates.reduce((s, iso, d) => s + ((y == null ? yearOK(d) && dateOK(d) : dateYear[d] === y) && dowOK(d) ? 1 : 0), 0);
+    const daysFor = y => D.dates.reduce((s, iso, d) => s + ((y == null ? yearOK(d) && dateOK(d) : dateYear[d] === y && monthOK(d)) && dowOK(d) ? 1 : 0), 0);
     const days = byPlace ? [daysFor(null), daysFor(null)] : [daysFor(cmp.ya), daysFor(cmp.yb)];
     const names = byPlace ? [cmp.a, cmp.b].map(k => placeName(k)) : [D.years[cmp.ya], D.years[cmp.yb]].map(String);
     const pops = byPlace ? [D.population?.[cmp.a], D.population?.[cmp.b]] : [null, null];
@@ -1782,6 +1823,88 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     showTip(e, `<b>${hourLabel(x)}–${hourLabel((x + 1) % 24)}</b><br>` + (n >= 20 ? `${(100 * c[0] / n).toFixed(0)}% likely officer-initiated <span>· ${fmt(n)} police dispatches</span>` : `<span>Insufficient data: ${fmt(n)} dispatches (minimum 20)</span>`));
   });
   $("pol-hour").addEventListener("pointerleave", () => tipf.hidden = true);
+
+  // ---------- seasons: coverage-aware monthly rates across any available years
+  const MONTH_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  $("season-ax").innerHTML = MON.map(m => `<span>${m}</span>`).join("");
+  const seasonRate = n => n.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  $("season-month").innerHTML = `<option value="-1">All months</option>` + MONTH_LONG.map((m, k) => `<option value="${k + 1}">${m}</option>`).join("");
+  $("season-month").onchange = e => toggleMonth(+e.target.value);
+  const toggleMonth = m => {
+    st.month = st.month === m ? -1 : m;
+    if (st.month >= 0 && st.date >= 0 && dateMonth[st.date] !== st.month) st.date = -1;
+    update();
+  };
+  function renderSeasons() {
+    $("season-month").value = st.month;
+    const years = D.years.map((y, yi) => ({ y, yi, days: new Float64Array(13), possible: new Float64Array(13), total: new Float64Array(13) }))
+      .filter(row => st.year < 0 || row.yi === st.year);
+    const byYear = new Map(years.map(row => [row.yi, row]));
+    // Coverage is independent of call/place filters: a day with zero matching calls still counts.
+    for (const row of years) {
+      for (let m = 1; m <= 12; m++) {
+        const last = new Date(Date.UTC(row.y, m, 0)).getUTCDate();
+        for (let day = 1; day <= last; day++) {
+          const dow = (new Date(Date.UTC(row.y, m - 1, day)).getUTCDay() + 6) % 7;
+          if (st.dow < 0 || st.dow === dow) row.possible[m]++;
+        }
+      }
+    }
+    D.dates.forEach((iso, d) => {
+      const row = byYear.get(dateYear[d]);
+      if (row && dowOK(d) && (st.date < 0 || d === st.date)) row.days[dateMonth[d]]++;
+    });
+    const days = new Float64Array(13), stableDays = new Float64Array(13), total = new Float64Array(13), byGroup = new Map();
+    years.forEach(row => { for (let m = 1; m <= 12; m++) {
+      days[m] += row.days[m];
+      if (row.days[m] && row.days[m] / row.possible[m] >= .8) stableDays[m] += row.days[m];
+    }});
+    for (let i = 0; i < N; i++) {
+      const d = R.d[i], row = byYear.get(dateYear[d]);
+      if (!row || (st.date >= 0 && d !== st.date) || !dowOK(d) || !hourOK(R.h[i]) || !agOK(R.a[i]) || !unitOK(R.u[i]) || !cityOK[R.c[i]]) continue;
+      const m = dateMonth[d], t = R.t[i];
+      if (typeOK(t)) { total[m]++; row.total[m]++; }
+      if (row.days[m] / row.possible[m] < .8 || !typeOK(t)) continue;
+      const g = typeGroup[t];
+      let arr = byGroup.get(g); if (!arr) byGroup.set(g, arr = new Float64Array(13)); arr[m]++;
+    }
+    const observed = Array.from({ length: 12 }, (_, k) => k + 1).filter(m => days[m]);
+    const top = Array.from({ length: 13 }, (_, m) => days[m] ? total[m] / days[m] : null);
+    const peak = observed.reduce((best, m) => best < 0 || top[m] > top[best] ? m : best, -1);
+    const low = observed.reduce((best, m) => best < 0 || top[m] < top[best] ? m : best, -1);
+    const max = Math.max(1, ...observed.map(m => top[m]));
+    $("season-top").innerHTML = MON.map((_, k) => {
+      const m = k + 1, label = `${MONTH_LONG[k]}: ${days[m] ? seasonRate(top[m]) + " dispatches per report day over " + days[m] + " report days; filter by month" : "no report days"}`;
+      return `<button type="button" data-month="${m}" data-rate="${top[m] ?? ''}" data-days="${days[m]}" class="${st.month === m ? "on" : m === peak ? "pk" : ""}" style="height:${days[m] ? 100 * top[m] / max : 0}%" ${days[m] ? "" : "disabled"} aria-pressed="${st.month === m}" aria-label="${label}" title="${label}"></button>`;
+    }).join("");
+    $("season-coverage").innerHTML = `<caption>Monthly dispatches/day and report coverage by year</caption><thead><tr><th scope="col">Year</th>${MON.map(m => `<th scope="col">${m}</th>`).join("")}</tr></thead><tbody>` + years.map(row =>
+      `<tr data-year="${row.y}"><th scope="row">${row.y}</th>${MON.map((_, k) => {
+        const m = k + 1, n = row.days[m], possible = row.possible[m];
+        return `<td data-month="${m}" class="${n < possible ? 'partial' : ''}">${n ? seasonRate(row.total[m] / n) : 'No reports'}<small>${n}/${possible} days</small></td>`;
+      }).join("")}</tr>`).join("") + '</tbody>';
+    $("season-insight").textContent = peak < 0 ? "No report days match these filters." : !total.some(v => v) ? "No dispatches match these filters; report days with zero matching dispatches are included." :
+      `${years.map(row => row.y).join(', ')}: highest observed monthly rate ${MONTH_LONG[peak - 1]}, ${seasonRate(top[peak])}/day; lowest ${MONTH_LONG[low - 1]}, ${seasonRate(top[low])}/day. ${observed.length}/12 months have reports. Partial coverage can change this comparison.`;
+    const eligible = observed.filter(m => stableDays[m]);
+    const ranked = eligible.length >= 6 ? [...byGroup.entries()].map(([g, arr]) => {
+      const r = Array.from({ length: 13 }, (_, m) => stableDays[m] ? arr[m] / stableDays[m] : null);
+      const n = arr.reduce((a, b) => a + b, 0), mean = eligible.reduce((s, m) => s + r[m], 0) / eligible.length;
+      const pk = eligible.reduce((a, b) => r[b] > r[a] ? b : a), lo = eligible.reduce((a, b) => r[b] < r[a] ? b : a);
+      return { g, r, n, pk, lo, swing: mean ? r[pk] / mean : 0 };
+    }).filter(x => x.n >= 150).sort((a, b) => b.swing - a.swing).slice(0, 8) : [];
+    $("season-grid").innerHTML = ranked.length ? ranked.map(({ g, r, n, pk, lo }) => {
+      const mx = Math.max(1e-9, ...eligible.map(m => r[m])), on = st.group === g || (st.type >= 0 && typeGroup[st.type] === g);
+      const ratio = r[lo] > 0 ? `${(r[pk] / r[lo]).toFixed(1)} times peak vs low` : "zero matching dispatches in the low month";
+      return `<div class="season-card${on ? " on" : ""}"><button type="button" class="t" data-g="${g}">${esc(groupLabel[g])}</button>
+        <span class="m swing">${ratio}</span><span class="m">peak ${MON[pk - 1]} ${seasonRate(r[pk])}/day; low ${MON[lo - 1]} ${seasonRate(r[lo])}/day; ${fmt(n)} dispatches in well-covered months</span>
+        <span class="sbars">${MON.map((_, k) => { const m = k + 1, label = `${esc(groupLabel[g])}, ${MONTH_LONG[k]}: ${r[m] == null ? "insufficient report coverage" : seasonRate(r[m]) + " per day; filter by month"}`;
+          return `<button type="button" data-month="${m}" class="${st.month === m ? "on" : m === pk ? "pk" : ""}" style="height:${100 * (r[m] || 0) / mx}%" ${r[m] == null ? "disabled" : ""} aria-pressed="${st.month === m}" aria-label="${label}" title="${label}"></button>`;
+        }).join("")}</span><span class="sbars-ax">${MON.map(m => `<span>${m[0]}</span>`).join("")}</span></div>`;
+    }).join("") : '<p class="so-note">Not enough coverage or matching dispatches to rank seasonal call types: at least six calendar months with 80% coverage in a selected year and 150 dispatches are needed.</p>';
+  }
+  $("seasons-section").addEventListener("click", e => {
+    const m = e.target.closest("[data-month]"); if (m) { toggleMonth(+m.dataset.month); return; }
+    const g = e.target.closest("[data-g]"); if (g) pick.group(+g.dataset.g);
+  });
 
   function renderPolicing() {
     // All filters except category / call type (the split is the point) and the specific-agency filter (to list departments).

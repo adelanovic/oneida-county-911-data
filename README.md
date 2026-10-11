@@ -37,6 +37,7 @@ The dataset tests use rebuilt local outputs. Browser tests use a temporary headl
 
 ## Interpretation
 
+- Seasons uses all selected years and updates when new reports are rebuilt into the map. Monthly rates divide dispatches by matching report days, including days with zero matching calls. A table shows rates and report coverage separately for each year; missing months are not treated as zero. Call-type rankings use only year-months with at least 80% coverage and require six comparable calendar months and 150 dispatches. Sparse coverage and the changed 2026 reporting system can distort comparisons. The month filter applies across years; Seasons keeps all months visible for context.
 - Coordinates printed in reports are preserved per dispatch. Missing locations stay unmapped. Named streets that cannot be matched may receive an explicitly approximate municipality point.
 - Fuzzy matching rejects conflicting numbers and street types. Modeled expected error describes assumed address/road distributions, not verified distances to actual incidents.
 - Incident clusters are a heuristic with a maximum 120-second duration, or five seconds for records with only a municipality. Completely unspecified locations are not merged; coordinates distinguish coordinate-only incidents. Distinct agency counts refer to the complete inferred incident, even when an agency filter is active.

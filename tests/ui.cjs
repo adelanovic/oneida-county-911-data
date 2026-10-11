@@ -23,10 +23,17 @@ function datasetCounts() {
   };
   const header = split(lines[0]), town = header.indexOf('town'), village = header.indexOf('village');
   const county = header.indexOf('county'), kind = header.indexOf('agency_type'), agency = header.indexOf('agency');
+  const reportDate = header.indexOf('report_date');
+  const seasonal = {}, seasonalMonday = {};
   let total = 0, whitestown = 0, whitesboro = 0;
   const fireUnknownBy = new Map(), hasHome = new Set();
   for (const line of lines.slice(1)) {
     const f = split(line); total++;
+    const iso = f[reportDate], y = iso.slice(0, 4), m = +iso.slice(5, 7);
+    for (const stats of [seasonal, ...(new Date(iso + 'T00:00:00Z').getUTCDay() === 1 ? [seasonalMonday] : [])]) {
+      const row = stats[y] ||= Array.from({length:13}, () => ({n:0, dates:new Set()}));
+      row[m].n++; row[m].dates.add(iso);
+    }
     if (f[town] === 'WHITESTOWN') { whitestown++; if (f[village] === 'WHITESBORO') whitesboro++; }
     // "Unknown destination" = no town and not a neighboring county (matches the flows panel).
     const unknown = f[town] === '' && (f[county] === '' || f[county] === 'ONEIDA');
@@ -36,7 +43,8 @@ function datasetCounts() {
   // The panel only considers agencies with a home town (at least one dispatch in an Oneida County town).
   let fireUnknown = 0;
   fireUnknownBy.forEach((n, a) => { if (hasHome.has(a)) fireUnknown += n; });
-  return { total, whitestown, whitesboro, fireUnknown };
+  const plain = stats => Object.fromEntries(Object.entries(stats).map(([y, months]) => [y, months.map(v => ({n:v.n, days:v.dates.size}))]));
+  return { total, whitestown, whitesboro, fireUnknown, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday) };
 }
 
 async function main() {
@@ -428,6 +436,78 @@ async function main() {
     }
     assert.deepEqual(errors,[]);
     console.log('PASS: county overview remains centered across mobile/desktop resizing and both maps expose reset controls');
+
+    async function checkSeasons(stats, years) {
+      const actual = await evaluate(`({years:[...document.querySelectorAll('#season-coverage tbody tr')].map(e=>e.dataset.year),
+        bars:[...document.querySelectorAll('#season-top button')].map(e=>({rate:e.dataset.rate,days:+e.dataset.days,disabled:e.disabled})),
+        cells:[...document.querySelectorAll('#season-coverage tbody tr')].map(e=>[...e.querySelectorAll('td')].map(c=>c.innerText))})`);
+      assert.deepEqual(actual.years, years);
+      for (let m=1;m<=12;m++) {
+        const n=years.reduce((s,y)=>s+(stats[y]?.[m].n||0),0), days=years.reduce((s,y)=>s+(stats[y]?.[m].days||0),0);
+        assert.equal(actual.bars[m-1].days,days);
+        assert.equal(actual.bars[m-1].disabled,days===0);
+        if(days) assert(Math.abs(+actual.bars[m-1].rate-n/days)<1e-9);
+        else assert.equal(actual.bars[m-1].rate,'');
+        years.forEach((y,i)=>{
+          const v=stats[y]?.[m];
+          assert(actual.cells[i][m-1].startsWith(v?.days ? (v.n/v.days).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1}) : 'No reports'),actual.cells[i][m-1]);
+        });
+      }
+    }
+    const seasonYears=Object.keys(expected.seasonal).sort();
+    await navigate(pageUrl);
+    await checkSeasons(expected.seasonal,seasonYears);
+    assert(await evaluate(`!!document.querySelector('.section-nav a[href="#seasons-section"]')`));
+    await evaluate(`document.querySelector('#seasons-section').scrollIntoView({behavior:'instant',block:'start'})`);
+    await screenshot('seasons-desktop');
+    console.log('PASS: pooled monthly rates and per-year coverage match independent CSV counts');
+
+    await navigate(pageUrl+'?year=2025');
+    await checkSeasons(expected.seasonal,['2025']);
+    const months2025=expected.seasonal['2025'].slice(1).filter((v,k)=>v.days/new Date(Date.UTC(2025,k+1,0)).getUTCDate()>=.8).length;
+    if(months2025<6) assert.equal(await evaluate(`document.querySelectorAll('#season-grid .season-card').length`),0);
+    await navigate(pageUrl+'?day=mon');
+    await checkSeasons(expected.seasonalMonday,seasonYears);
+    console.log('PASS: selected years, missing months and weekday denominators are handled correctly');
+
+    await navigate(pageUrl+'?month=11&compare=year&compareA=2024&compareB=2025');
+    assert.equal(await evaluate(`document.querySelector('#total').textContent`),fmt(seasonYears.reduce((s,y)=>s+expected.seasonal[y][11].n,0)));
+    const november=await evaluate(`({counts:[...document.querySelectorAll('#cmp-out tbody tr:first-child td')].slice(1).map(e=>e.textContent),
+      trendDates:[...document.querySelectorAll('#trend svg')].map(e=>e.dataset.year),chip:document.querySelector('[data-clear="month"]').innerText})`);
+    assert.deepEqual(november.counts,[fmt(expected.seasonal['2024'][11].n),fmt(expected.seasonal['2025'][11].n)]);
+    assert(november.chip.includes('November'));
+    await checkSeasons(expected.seasonal,seasonYears); // The month axis retains context.
+    await evaluate(`document.querySelector('#season-top [data-month="6"]').focus();document.activeElement.click()`);
+    assert.equal(new URL(await evaluate('location.href')).searchParams.get('month'),'6');
+    assert.equal(await evaluate(`document.activeElement.dataset.month`),'6');
+    await evaluate(`document.querySelector('[data-clear="month"]').click()`);
+    assert(!new URL(await evaluate('location.href')).searchParams.has('month'));
+    console.log('PASS: month filtering, year comparisons, shared links and keyboard focus stay consistent');
+
+    const oneDate=[...fs.readFileSync(path.resolve(__dirname,'../output/oneida_911_records.csv'),'utf8').matchAll(/2024-11-\d\d/g)][0][0];
+    await navigate(pageUrl+'?date='+oneDate+'&month=11');
+    await evaluate(`document.querySelector('#season-top [data-month="11"]').click()`);
+    assert.equal(new URL(await evaluate('location.href')).searchParams.get('date'),oneDate);
+    assert(!new URL(await evaluate('location.href')).searchParams.has('month'));
+    assert.equal(await evaluate(`document.querySelectorAll('#season-grid .season-card').length`),0);
+    console.log('PASS: single-date selections do not fabricate seasonal patterns or disappear when clearing the month');
+
+    await navigate(pageUrl);
+    const groupName=await evaluate(`(()=>{const b=document.querySelector('#season-grid [data-g]');const t=b.textContent;b.click();return t})()`);
+    const seasonalFilter=new URL(await evaluate('location.href')).searchParams;
+    assert(seasonalFilter.has('group') || seasonalFilter.has('type'));
+    assert.equal(await evaluate(`document.querySelector('#season-grid [data-g]').textContent`),groupName);
+    await evaluate(`document.querySelector('#reset').click()`);
+    for(const theme of ['light','dark']) {
+      await send('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
+      await evaluate(`document.querySelector('#theme [data-theme="${theme}"]').click();document.querySelector('#seasons-section').scrollIntoView({behavior:'instant',block:'start'})`);
+      const overflow=await evaluate(`({width:innerWidth,scroll:document.documentElement.scrollWidth,card:document.querySelector('#seasons-section').clientWidth,content:document.querySelector('#seasons-section').scrollWidth})`);
+      assert(overflow.scroll<=overflow.width && overflow.content<=overflow.card+2,JSON.stringify(overflow));
+      await screenshot('seasons-mobile-'+theme);
+    }
+    assert.deepEqual(errors,[]);
+    console.log('PASS: seasonal call filters and 320px layouts work in both themes without JavaScript errors');
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
 
     const injected = await send('Page.addScriptToEvaluateOnNewDocument', { source: `const originalParse=JSON.parse;JSON.parse=function(...args){const d=originalParse.apply(this,args);if(d&&d.records&&d.population)d.population={};return d}` });
     await navigate(pageUrl + '?test=missing-population');
