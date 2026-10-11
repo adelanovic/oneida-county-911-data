@@ -1,9 +1,10 @@
-"""Aggregate geocoded records + a simplified TIGER basemap into geo/map_data.json for the map page."""
+"""Pack geocoded dispatch records + a simplified TIGER basemap into geo/map_data.json for the map page."""
+import base64
 import json
+import math
 from pathlib import Path
 
-import math
-
+import numpy as np
 import pandas as pd
 import shapefile
 from shapely.geometry import shape, mapping
@@ -89,9 +90,17 @@ def street_labels(roads):
     return names, anchors
 
 
+def pack(values, dtype):
+    """Little-endian typed array as base64, decoded in the page with Uint8Array/Uint16Array."""
+    arr = np.asarray(values, dtype=dtype)
+    assert (arr.astype(np.int64) == np.asarray(values, dtype=np.int64)).all(), "value out of range for " + str(dtype)
+    return base64.b64encode(arr.astype(arr.dtype.newbyteorder("<")).tobytes()).decode("ascii")
+
+
 def main():
     df = pd.read_csv(ROOT / "output" / "oneida_911_records.csv", keep_default_na=False, low_memory=False,
-                     usecols=["street", "city", "response_type", "category", "year", "agency_type", "town", "village", "county"])
+                     usecols=["street", "city", "response_type", "category", "year", "agency_type", "town", "village",
+                              "county", "call_datetime", "hour"])
     loc = pd.read_csv(ROOT / "geo" / "locations.csv", keep_default_na=False)
     loc = loc[loc.precision != "none"].reset_index(drop=True)
     loc[["latitude", "longitude"]] = loc[["latitude", "longitude"]].astype(float)
@@ -102,30 +111,39 @@ def main():
              .sort_values("n", ascending=False).reset_index(drop=True))
     type_id = {t: i for i, t in enumerate(types.response_type)}
     years = sorted(df.year.unique().tolist())
+    # Days with a report in each year; coverage is uneven (2025 and 2026 are a handful of days).
+    days = df.assign(d=df.call_datetime.str[:10]).groupby("year").d.nunique()
     agency_types = df.agency_type.value_counts().index.tolist()
 
-    df["t"] = df.response_type.map(type_id)
-    df["y"] = df.year.map({y: i for i, y in enumerate(years)})
-    df["a"] = df.agency_type.map({a: i for i, a in enumerate(agency_types)})
-    located = df[df.loc_id.notna()].copy()
-    located["loc_id"] = located.loc_id.astype(int)
-    counts = located.groupby(["loc_id", "t", "y", "a"]).size().rename("n").reset_index()
     cities = df.city.value_counts().index.tolist()
-    df["c"] = df.city.map({c: i for i, c in enumerate(cities)})
-    unlocated = df[df.loc_id.isna()].groupby(["t", "y", "a", "c"]).size().rename("n").reset_index()
+    dates = sorted(df.call_datetime.str[:10].unique().tolist())
+    # One packed row per dispatch (column arrays, base64): call type, responder, reported city, date, hour, place.
+    records = {
+        "t": pack(df.response_type.map(type_id), np.uint16),
+        "a": pack(df.agency_type.map({a: i for i, a in enumerate(agency_types)}), np.uint8),
+        "c": pack(df.city.map({c: i for i, c in enumerate(cities)}), np.uint8),
+        "d": pack(df.call_datetime.str[:10].map({d: i for i, d in enumerate(dates)}), np.uint16),
+        "h": pack(df.hour.astype(int), np.uint8),
+        "l": pack(df.loc_id.fillna(-1).astype(int) + 1, np.uint16),  # 0 = no location
+    }
 
     # Basemap
     cousub = [(r, g) for r, g in load(TIGER / "tl_2024_36_cousub" / "tl_2024_36_cousub") if r["COUNTYFP"] == "065"]
+    county = unary_union([g for r, g in cousub]).buffer(-0.002)
     roads = load(TIGER / "tl_2024_36065_roads" / "tl_2024_36065_roads")
     water = load(TIGER / "tl_2024_36065_areawater" / "tl_2024_36065_areawater")
     basemap = {
-        "towns": [{"name": r["NAMELSAD"], "rings": coords(g, 0.0008),
+        "towns": [{"name": r["NAMELSAD"], "key": r["NAME"].upper(), "rings": coords(g, 0.0008),
                    "label": [round(g.representative_point().y, 4), round(g.representative_point().x, 4)]}
                   for r, g in cousub],
         "roads": {cls: [l for r, g in roads if ROAD_CLASSES.get(r["MTFCC"]) == cls
                         for l in delta_lines(g, 0.00004 if cls in ("local", "minor") else 0.00008)]
                   for cls in ("minor", "local", "primary", "highway")},
         "water": [coords(g, 0.0006) for r, g in water if r["AWATER"] > 400_000],
+        # Villages and cities, for outlining the selected place.
+        "places": [{"key": r["NAME"].upper(), "kind": r["NAMELSAD"].rsplit(" ", 1)[-1], "rings": coords(g, 0.0003)}
+                   for r, g in load(TIGER / "tl_2024_36_place" / "tl_2024_36_place")
+                   if r["NAMELSAD"].endswith((" village", " city")) and g.intersects(county)],
     }
 
     label_names, label_anchors = street_labels(roads)
@@ -135,13 +153,14 @@ def main():
     data = {
         "types": [[r.response_type, r.category] for r in types.itertuples()],
         "years": years,
+        "yearDays": [int(days[y]) for y in years],
         "agencyTypes": agency_types,
         "locations": [[round(r.latitude, 5), round(r.longitude, 5), r.street, r.city, r.precision,
                        int(float(r.expected_error_m)) if r.expected_error_m != "" else None, r.match_method,
                        r.matched_name]
                       for r in loc.itertuples()],
-        "counts": counts[["loc_id", "t", "y", "a", "n"]].values.tolist(),
-        "unlocated": unlocated[["t", "y", "a", "c", "n"]].values.tolist(),
+        "dates": dates,
+        "records": records,
         "cities": cities,
         "cityInfo": {c: list(v) for c, v in df.groupby("city")[["town", "village", "county"]].first().iterrows()},
         "total": int(len(df)),
@@ -149,7 +168,7 @@ def main():
     }
     out = ROOT / "geo" / "map_data.json"
     out.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
-    print(f"{out} {out.stat().st_size / 1e6:.2f} MB; locations {len(loc)}, count rows {len(counts)}, "
+    print(f"{out} {out.stat().st_size / 1e6:.2f} MB; locations {len(loc)}, records {len(df)}, "
           f"types {len(types)}, towns {len(cousub)}, roads {sum(len(v) for v in basemap['roads'].values())}, labels {len(label_anchors)}, water {len(basemap['water'])}")
 
 
