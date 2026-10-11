@@ -2,6 +2,7 @@
 import base64
 import json
 import math
+import re
 from pathlib import Path
 
 import numpy as np
@@ -97,10 +98,57 @@ def pack(values, dtype):
     return base64.b64encode(arr.astype(arr.dtype.newbyteorder("<")).tobytes()).decode("ascii")
 
 
+def place_population(df):
+    """Population (Census 2024 estimates) for each place key the page uses: "T:<TOWN>" and "V:<TOWN>|<VILLAGE>".
+
+    Towns include their villages, except where the dispatch data files a village (or Sherrill) under a different
+    town; split villages (New York Mills) use the part inside each town.
+    """
+    path = ROOT / "geo" / "census" / "sub-est.csv"
+    if not path.exists():
+        print("no geo/census/sub-est.csv; rates per resident will be unavailable")
+        return {}
+    est = pd.read_csv(path, dtype=str, encoding="latin-1")
+    est = est[(est.STATE == "36") & (est.COUNTY == "065")]
+    col = [c for c in est.columns if c.startswith("POPESTIMATE")][-1]
+    est[col] = est[col].astype(int)
+    strip = lambda n: re.sub(r" (town|city|village)( \(pt\.\))?$", "", n).upper()
+    cousub = {r.COUSUB: (strip(r.NAME), r[col]) for _, r in est[est.SUMLEV == "061"].iterrows()}
+    full = {strip(r.NAME): r[col] for _, r in est[est.SUMLEV == "157"].iterrows()}
+    parts = [(r.COUSUB, strip(r.NAME), r[col]) for _, r in est[est.SUMLEV == "071"].iterrows()
+             if not r.NAME.startswith("Balance") and r.PLACE != r.COUSUB]
+    pairs = df[(df.county == "ONEIDA") & (df.town != "")][["town", "village"]].drop_duplicates()
+    towns_of = pairs[pairs.village != ""].groupby("village").town.agg(set).to_dict()
+    pop = {f"T:{name}": n for name, n in cousub.values()}
+    for code, comp, n in parts:
+        home = cousub[code][0]
+        if comp == "SHERRILL":
+            dest = "SHERRILL"
+        elif comp in towns_of:
+            dest = home if home in towns_of[comp] else next(iter(towns_of[comp]))
+        else:
+            dest = home
+        if dest != home:
+            pop[f"T:{home}"] -= n
+            pop[f"T:{dest}"] = pop.get(f"T:{dest}", 0) + n
+    for village, towns in towns_of.items():
+        for town in towns:
+            if len(towns) > 1:
+                n = next((n for code, comp, n in parts if comp == village and cousub[code][0] == town), None)
+            else:
+                n = full.get(village)
+            if n:
+                pop[f"V:{town}|{village}"] = int(n)
+    used = {f"T:{t}" for t in pairs.town} | {f"V:{t}|{v}" for t, v in pairs.itertuples(index=False) if v}
+    out = {k: int(v) for k, v in pop.items() if k in used}
+    out["ALL"] = int(est[est.SUMLEV == "050"][col].iloc[0])  # Oneida County
+    return out
+
+
 def main():
     df = pd.read_csv(ROOT / "output" / "oneida_911_records.csv", keep_default_na=False, low_memory=False,
                      usecols=["street", "city", "response_type", "category", "year", "agency_type", "town", "village",
-                              "county", "call_datetime", "hour"])
+                              "county", "call_datetime", "hour", "agency", "mpds_level", "incident_cluster_id"])
     loc = pd.read_csv(ROOT / "geo" / "locations.csv", keep_default_na=False)
     loc = loc[loc.precision != "none"].reset_index(drop=True)
     loc[["latitude", "longitude"]] = loc[["latitude", "longitude"]].astype(float)
@@ -116,6 +164,9 @@ def main():
     agency_types = df.agency_type.value_counts().index.tolist()
 
     cities = df.city.value_counts().index.tolist()
+    agencies = df.agency.value_counts().index.tolist()
+    levels = ["", "O", "A", "B", "C", "D", "E"]  # medical priority, lowest -> highest
+    cluster_n = df.groupby("incident_cluster_id").incident_cluster_id.transform("size").clip(upper=255)
     dates = sorted(df.call_datetime.str[:10].unique().tolist())
     # One packed row per dispatch (column arrays, base64): call type, responder, reported city, date, hour, place.
     records = {
@@ -125,6 +176,9 @@ def main():
         "d": pack(df.call_datetime.str[:10].map({d: i for i, d in enumerate(dates)}), np.uint16),
         "h": pack(df.hour.astype(int), np.uint8),
         "l": pack(df.loc_id.fillna(-1).astype(int) + 1, np.uint16),  # 0 = no location
+        "u": pack(df.agency.map({a: i for i, a in enumerate(agencies)}), np.uint8),
+        "m": pack(df.mpds_level.map({v: i for i, v in enumerate(levels)}), np.uint8),
+        "k": pack(cluster_n, np.uint8),  # dispatches in the same incident group (heuristic)
     }
 
     # Basemap
@@ -160,6 +214,9 @@ def main():
                        r.matched_name]
                       for r in loc.itertuples()],
         "dates": dates,
+        "agencies": agencies,
+        "agencyKind": [df.loc[df.agency == a, "agency_type"].iloc[0] for a in agencies],
+        "population": place_population(df),
         "records": records,
         "cities": cities,
         "cityInfo": {c: list(v) for c, v in df.groupby("city")[["town", "village", "county"]].first().iterrows()},

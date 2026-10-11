@@ -233,6 +233,51 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .about p b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 .about a { color: var(--dot); }
 
+
+/* ---- responders, urgency, per-capita, compare */
+:root { --cmp-a: #2a78d6; --cmp-b: #eb6834; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cmp-a: #3987e5; --cmp-b: #d95926; } }
+:root[data-theme="dark"] { --cmp-a: #3987e5; --cmp-b: #d95926; }
+.kpis { display: flex; flex-wrap: wrap; gap: 10px 28px; }
+.kpi { display: grid; gap: 2px; }
+.kpi b { font: 600 1.5rem/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.kpi span { font-size: .78rem; color: var(--ink-2); }
+.rank { display: grid; gap: 1px; }
+.rank-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 12px; padding: 6px 8px; border-radius: 6px; cursor: pointer; align-items: baseline; }
+.rank-row:hover, .rank-row.on { background: var(--dot-soft); }
+.rank-row .nm { min-width: 0; overflow-wrap: anywhere; }
+.rank-row .nm small { color: var(--muted); font-size: .76rem; margin-left: 6px; }
+.rank-row .v { font-variant-numeric: tabular-nums; font-weight: 600; }
+.rank-row .v small { font-weight: 400; color: var(--muted); margin-left: 6px; }
+.rank-row .bar { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--q1); position: relative; overflow: visible; }
+.rank-row .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--q4); }
+.rank-row .bar .avgmark { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); opacity: .55; }
+.sizebar { display: flex; height: 22px; border-radius: 4px; overflow: hidden; gap: 2px; }
+.sizebar span { display: flex; align-items: center; justify-content: center; font-size: .72rem; color: #fff; font-variant-numeric: tabular-nums; min-width: 0; overflow: hidden; white-space: nowrap; }
+.legend-row { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .76rem; color: var(--ink-2); }
+.legend-row i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.stack { display: grid; grid-template-columns: repeat(24, minmax(10px, 1fr)); gap: 2px; height: 150px; align-items: stretch; min-width: 22rem; }
+.stack .col { display: flex; flex-direction: column-reverse; border-radius: 2px; overflow: hidden; cursor: pointer; }
+.stack .col.on { outline: 2px solid var(--select); outline-offset: 1px; }
+.stack .col i { display: block; }
+.stack-ax { display: grid; grid-template-columns: repeat(24, minmax(10px, 1fr)); gap: 2px; font-size: .66rem; color: var(--muted); min-width: 22rem; }
+.cmp-ctl { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: end; }
+.cmp-ctl select { width: 13rem; }
+.cmp-ctl .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+.cmp-table { width: 100%; border-collapse: collapse; font-size: .86rem; font-variant-numeric: tabular-nums; }
+.cmp-table th, .cmp-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--line); }
+.cmp-table th:first-child, .cmp-table td:first-child { text-align: left; color: var(--ink-2); font-weight: 400; }
+.cmp-table thead th { font-weight: 600; color: var(--ink); }
+.cmp-chart svg { display: block; width: 100%; height: 170px; overflow: visible; }
+.cmp-chart text { font: 11px var(--f-body); fill: var(--muted); }
+.cmp-chart .grid { stroke: var(--line); }
+.cmp-chart .la { fill: none; stroke: var(--cmp-a); stroke-width: 2.25; }
+.cmp-chart .lb { fill: none; stroke: var(--cmp-b); stroke-width: 2.25; }
+.diff { display: grid; gap: 4px; font-size: .86rem; }
+.diff div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+.diff b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.note-sm { margin: 0; font-size: .78rem; color: var(--muted); max-width: 62ch; }
+
 /* ---- map overlays */
 .town-label { color: var(--muted); font: 600 .7rem/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase;
   white-space: nowrap; text-align: center; pointer-events: none;
@@ -332,7 +377,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     <div class="chart card wide">
       <div class="chart-head">
         <h2>Daily trend</h2>
-        <p>Dispatches on each report day for the current filters, with a 7-day average. Days without a report are left out; dashed lines mark the gaps. The 2026 reports come from a newer dispatch system that lists fewer dispatches per day, so part of the later drop is a reporting change. Click a day to filter the map.</p>
+        <p>Dispatches on each report day for the current filters, with a 7-day average. Days without a report are left out; dashed lines mark the gaps. The 2026 reports come from a newer dispatch system that leaves out traffic stops and premise checks, so most of the later drop is a reporting change. Click a day to filter the map.</p>
       </div>
       <div class="trend-box" id="trend"></div>
       <div class="legend-line"><span><i class="raw"></i>Each report day</span><span><i></i>7-day average</span><span>○ Unusual spikes</span></div>
@@ -352,6 +397,46 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       </div>
       <div class="mix" id="mix"></div>
     </div>
+    <div class="chart card">
+      <div class="chart-head">
+        <h2>Who responds</h2>
+        <p>Agencies dispatched for the current filters. One emergency often gets several agencies (fire, ambulance, police); the estimate of incidents groups dispatches to the same type of call at the same place within two minutes. Click an agency to filter.</p>
+      </div>
+      <div class="kpis" id="resp-kpis"></div>
+      <div><div class="sizebar" id="resp-size"></div><div class="legend-row" id="resp-size-legend" style="margin-top:6px"></div></div>
+      <div class="rank" id="resp-list"></div>
+    </div>
+    <div class="chart card">
+      <div class="chart-head">
+        <h2>Medical urgency</h2>
+        <p>Medical calls by dispatch priority (Medical Priority Dispatch levels), share of each hour's calls. Omega and Alpha are the lowest priority; Delta and Echo are the most serious, such as cardiac arrest or not breathing. Click an hour to filter.</p>
+      </div>
+      <div class="scroll-x"><div class="stack" id="urg-stack"></div><div class="stack-ax" id="urg-ax"></div></div>
+      <div class="legend-row" id="urg-legend"></div>
+      <div class="insight" id="urg-insight"></div>
+      <div><h3 class="eyebrow" style="margin:4px 0 6px">Highest share of Delta and Echo calls, by town</h3><div class="rank" id="urg-towns"></div></div>
+    </div>
+    <div class="chart card">
+      <div class="chart-head">
+        <h2>Calls per 1,000 residents</h2>
+        <p>Dispatches per 1,000 residents per year (scaled from the report days covered), for the current filters, using Census 2024 population estimates. The dark tick marks the county rate. Click a place to filter.</p>
+      </div>
+      <div class="seg" id="pc-mode" role="group" aria-label="Show towns or villages" style="width:max-content"><button type="button" data-m="T" aria-pressed="true">Cities &amp; towns</button><button type="button" data-m="V" aria-pressed="false">Villages</button></div>
+      <div class="rank" id="pc-list" style="max-height:30rem;overflow-y:auto"></div>
+      <p class="note-sm">Calls are counted where they happened, so towns with highways, colleges, shopping or tourism rank high for visitors' calls too. Small populations make rates jumpy.</p>
+    </div>
+    <div class="chart card">
+      <div class="chart-head">
+        <h2>Compare</h2>
+        <p>Two places or two years side by side, with the other filters applied to both.</p>
+      </div>
+      <div class="cmp-ctl">
+        <div class="seg" id="cmp-mode" role="group" aria-label="Compare places or years"><button type="button" data-m="place" aria-pressed="true">Places</button><button type="button" data-m="year" aria-pressed="false">Years</button></div>
+        <div class="field"><label for="cmp-a"><span class="sw" style="background:var(--cmp-a)"></span>A</label><select id="cmp-a"></select></div>
+        <div class="field"><label for="cmp-b"><span class="sw" style="background:var(--cmp-b)"></span>B</label><select id="cmp-b"></select></div>
+      </div>
+      <div id="cmp-out" style="display:grid;gap:14px"></div>
+    </div>
     <div class="card about wide" id="about">
       <div class="chart-head">
         <h2>About this data</h2>
@@ -361,7 +446,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         <div><h3>Source</h3><p>Public daily 911 media reports (PDF) published by Oneida County, New York, at <a href="https://oneidacountyny.gov/" target="_blank" rel="noopener">oneidacountyny.gov</a>. Each row in a report is one agency dispatched to a call: time, agency, call type, street and town.</p></div>
         <div><h3>Coverage has gaps</h3><p id="about-coverage"></p></div>
         <div><h3>Dispatches, not emergencies</h3><p>When fire, an ambulance and police all go to one emergency, the report lists three rows, and this page counts three dispatches. Counts here measure workload by agency, not the number of distinct incidents.</p></div>
-        <div><h3>Two report formats</h3><p>Reports from 2024–2025 come from one dispatch system and give times to the second. The 2026 reports come from a newer system that gives times to the minute, groups rows by agency, uses some different call-type names (harmonized here), and lists about 30% fewer dispatches per day. Compare 2026 with earlier years with care.</p></div>
+        <div><h3>Two report formats</h3><p>Reports from 2024–2025 come from one dispatch system and give times to the second. The 2026 reports come from a newer system that gives times to the minute, groups rows by agency, uses some different call-type names (harmonized here), and leaves out proactive police activity such as traffic stops and premise checks, which were about a fifth of earlier dispatches. That is most of why 2026 shows fewer dispatches per day. Compare 2026 with earlier years with care.</p></div>
         <div><h3>Call types are what dispatch heard</h3><p>A call type is the dispatcher's category when the call came in, not a confirmed outcome. Medical calls use Medical Priority Dispatch codes (for example 17B01 = Fall); this page groups them by complaint. The reports have no arrival or clear times, so response times cannot be measured.</p></div>
         <div><h3>How locations were placed</h3><p id="about-location"></p></div>
         <div><h3>Mutual aid</h3><p>A few dispatches went to towns in Herkimer, Oswego, Madison and Lewis counties. They count in the totals but are hidden from the map unless you turn them on or pick that county.</p></div>
@@ -403,7 +488,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   const bytes = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
   const u16 = s => { const b = bytes(s); return new Uint16Array(b.buffer, 0, b.length / 2); };
   const R = { t: u16(D.records.t), a: bytes(D.records.a), c: bytes(D.records.c), d: u16(D.records.d),
-    h: bytes(D.records.h), l: u16(D.records.l) };
+    h: bytes(D.records.h), l: u16(D.records.l), u: bytes(D.records.u), m: bytes(D.records.m), k: bytes(D.records.k) };
   const N = R.t.length;
   const dateYear = D.dates.map(iso => D.years.indexOf(+iso.slice(0, 4)));
   const dateDow = D.dates.map(dowOf);
@@ -442,7 +527,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   }
 
   // ---------- state
-  const DEFAULT = { cat: "ALL", type: -1, year: -1, agency: -1, place: "", outside: false, date: -1, dow: -1, hour: -1 };
+  const DEFAULT = { cat: "ALL", type: -1, year: -1, agency: -1, unit: -1, place: "", outside: false, date: -1, dow: -1, hour: -1 };
   const st = { ...DEFAULT };
   const cityOK = new Uint8Array(D.cities.length);
   function setPlace(v) {
@@ -493,6 +578,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   }
   function renderChips() {
     const chips = [];
+    if (st.unit >= 0) chips.push(["unit", D.agencies[st.unit]]);
     if (st.date >= 0) chips.push(["date", dateLabel(D.dates[st.date])]);
     if (st.dow >= 0 || st.hour >= 0) {
       const parts = [st.dow >= 0 ? DOW_LONG[st.dow] + "s" : "", st.hour >= 0 ? `${hourLabel(st.hour)}–${hourLabel((st.hour + 1) % 24)}` : ""];
@@ -525,7 +611,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   };
   $("chips").onclick = e => {
     const b = e.target.closest("[data-clear]"); if (!b) return;
-    if (b.dataset.clear === "date") st.date = -1; else { st.dow = -1; st.hour = -1; }
+    if (b.dataset.clear === "date") st.date = -1; else if (b.dataset.clear === "unit") st.unit = -1; else { st.dow = -1; st.hour = -1; }
     update();
   };
   $("reset").onclick = () => { Object.assign(st, DEFAULT); setPlace(""); fillTypes(); update(); zoomToPlace(); };
@@ -648,7 +734,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   const dowOK = d => st.dow < 0 || dateDow[d] === st.dow;
   const hourOK = h => st.hour < 0 || h === st.hour;
   const agOK = a => st.agency < 0 || a === st.agency;
-  const fullMatch = i => typeOK(R.t[i]) && yearOK(R.d[i]) && agOK(R.a[i]) && cityOK[R.c[i]] && dateOK(R.d[i]) && dowOK(R.d[i]) && hourOK(R.h[i]);
+  const unitOK = u => st.unit < 0 || u === st.unit;
+  const fullMatch = i => typeOK(R.t[i]) && yearOK(R.d[i]) && agOK(R.a[i]) && unitOK(R.u[i]) && cityOK[R.c[i]] && dateOK(R.d[i]) && dowOK(R.d[i]) && hourOK(R.h[i]);
 
   // ---------- map tooltips + selection
   const dist = m => m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m / 10) * 10} m`;
@@ -852,6 +939,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const parts = [];
     if (st.place) parts.push(citySel.options[citySel.selectedIndex].dataset.label.replace(/ \(town, all\)| \(city\)/, ""));
     if (st.agency >= 0) parts.push(LABEL[D.agencyTypes[st.agency]] || D.agencyTypes[st.agency]);
+    if (st.unit >= 0) parts.push(D.agencies[st.unit]);
     if (st.date >= 0) parts.push(dateLabel(D.dates[st.date]));
     else if (st.year >= 0) parts.push(String(D.years[st.year]));
     if (st.dow >= 0) parts.push(DOW_LONG[st.dow] + "s");
@@ -1024,19 +1112,24 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const yearN = new Float64Array(D.years.length), cityN = new Float64Array(D.cities.length);
     const heatN = new Float64Array(7 * 24), dateN = new Float64Array(D.dates.length);
     const typeHour = new Float64Array(D.types.length * 24);
+    const unitN = new Float64Array(D.agencies.length), medHour = Array.from({ length: 24 }, () => new Float64Array(7));
+    const medCity = new Float64Array(D.cities.length * 2), inc = { inv: 0, multi: 0, size: [0, 0, 0, 0] };
     let unloc = 0, hidden = 0;
     for (let i = 0; i < N; i++) {
-      const t = R.t[i], a = R.a[i], c = R.c[i], d = R.d[i], h = R.h[i];
-      const mt = typeOK(t), my = yearOK(d), ma = agOK(a), mp = cityOK[c] === 1, md = dateOK(d), mw = dowOK(d), mh = hourOK(h);
+      const t = R.t[i], a = R.a[i], c = R.c[i], d = R.d[i], h = R.h[i], u = R.u[i], m = R.m[i];
+      const mt = typeOK(t), my = yearOK(d), ma = agOK(a) && unitOK(u), mp = cityOK[c] === 1, md = dateOK(d), mw = dowOK(d), mh = hourOK(h);
       const time = md && mw && mh;
       if (my && ma && mp && time) typeN[t]++;
-      if (mt && my && mp && time) agN[a]++;
+      if (mt && my && mp && time && unitOK(u)) agN[a]++;
+      if (mt && my && mp && time && agOK(a)) unitN[u]++;
       if (mt && ma && mp && time) yearN[dateYear[d]]++;
-      if (mt && my && ma && time) cityN[c]++;
+      if (mt && my && ma && time) { cityN[c]++; if (m) { medCity[c * 2]++; if (m >= 5) medCity[c * 2 + 1]++; } }
       if (mt && my && ma && mp && md) heatN[dateDow[d] * 24 + h]++;
       if (mt && ma && mp && mw && mh) dateN[d]++;
       if (my && ma && mp && md && mw) typeHour[t * 24 + h]++;
+      if (m && mt && my && ma && mp && md && mw) medHour[h][m]++;
       if (!(mt && my && ma && mp && time)) continue;
+      const k = R.k[i] || 1; inc.inv += 1 / k; if (k >= 2) inc.multi += 1 / k; inc.size[Math.min(k, 4) - 1] += 1 / k;
       if (!showCity(c)) hidden++;
       else if (!R.l[i]) unloc++;
       else per[R.l[i] - 1]++;
@@ -1117,6 +1210,10 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     renderMix(typeHour, daysSel);
     lastDateN = dateN;
     renderTrend(dateN);
+    renderResponders(unitN, inc);
+    renderUrgency(medHour, medCity);
+    renderPerCapita(cityN);
+    renderCompare();
     syncUrl();
   }
   let lastCurrent = [];
@@ -1129,6 +1226,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (st.type >= 0) q.set("type", D.types[st.type][0]);
     if (st.place) q.set("place", st.place);
     if (st.agency >= 0) q.set("responder", D.agencyTypes[st.agency]);
+    if (st.unit >= 0) q.set("agency", D.agencies[st.unit]);
     if (st.year >= 0) q.set("year", D.years[st.year]);
     if (st.date >= 0) q.set("date", D.dates[st.date]);
     if (st.dow >= 0) q.set("day", DOW_KEY[st.dow]);
@@ -1149,6 +1247,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (ti >= 0) { st.cat = typeCat[ti]; fillTypes(); st.type = ti; }
     if (q.get("place") && placeCities[q.get("place")]) setPlace(q.get("place"));
     const ai = D.agencyTypes.indexOf(q.get("responder")); if (ai >= 0) st.agency = ai;
+    const ui = D.agencies.indexOf(q.get("agency")); if (ui >= 0) st.unit = ui;
     const yi = D.years.indexOf(+q.get("year")); if (yi >= 0) st.year = yi;
     if (dateIdx.has(q.get("date"))) st.date = dateIdx.get(q.get("date"));
     const di = DOW_KEY.indexOf(q.get("day")); if (di >= 0) st.dow = di;
@@ -1235,6 +1334,179 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     else if (e.key === "Enter" && active >= 0) { goTo(hits[active]); e.preventDefault(); }
     else if (e.key === "Escape") { hits = []; renderSugg(); }
   });
+
+
+  // ---------- responders, urgency, per-capita, compare
+  const LEVELS = [["", ""], ["O", "Omega"], ["A", "Alpha"], ["B", "Bravo"], ["C", "Charlie"], ["D", "Delta"], ["E", "Echo"]];
+  const LEVEL_COLOR = [null, "var(--q1)", "var(--q2)", "var(--q3)", "var(--q4)", "var(--q6)", "var(--q7)"];
+  const kindLabel = k => LABEL[k] || titleCase(k.replace(/_/g, " "));
+  const COUNTY_POP = D.population.ALL;
+  const reportDays = () => D.dates.reduce((s, iso, d) => s + (yearOK(d) && dateOK(d) ? 1 : 0), 0);
+
+  function renderResponders(unitN, inc) {
+    const total = unitN.reduce((a, b) => a + b, 0);
+    const incidents = inc.inv, multi = inc.multi;
+    $("resp-kpis").innerHTML = `<div class="kpi"><b>${fmt(total)}</b><span>dispatches</span></div>` +
+      `<div class="kpi"><b>≈ ${fmt(Math.round(incidents))}</b><span>estimated incidents</span></div>` +
+      `<div class="kpi"><b>${incidents ? (100 * multi / incidents).toFixed(0) : 0}%</b><span>of incidents got 2+ agencies</span></div>`;
+    const sizes = inc.size, sz = sizes.reduce((a, b) => a + b, 0) || 1;
+    const sc = ["var(--q2)", "var(--q4)", "var(--q6)", "var(--q7)"], names = ["1 agency", "2 agencies", "3 agencies", "4 or more"];
+    $("resp-size").innerHTML = sizes.map((v, k) => v / sz > 0.004 ? `<span style="flex:${v};background:${sc[k]}" title="${names[k]}: ${(100 * v / sz).toFixed(0)}% of incidents">${v / sz > 0.06 ? (100 * v / sz).toFixed(0) + "%" : ""}</span>` : "").join("");
+    $("resp-size-legend").innerHTML = names.map((n, k) => `<span><i style="background:${sc[k]}"></i>${n}</span>`).join("") + `<span style="color:var(--muted)">share of incidents</span>`;
+    const top = Array.from(unitN, (n, u) => [u, n]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const mx = top.length ? top[0][1] : 1;
+    if (st.unit >= 0 && !top.some(x => x[0] === st.unit)) top.push([st.unit, unitN[st.unit]]);
+    $("resp-list").innerHTML = top.length ? top.map(([u, n]) => `<div class="rank-row${st.unit === u ? " on" : ""}" data-u="${u}" tabindex="0" role="button">
+      <span class="nm">${esc(D.agencies[u])}<small>${esc(kindLabel(D.agencyKind[u]))}</small></span>
+      <span class="v">${fmt(n)}<small>${total ? (100 * n / total).toFixed(1) : 0}%</small></span>
+      <span class="bar"><i style="width:${(100 * n / mx).toFixed(1)}%"></i></span></div>`).join("") : `<p class="so-note">No dispatches match these filters.</p>`;
+  }
+  const toggleUnit = u => { st.unit = st.unit === u ? -1 : u; update(); };
+  $("resp-list").addEventListener("click", e => { const r = e.target.closest("[data-u]"); if (r) toggleUnit(+r.dataset.u); });
+  $("resp-list").addEventListener("keydown", e => { const r = e.target.closest("[data-u]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleUnit(+r.dataset.u); } });
+
+  {
+    let h = "", ax = "";
+    for (let x = 0; x < 24; x++) { h += `<div class="col" data-k="hour:${x}" tabindex="0" role="button"></div>`; ax += `<span>${x % 3 === 0 ? String(x).padStart(2, "0") : ""}</span>`; }
+    $("urg-stack").innerHTML = h; $("urg-ax").innerHTML = ax;
+    $("urg-legend").innerHTML = LEVELS.slice(1).map(([c, n], k) => `<span><i style="background:${LEVEL_COLOR[k + 1]}"></i>${n} (${c})</span>`).join("") + `<span style="color:var(--muted)">lowest → highest priority</span>`;
+  }
+  const urgCols = [...$("urg-stack").children];
+  $("urg-stack").addEventListener("click", onChartClick);
+  $("urg-stack").addEventListener("pointermove", e => {
+    const el = e.target.closest("[data-k]"); if (!el || !urgState) { tipf.hidden = true; return; }
+    const x = +el.dataset.k.split(":")[1], col = urgState.hour[x], n = col.reduce((a, b) => a + b, 0);
+    showTip(e, `<b>${hourLabel(x)}–${hourLabel((x + 1) % 24)}</b><br>` + (n ? LEVELS.slice(1).map(([c, nm], k) => `${nm}: ${(100 * col[k + 1] / n).toFixed(0)}%`).reverse().join(" · ") + `<br><span>${fmt(n)} medical calls</span>` : "<span>No medical calls</span>"));
+  });
+  $("urg-stack").addEventListener("pointerleave", () => tipf.hidden = true);
+  let urgState = null;
+  function renderUrgency(medHour, medCity) {
+    urgState = { hour: medHour };
+    let all = 0, de = 0;
+    urgCols.forEach((el, x) => {
+      const col = medHour[x], n = col.reduce((a, b) => a + b, 0); all += n; de += col[5] + col[6];
+      el.innerHTML = n ? Array.from(col).slice(1).map((v, k) => `<i style="flex:${v};background:${LEVEL_COLOR[k + 1]}"></i>`).join("") : "";
+      el.classList.toggle("on", st.hour === x);
+    });
+    if (!all) {
+      $("urg-insight").innerHTML = `<span>No medical calls match these filters${st.cat !== "ALL" && st.cat !== "MEDICAL" ? ` (the category filter is ${LABEL[st.cat]})` : ""}.</span>`;
+      $("urg-towns").innerHTML = ""; return;
+    }
+    const share = x => { const c = medHour[x], n = c.reduce((a, b) => a + b, 0); return n >= 20 ? (c[5] + c[6]) / n : -1; };
+    let hi = 0; for (let x = 1; x < 24; x++) if (share(x) > share(hi)) hi = x;
+    $("urg-insight").innerHTML = `<span><b>${(100 * de / all).toFixed(0)}%</b> of ${fmt(all)} medical calls were Delta or Echo.` +
+      (share(hi) > 0 ? ` The most serious share peaks at <b>${hourLabel(hi)}</b> (${(100 * share(hi)).toFixed(0)}%).</span>` : "</span>");
+    // towns: share of Delta/Echo among medical calls (other filters except place)
+    const rows = Object.keys(placeCities).filter(k => k.startsWith("T:")).map(k => {
+      let n = 0, d = 0; placeCities[k].forEach(i => { n += medCity[i * 2]; d += medCity[i * 2 + 1]; });
+      return [k, n, d, n ? d / n : 0];
+    }).filter(r => r[1] >= 150).sort((a, b) => b[3] - a[3]).slice(0, 6);
+    let cn = 0, cd = 0; for (let i = 0; i < D.cities.length; i++) { cn += medCity[i * 2]; cd += medCity[i * 2 + 1]; }
+    const avg = cn ? cd / cn : 0, mx = Math.max(avg, ...rows.map(r => r[3])) || 1;
+    $("urg-towns").innerHTML = rows.length ? rows.map(([k, n, d, r]) => `<div class="rank-row${st.place === k ? " on" : ""}" data-place="${k}" tabindex="0" role="button">
+      <span class="nm">${esc(titleCase(k.slice(2)))}<small>${fmt(n)} medical calls</small></span><span class="v">${(100 * r).toFixed(0)}%</span>
+      <span class="bar"><i style="width:${(100 * r / mx).toFixed(1)}%"></i><span class="avgmark" style="left:${(100 * avg / mx).toFixed(1)}%" title="County: ${(100 * avg).toFixed(0)}%"></span></span></div>`).join("") +
+      `<p class="note-sm">Towns with at least 150 medical calls. Tick = county share (${(100 * avg).toFixed(0)}%).</p>` : `<p class="so-note">Not enough medical calls per town to compare.</p>`;
+  }
+  const pickPlace = k => { setPlace(st.place === k ? "" : k); update(); zoomToPlace(); };
+  for (const id of ["urg-towns", "pc-list"]) {
+    $(id).addEventListener("click", e => { const r = e.target.closest("[data-place]"); if (r) pickPlace(r.dataset.place); });
+    $(id).addEventListener("keydown", e => { const r = e.target.closest("[data-place]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pickPlace(r.dataset.place); } });
+  }
+
+  let pcMode = "T";
+  $("pc-mode").onclick = e => { const b = e.target.closest("button"); if (!b) return; pcMode = b.dataset.m;
+    $("pc-mode").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); update(); };
+  const placeName = k => k.startsWith("V:") ? `${titleCase(k.split("|")[1])}${Object.keys(placeCities).filter(x => x.startsWith("V:") && x.endsWith("|" + k.split("|")[1])).length > 1 ? ` (${titleCase(k.slice(2).split("|")[0])} part)` : ""}` : titleCase(k.slice(2));
+  function renderPerCapita(cityN) {
+    const days = reportDays(), perYear = days ? 365 / days : 0;
+    let county = 0; for (let i = 0; i < D.cities.length; i++) if (!isOutside[i]) county += cityN[i];
+    const countyRate = COUNTY_POP ? county / COUNTY_POP * 1000 * perYear : 0;
+    const rows = Object.keys(D.population).filter(k => k.startsWith(pcMode + ":")).map(k => {
+      const n = (placeCities[k] || []).reduce((s, i) => s + cityN[i], 0), pop = D.population[k];
+      return [k, n, pop, pop ? n / pop * 1000 * perYear : 0];
+    }).sort((a, b) => b[3] - a[3]);
+    const mx = Math.max(countyRate, ...rows.map(r => r[3])) || 1;
+    $("pc-list").innerHTML = `<div class="rank-row" style="cursor:default"><span class="nm"><b>Oneida County</b><small>${fmt(COUNTY_POP)} residents</small></span><span class="v">${fmt1(countyRate)}<small>per 1,000 / yr</small></span></div>` +
+      rows.map(([k, n, pop, r]) => `<div class="rank-row${st.place === k ? " on" : ""}" data-place="${k}" tabindex="0" role="button">
+      <span class="nm">${esc(placeName(k))}<small>${fmt(pop)} residents · ${fmt(n)} calls</small></span><span class="v">${fmt1(r)}</span>
+      <span class="bar"><i style="width:${(100 * r / mx).toFixed(1)}%"></i><span class="avgmark" style="left:${(100 * countyRate / mx).toFixed(1)}%"></span></span></div>`).join("");
+  }
+
+  // compare
+  const cmp = { mode: "place", a: "T:UTICA", b: "T:ROME", ya: 0, yb: D.years.length - 1 };
+  function fillCompare() {
+    const a = $("cmp-a"), b = $("cmp-b");
+    if (cmp.mode === "place") {
+      const opts = [...citySel.options].filter(o => o.value && !o.value.startsWith("C:") && !o.value.startsWith("D:"))
+        .map(o => `<option value="${o.value}">${o.dataset.indent ? " " : ""}${esc(o.dataset.label)}</option>`).join("");
+      a.innerHTML = opts; b.innerHTML = opts; a.value = cmp.a; b.value = cmp.b;
+    } else {
+      const opts = D.years.map((y, i) => `<option value="${i}">${y} (${D.yearDays[i]} report days)</option>`).join("");
+      a.innerHTML = opts; b.innerHTML = opts; a.value = cmp.ya; b.value = cmp.yb;
+    }
+    $("cmp-mode").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === cmp.mode));
+  }
+  $("cmp-mode").onclick = e => { const b = e.target.closest("button"); if (!b) return; cmp.mode = b.dataset.m; fillCompare(); renderCompare(); };
+  $("cmp-a").onchange = e => { cmp.mode === "place" ? cmp.a = e.target.value : cmp.ya = +e.target.value; renderCompare(); };
+  $("cmp-b").onchange = e => { cmp.mode === "place" ? cmp.b = e.target.value : cmp.yb = +e.target.value; renderCompare(); };
+  fillCompare();
+
+  function renderCompare() {
+    const byPlace = cmp.mode === "place";
+    const inA = new Uint8Array(D.cities.length), inB = new Uint8Array(D.cities.length);
+    if (byPlace) { (placeCities[cmp.a] || []).forEach(i => inA[i] = 1); (placeCities[cmp.b] || []).forEach(i => inB[i] = 1); }
+    const side = () => ({ n: 0, hour: new Float64Array(24), grp: new Float64Array(groups.length), med: 0, de: 0 });
+    const S = [side(), side()];
+    for (let i = 0; i < N; i++) {
+      const t = R.t[i], d = R.d[i], c = R.c[i];
+      if (!(typeOK(t) && agOK(R.a[i]) && unitOK(R.u[i]) && dowOK(d) && hourOK(R.h[i]))) continue;
+      let k;
+      if (byPlace) { if (!(yearOK(d) && dateOK(d))) continue; k = inA[c] ? 0 : inB[c] ? 1 : -1; if (inA[c] && inB[c]) k = 0; }
+      else { if (!cityOK[c]) continue; const y = dateYear[d]; k = y === cmp.ya ? 0 : y === cmp.yb ? 1 : -1; }
+      if (k < 0) continue;
+      const s = S[k]; s.n++; s.hour[R.h[i]]++; s.grp[typeGroup[t]]++;
+      if (R.m[i]) { s.med++; if (R.m[i] >= 5) s.de++; }
+    }
+    // report days per side
+    const daysFor = y => D.dates.reduce((s, iso, d) => s + ((y == null ? yearOK(d) && dateOK(d) : dateYear[d] === y) && dowOK(d) ? 1 : 0), 0);
+    const days = byPlace ? [daysFor(null), daysFor(null)] : [daysFor(cmp.ya), daysFor(cmp.yb)];
+    const names = byPlace ? [cmp.a, cmp.b].map(k => placeName(k)) : [D.years[cmp.ya], D.years[cmp.yb]].map(String);
+    const pops = byPlace ? [D.population[cmp.a], D.population[cmp.b]] : [null, null];
+    const pct = (v, n) => n ? `${(100 * v / n).toFixed(1)}%` : "–";
+    const rows = [
+      ["Dispatches", S.map(s => fmt(s.n))],
+      ["Report days", days.map(fmt)],
+      ["Per report day", S.map((s, k) => days[k] ? fmt1(s.n / days[k]) : "–")],
+    ];
+    if (byPlace) rows.push(["Per 1,000 residents / yr", S.map((s, k) => pops[k] && days[k] ? fmt1(s.n / pops[k] * 1000 * 365 / days[k]) : "–")]);
+    rows.push(["Medical share", S.map(s => pct(s.med, s.n))], ["Delta/Echo share of medical", S.map(s => pct(s.de, s.med))]);
+    const peak = s => { const m = Math.max(...s.hour); return m ? hourLabel(s.hour.indexOf(m)) : "–"; };
+    rows.push(["Peak hour", S.map(peak)]);
+    const table = `<table class="cmp-table"><thead><tr><th></th><th style="color:var(--cmp-a)">${esc(names[0])}</th><th style="color:var(--cmp-b)">${esc(names[1])}</th></tr></thead><tbody>` +
+      rows.map(([l, v]) => `<tr><td>${l}</td><td>${v[0]}</td><td>${v[1]}</td></tr>`).join("") + `</tbody></table>`;
+    // hour profile: average per report day
+    const W = Math.max(300, $("cmp-out").clientWidth || 520), H = 170, pl = 40, pr = 10, pt = 10, pb = 24;
+    const prof = S.map((s, k) => Array.from(s.hour, v => days[k] ? v / days[k] : 0));
+    const ym = Math.max(1e-9, ...prof[0], ...prof[1]) * 1.1;
+    const X = h => pl + h / 23 * (W - pl - pr), Y = v => pt + (H - pt - pb) * (1 - v / ym);
+    let svg = "";
+    for (let k = 0; k <= 3; k++) { const v = ym / 1.1 * k / 3; svg += `<line class="grid" x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${pl - 6}" y="${Y(v) + 4}" text-anchor="end">${fmt1(v)}</text>`; }
+    for (let h = 0; h < 24; h += 3) svg += `<text x="${X(h)}" y="${H - 6}" text-anchor="middle">${String(h).padStart(2, "0")}</text>`;
+    prof.forEach((pr_, k) => svg += `<path class="${k ? "lb" : "la"}" d="${pr_.map((v, h) => `${h ? "L" : "M"}${X(h).toFixed(1)},${Y(v).toFixed(1)}`).join("")}"/>`);
+    const chart = `<div><h3 class="eyebrow" style="margin:0 0 6px">Dispatches per report day, by hour</h3><div class="cmp-chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Hourly profile comparison">${svg}</svg></div></div>`;
+    // biggest differences in call mix (share of each side's calls)
+    let diffs = "";
+    if (S[0].n >= 30 && S[1].n >= 30) {
+      const d = groups.map((g, i) => [i, S[0].grp[i] / S[0].n, S[1].grp[i] / S[1].n]).filter(r => S[0].grp[r[0]] + S[1].grp[r[0]] >= 20)
+        .sort((a, b) => Math.abs(b[1] - b[2]) - Math.abs(a[1] - a[2])).slice(0, 6);
+      diffs = `<div><h3 class="eyebrow" style="margin:0 0 6px">Biggest differences in call mix</h3><div class="diff">` +
+        d.map(([i, a, b]) => `<div><span>${esc(groupLabel[i])}</span><span><b style="color:var(--cmp-a)">${(100 * a).toFixed(1)}%</b> vs <b style="color:var(--cmp-b)">${(100 * b).toFixed(1)}%</b></span></div>`).join("") +
+        `</div><p class="note-sm" style="margin-top:6px">Share of each side's dispatches.${byPlace ? "" : " The 2026 reports leave out traffic stops and premise checks and use partly different call-type names, so year-to-year differences are partly reporting changes."}</p></div>`;
+    } else diffs = `<p class="so-note">Too few calls on one side to compare the call mix.</p>`;
+    $("cmp-out").innerHTML = (byPlace && cmp.a === cmp.b) || (!byPlace && cmp.ya === cmp.yb) ? `<p class="so-note">Pick two different ${byPlace ? "places" : "years"}.</p>` : table + chart + diffs;
+  }
+  new ResizeObserver(() => renderCompare()).observe($("cmp-out"));
 
   // ---------- about: figures computed from the data
   {

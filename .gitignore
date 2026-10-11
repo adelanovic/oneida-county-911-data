@@ -7,6 +7,7 @@ output/*
 
 # Census TIGER/Line downloads and intermediate geodata
 geo/tiger/
+geo/census/
 geo/locations.csv
 geo/map_data.json
 
