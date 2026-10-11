@@ -290,6 +290,107 @@ async function main() {
     await evaluate(`document.querySelector('#flowmap').scrollIntoView({behavior:'instant',block:'center'})`);
     await screenshot('flows-mobile');
 
+    await navigate(pageUrl);
+    await evaluate(`(()=>{const q=document.querySelector('#q');q.value='GENESEE';q.dispatchEvent(new Event('input'));
+      q.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));q.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));})()`);
+    assert.equal(await evaluate(`document.querySelector('#q').getAttribute('aria-expanded')`), 'false');
+    assert.deepEqual(errors, []);
+    console.log('PASS: Escape then Enter safely closes street suggestions');
+
+    await navigate(pageUrl + '?year=2026');
+    const yearTrend = await evaluate(`({years:[...document.querySelectorAll('#trend svg')].map(e=>e.dataset.year),text:document.querySelector('#trend-insight').innerText})`);
+    assert.deepEqual(yearTrend.years, ['2026']);
+    assert(!yearTrend.text.includes('2024'));
+    const trendKeys = await evaluate(`(()=>{const chart=document.querySelector('#trend svg');chart.focus();
+      chart.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true}));
+      chart.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));
+      const detail=document.querySelector('#trend-detail-2026').innerText;
+      chart.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+      const d=JSON.parse(document.querySelector('#data').textContent);
+      return {date:new URL(location.href).searchParams.get('date'),expected:d.dates.filter(s=>s.startsWith('2026'))[1],detail,focused:document.activeElement.dataset.year}})()`);
+    assert.equal(trendKeys.date, trendKeys.expected);
+    assert.equal(trendKeys.focused, '2026');
+    assert(trendKeys.detail.includes('dispatches'));
+    console.log('PASS: trend honors year filters and supports keyboard exploration and selection');
+
+    await navigate(pageUrl);
+    const rankFocus = await evaluate(`(()=>{const row=document.querySelector('#resp-list [data-u]');const unit=row.dataset.u;row.focus();
+      row.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+      return {unit,focused:document.activeElement.dataset.u}})()`);
+    assert.equal(rankFocus.focused, rankFocus.unit);
+    await send('Input.dispatchKeyEvent', { type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9 });
+    await send('Input.dispatchKeyEvent', { type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9 });
+    const focusStyle = await evaluate(`({style:getComputedStyle(document.activeElement).outlineStyle,width:getComputedStyle(document.activeElement).outlineWidth})`);
+    assert.equal(focusStyle.style, 'solid');
+    assert.equal(focusStyle.width, '2px');
+    console.log('PASS: agency filtering preserves keyboard focus and visible focus styling');
+
+    await navigate(pageUrl + '?place=T%3AROME');
+    const resetSearch = await evaluate(`(()=>{const q=document.querySelector('#q');q.value='GENESEE';q.dispatchEvent(new Event('input'));document.querySelector('#sugg li').click();
+      const before=document.querySelector('#qnote').innerText;document.querySelector('#reset').click();
+      return {before,query:q.value,note:document.querySelector('#qnote').innerText,suggestions:document.querySelector('#sugg').childElementCount}})()`);
+    assert(resetSearch.before.includes('No dispatches'));
+    assert.equal(resetSearch.query, '');assert.equal(resetSearch.note, '');assert.equal(resetSearch.suggestions, 0);
+    console.log('PASS: reset clears search text, suggestions and stale messages');
+
+    const flowLink = await evaluate(`(()=>{document.querySelector('#flow-kind [data-k="EMS"]').click();return {url:location.href,reset:document.querySelector('#reset').hidden}})()`);
+    assert.equal(flowLink.reset, false);
+    await navigate(flowLink.url);
+    assert.equal(await evaluate(`document.querySelector('#flow-kind [aria-pressed="true"]').dataset.k`), 'EMS');
+    await evaluate(`document.querySelector('#reset').click()`);
+    assert.equal(await evaluate(`document.querySelector('#flow-kind [aria-pressed="true"]').dataset.k`), 'FIRE');
+    assert.equal(new URL(await evaluate(`location.href`)).searchParams.get('flow'), null);
+    console.log('PASS: response-flow mode survives sharing and returns to fire on reset');
+
+    await navigate(pageUrl + '?cat=PROPERTY_CRIME&responder=EMS');
+    assert.equal(await evaluate(`document.querySelector('#total').innerText`), '0');
+    const emptyHeat = await evaluate(`document.querySelector('#heat-insight').innerText`);
+    assert(emptyHeat.includes('No dispatches'));
+    assert(!emptyHeat.includes('Busiest') && !emptyHeat.includes('peak'));
+    console.log('PASS: empty heatmap suppresses busiest/quietest claims');
+
+    await navigate(pageUrl);
+    for (const theme of ['light','dark']) {
+      await evaluate(`document.querySelector('#theme [data-theme="${theme}"]').click()`);await delay(100);
+      const ratios = await evaluate(`(()=>{const rgb=s=>s.match(/[\\d.]+/g).slice(0,3).map(Number);
+        const lum=s=>rgb(s).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
+        const contrast=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+        const labels=[...document.querySelectorAll('#resp-size span')].filter(e=>e.innerText.trim()).map(e=>{const s=getComputedStyle(e);return contrast(s.color,s.backgroundColor)});
+        const avg=getComputedStyle(document.querySelector('#trend .avg')).stroke,bg=getComputedStyle(document.querySelector('#trend').closest('.card')).backgroundColor;
+        return {labels,average:contrast(avg,bg)}})()`);
+      assert(ratios.labels.every(r=>r>=4.5), JSON.stringify(ratios));
+      assert(ratios.average>=3, JSON.stringify(ratios));
+    }
+    console.log('PASS: incident percentages and trend averages have readable contrast in both themes');
+
+    for (const width of [320,390]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:1,mobile:true});await delay(150);
+      const narrow = await evaluate(`({inner:innerWidth,scroll:document.documentElement.scrollWidth,
+        cards:[...document.querySelectorAll('.card')].filter(e=>e.scrollWidth>e.clientWidth+2).map(e=>e.querySelector('h2')?.innerText),
+        pickerHeights:[...document.querySelectorAll('[data-hour-picker],#report-date')].map(e=>e.getBoundingClientRect().height),
+        years:[...document.querySelectorAll('#trend svg')].map(e=>e.dataset.year),
+        mobileSpikeLabels:document.querySelectorAll('#trend .spike text').length})`);
+      assert(narrow.inner<=width && narrow.scroll<=width, JSON.stringify(narrow));
+      assert.deepEqual(narrow.cards, []);
+      assert(narrow.pickerHeights.every(h=>h>=44));
+      assert.deepEqual(narrow.years, ['2024','2025','2026']);
+    }
+    await screenshot('narrow-mobile');
+    await evaluate(`document.documentElement.style.scrollBehavior='auto';document.querySelector('#trend').scrollIntoView({behavior:'instant',block:'start'})`);
+    await screenshot('yearly-trends-mobile');
+    await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+    const tapPoint = await evaluate(`(()=>{const svg=document.querySelector('#trend svg');svg.scrollIntoView({behavior:'instant',block:'center'});const r=svg.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()`);
+    await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[tapPoint]});await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    assert(new URL(await evaluate(`location.href`)).searchParams.has('date'));
+    await send('Emulation.setTouchEmulationEnabled',{enabled:false});
+    const pickers = await evaluate(`(()=>{document.querySelector('#reset').click();const hour=document.querySelector('[data-hour-picker]');hour.value='7';hour.dispatchEvent(new Event('change'));
+      const day=document.querySelector('#report-date');day.value=day.options[1].value;day.dispatchEvent(new Event('change'));
+      return {url:location.href,hours:[...document.querySelectorAll('[data-hour-picker]')].map(e=>e.value)}})()`);
+    assert(new URL(pickers.url).searchParams.has('date'));
+    assert.deepEqual(pickers.hours, ['7','7','7']);
+    assert.deepEqual(errors, []);
+    console.log('PASS: narrow layouts, separate yearly trends, mobile taps and large date/hour pickers');
+
     const injected = await send('Page.addScriptToEvaluateOnNewDocument', { source: `const originalParse=JSON.parse;JSON.parse=function(...args){const d=originalParse.apply(this,args);if(d&&d.records&&d.population)d.population={};return d}` });
     await navigate(pageUrl + '?test=missing-population');
     assert((await evaluate(`document.querySelector('#pc-list').innerText`)).includes('unavailable'));

@@ -15,7 +15,7 @@
   --bg: #eef0f1; --panel: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #75746f; --line: #d6d9dc;
   --land: #fafaf8; --town: #aeb3b8; --road: #b38a4f; --road-2: #cfb58a; --street: #d2d5d8; --street-2: #e1e3e5;
   --street-ink: #6b6e72; --water: #cddff0; --dot: #2a78d6; --dot-soft: rgba(42,120,214,.16); --select: #0b0b0b;
-  --focus: #2a78d6;
+  --focus: #2a78d6; --trend-avg: #184f95;
   /* sequential blue, light -> dark (q0 = no dispatches); q1-q7 and bars are the same in both themes */
   --q0: #eef3f9; --q1: #cde2fb; --q2: #9ec5f4; --q3: #6da7ec; --q4: #3987e5; --q5: #256abf; --q6: #184f95; --q7: #0d366b;
   --bar: #5598e7; --bar-on: #184f95;
@@ -27,14 +27,14 @@
   --bg: #121313; --panel: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #94938d; --line: #34352f;
   --land: #1e1f1e; --town: #4d5156; --road: #9c7d4c; --road-2: #7a6646; --street: #45484d; --street-2: #36383c;
   --street-ink: #9a9da2; --water: #1c2c3b; --dot: #3987e5; --dot-soft: rgba(57,135,229,.2); --select: #f0efec;
-  --focus: #6da7ec;
+  --focus: #6da7ec; --trend-avg: #9ec5f4;
   --q0: #2a2d31; /* the blue scale q1-q7 and bars are shared with light mode */
   color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #121313; --panel: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #94938d; --line: #34352f;
   --land: #1e1f1e; --town: #4d5156; --road: #9c7d4c; --road-2: #7a6646; --street: #45484d; --street-2: #36383c;
   --street-ink: #9a9da2; --water: #1c2c3b; --dot: #3987e5; --dot-soft: rgba(57,135,229,.2); --select: #f0efec;
-  --focus: #6da7ec;
+  --focus: #6da7ec; --trend-avg: #9ec5f4;
   --q0: #2a2d31; /* the blue scale q1-q7 and bars are shared with light mode */
   color-scheme: dark; }
 
@@ -61,7 +61,7 @@ select { font: inherit; color: var(--ink); background: var(--panel); border: 1px
   height: 36px; padding: 0 28px 0 10px; max-width: 100%; cursor: pointer; }
 #cat { width: 14rem; } #type { width: 22rem; } #city { width: 19rem; } #agency { width: 14.5rem; }
 select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot); }
-:is(select, button, a, .row, .check input, [data-k]):focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+:is(select, button, a, input, [tabindex], [role="button"]):focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .seg { display: inline-flex; height: 36px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); }
 .seg button { font: inherit; color: var(--ink-2); background: none; border: 0; padding: 0 12px; cursor: pointer; display: flex; align-items: baseline; gap: 5px; }
 .seg button small { font-size: .7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -114,6 +114,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 /* ---- time patterns + coverage */
 .patterns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 36rem), 1fr)); gap: 12px; padding-bottom: 24px; scroll-margin-top: 12px; }
 .chart { padding: 16px 18px 18px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.chart > * { min-width: 0; }
 .chart-head { display: grid; gap: 4px; }
 .chart-head p { margin: 0; color: var(--ink-2); font-size: .84rem; max-width: 60ch; }
 .scroll-x { overflow-x: auto; padding-bottom: 2px; }
@@ -166,7 +167,12 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .trend-box text { font: 11px var(--f-body); fill: var(--muted); }
 .trend-box .grid { stroke: var(--line); stroke-width: 1; }
 .trend-box .raw { fill: none; stroke: var(--q2); stroke-width: 1.25; }
-.trend-box .avg { fill: none; stroke: var(--q6); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
+.trend-box .avg { fill: none; stroke: var(--trend-avg); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
+.trend-year { display: grid; gap: 6px; margin-bottom: 16px; }
+.trend-year h3 { margin: 0; font-size: .95rem; }
+.trend-detail { min-height: 1.5em; font-size: .84rem; color: var(--ink-2); }
+.chart-picker { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: .84rem; }
+.chart-picker select, .chart-picker button, .chart-picker input { min-height: 44px; }
 .trend-box .dotday { fill: var(--q4); }
 .trend-box .gap { stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: 1; }
 .trend-box .gaplab { font-size: 10px; }
@@ -175,7 +181,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .trend-box .hair { stroke: var(--ink-2); stroke-width: 1; }
 .trend-box .sel { fill: var(--select); }
 .legend-line { display: flex; gap: 16px; flex-wrap: wrap; font-size: .78rem; color: var(--ink-2); align-items: center; }
-.legend-line i { display: inline-block; width: 18px; height: 0; border-top: 2.25px solid var(--q6); vertical-align: middle; margin-right: 6px; }
+.legend-line i { display: inline-block; width: 18px; height: 0; border-top: 2.25px solid var(--trend-avg); vertical-align: middle; margin-right: 6px; }
 .legend-line i.raw { border-top: 1.25px solid var(--q2); }
 
 .so { display: grid; gap: 14px; }
@@ -248,7 +254,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .rank-row .nm { min-width: 0; overflow-wrap: anywhere; }
 .rank-row .nm small { color: var(--muted); font-size: .76rem; margin-left: 6px; }
 .rank-row .v { font-variant-numeric: tabular-nums; font-weight: 600; }
-.rank-row .v small { font-weight: 400; color: var(--muted); margin-left: 6px; }
+.rank-row .v small { display: block; font-weight: 400; color: var(--muted); font-size: .72rem; white-space: normal; max-width: 9rem; }
 .rank-row .bar { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--dot-soft); position: relative; overflow: visible; }
 .rank-row .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--q4); }
 .rank-row .bar .avgmark { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); opacity: .55; }
@@ -320,6 +326,13 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   .filters select:is(#cat, #type, #city, #agency) { width: 100%; }
   .push { margin-left: 0; }
   .list { max-height: 26rem; }
+  #year { height: auto; flex-wrap: wrap; max-width: 100%; }
+  #year button { flex: 1 1 auto; min-height: 44px; padding-inline: 8px; }
+  #flow-kind { width: 100% !important; height: auto; flex-wrap: wrap; }
+  #flow-kind button { flex: 1 1 8rem; min-height: 44px; justify-content: center; }
+  .rank-row .v { max-width: 6.5rem; }
+  .rank-row .v small { max-width: 6.5rem; }
+  .search { width: min(17rem, calc(100vw - 110px)); }
 }
 @media (prefers-reduced-motion: reduce) { .leaflet-zoom-anim .leaflet-zoom-animated { transition: none !important; } }
 </style>
@@ -382,6 +395,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="scroll-x"><div class="heat" id="heat"></div></div>
       <div class="ramp" id="heat-ramp"></div>
       <div class="insight" id="heat-insight"></div>
+      <label class="chart-picker">Filter by hour <select data-hour-picker aria-label="Filter dispatches by hour"></select></label>
     </div>
     <div class="chart card">
       <div class="chart-head">
@@ -390,11 +404,12 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       </div>
       <div class="scroll-x"><div class="cal-wrap" id="cal"></div></div>
       <div class="ramp" id="cal-ramp"></div>
+      <label class="chart-picker">Filter by report date <select id="report-date" aria-label="Filter by report date"></select></label>
     </div>
     <div class="chart card wide">
       <div class="chart-head">
         <h2>Daily trend</h2>
-        <p>Dispatches on each report day for the current filters, with a 7-day average. Days without a report are left out; dashed lines mark the gaps. The 2026 reports come from a newer dispatch system that leaves out traffic stops and premise checks, so most of the later drop is a reporting change. Click a day to filter the map.</p>
+        <p>Dispatches by report date, with a 7-day average and a separate chart for each selected year. Missing days break the line. Place, responder, call type, weekday and hour filters apply; the selected date is highlighted. The 2026 system omits traffic stops and premise checks. Tap a date to filter; use arrow keys to explore and Enter to select.</p>
       </div>
       <div class="trend-box" id="trend"></div>
       <div class="legend-line"><span><i class="raw"></i>Each report day</span><span><i></i>7-day average</span><span>○ Unusual spikes</span></div>
@@ -431,6 +446,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="scroll-x"><div class="stack" id="urg-stack"></div><div class="stack-ax" id="urg-ax"></div></div>
       <div class="legend-row" id="urg-legend"></div>
       <div class="insight" id="urg-insight"></div>
+      <label class="chart-picker">Filter by hour <select data-hour-picker aria-label="Filter medical dispatches by hour"></select></label>
       <div><h3 class="eyebrow" style="margin:4px 0 6px">Highest share of Delta and Echo dispatches, by town</h3><div class="rank" id="urg-towns"></div></div>
     </div>
     <div class="chart card">
@@ -464,6 +480,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div><h3 class="eyebrow" style="margin:6px 0 6px">Likely officer-initiated share by hour</h3>
         <div class="scroll-x"><div class="pshare" id="pol-hour"></div><div class="pshare-ax" id="pol-ax"></div></div></div>
       <div class="insight" id="pol-insight"></div>
+      <label class="chart-picker">Filter by hour <select data-hour-picker aria-label="Filter police summary by hour"></select></label>
       <p class="note-sm">The 2026 reports omit traffic stops and premise checks, reducing the observed officer-initiated share. Category and call-type filters are ignored here; selecting a department clears them. The department list ignores the individual-agency filter and shows up to 12 departments with at least 20 matching dispatches, plus the selected department. Hourly comparisons ignore the hour filter and require 20 dispatches per hour; the summary applies the hour filter.</p>
     </div>
     <div class="chart card">
@@ -650,7 +667,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     agSel.classList.toggle("active", st.agency >= 0);
     citySel.classList.toggle("active", st.place !== "");
     renderChips();
-    $("reset").hidden = Object.keys(DEFAULT).every(k => st[k] === DEFAULT[k]);
+    $("reset").hidden = Object.keys(DEFAULT).every(k => st[k] === DEFAULT[k]) && flowKind === "FIRE" && pcMode === "T" && cmp.mode === "place" && cmp.a === "T:UTICA" && cmp.b === "T:ROME" && cmp.ya === 0 && cmp.yb === D.years.length - 1 && selected == null && !userMoved && !qIn.value;
+    document.querySelectorAll("[data-hour-picker]").forEach(el => el.value = st.hour);
+    const datePicker = $("report-date");
+    datePicker.replaceChildren(opt(-1, "All report dates"), ...D.dates.flatMap((iso, d) => yearOK(d) && dowOK(d) ? [opt(d, dateLabel(iso))] : []));
+    datePicker.value = st.date;
   }
 
   catSel.onchange = () => { st.cat = catSel.value; st.type = -1; st.group = -1; fillTypes(); update(); };
@@ -669,7 +690,13 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (b.dataset.clear === "date") st.date = -1; else if (b.dataset.clear === "unit") st.unit = -1; else { st.dow = -1; st.hour = -1; }
     update();
   };
-  $("reset").onclick = () => { Object.assign(st, DEFAULT); selected = null; userMoved = false; pcMode = "T";
+  document.querySelectorAll("[data-hour-picker]").forEach(el => {
+    el.replaceChildren(opt(-1, "All hours"), ...Array.from({ length: 24 }, (_, h) => opt(h, `${hourLabel(h)}–${hourLabel((h + 1) % 24)}`)));
+    el.onchange = () => { st.hour = +el.value; update(); };
+  });
+  $("report-date").onchange = e => { st.date = +e.target.value; update(); };
+  $("reset").onclick = () => { Object.assign(st, DEFAULT); selected = null; userMoved = false; pcMode = "T"; flowKind = "FIRE"; markFlowKind();
+    qIn.value = ""; hits = []; active = -1; renderSugg(); $("qnote").textContent = "";
     Object.assign(cmp, { mode: "place", a: "T:UTICA", b: "T:ROME", ya: 0, yb: D.years.length - 1 });
     fillCompare(); $("pc-mode").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === pcMode));
     setPlace(""); fillTypes(); update(); zoomToPlace(); };
@@ -825,6 +852,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       fill: false, interactive: false });
     dots.addLayer(ring);
     document.querySelector(`.row[data-li="${li}"]`)?.classList.add("on");
+    syncControls();
     syncUrl();
   }
 
@@ -968,7 +996,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const slot = k => `${DOW_LONG[Math.floor(k / 24)]}s ${hourLabel(k % 24)}–${hourLabel((k % 24 + 1) % 24)}`;
     const rateOf = k => cell[k].n / dowDays[Math.floor(k / 24)];
     const peakHour = hour.indexOf(Math.max(...hour));
-    $("heat-insight").innerHTML = hi < 0 || !days ? "<p class=\"insight\">No report days match these filters.</p>" :
+    $("heat-insight").innerHTML = !heatN.some(v => v > 0) ? "<span>No dispatches match these filters.</span>" : hi < 0 || !days ? "<p class=\"insight\">No report days match these filters.</p>" :
       `<span>Busiest hour of the week: <b>${slot(hi)}</b>, ${fmt1(rateOf(hi))} per day.</span>` +
       `<span>Quietest: <b>${slot(lo)}</b>, ${fmt1(rateOf(lo))} per day.</span>` +
       `<span>Across all days the peak hour is <b>${hourLabel(peakHour)}</b>; ${fmt1(hour.reduce((a, b) => a + b, 0) / days)} dispatches per report day in total.</span>`;
@@ -1091,99 +1119,120 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     else pick.group(+v);
   });
 
-  // ---------- daily trend (x = report days in order; gaps between runs are marked, not drawn)
+  // ---------- daily trend (calendar spacing within each year; missing days break the line)
   const dayNum = D.dates.map(iso => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 864e5);
-  let trendState = null;
+  const trendCharts = new Map();
   function renderTrend(dateN) {
-    const box = $("trend"), W = Math.max(320, box.clientWidth), H = 240, pad = { l: 44, r: 12, t: 22, b: 30 };
-    const n = D.dates.length, iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
-    const x = i => pad.l + (n === 1 ? iw / 2 : (i / (n - 1)) * iw);
-    const vals = Array.from(dateN);
-    // 7-day average: mean of report days within ±3 calendar days
-    const avg = vals.map((v, i) => { let s = 0, c = 0; for (let j = i; j >= 0 && dayNum[i] - dayNum[j] <= 3; j--) { s += vals[j]; c++; }
-      for (let j = i + 1; j < n && dayNum[j] - dayNum[i] <= 3; j++) { s += vals[j]; c++; } return s / c; });
-    const ymax = Math.max(1, ...vals) * 1.08;
-    const y = v => pad.t + ih - (v / ymax) * ih;
-    const runs = []; let start = 0;
-    for (let i = 1; i <= n; i++) if (i === n || dayNum[i] - dayNum[i - 1] > 1) { runs.push([start, i - 1]); start = i; }
-    const path = (arr, a, b) => arr.slice(a, b + 1).map((v, k) => `${k ? "L" : "M"}${x(a + k).toFixed(1)},${y(v).toFixed(1)}`).join("");
-    let svg = "";
-    const ticks = 4;
-    for (let k = 0; k <= ticks; k++) {
-      const v = ymax / 1.08 * k / ticks, yy = y(v);
-      svg += `<line class="grid" x1="${pad.l}" x2="${W - pad.r}" y1="${yy}" y2="${yy}"/><text x="${pad.l - 6}" y="${yy + 4}" text-anchor="end">${fmt(Math.round(v))}</text>`;
-    }
-    let lastGapLab = -1e9;
-    runs.forEach(([a, b], r) => {
-      if (b > a) svg += `<path class="raw" d="${path(vals, a, b)}"/><path class="avg" d="${path(avg, a, b)}"/>`;
-      else svg += `<circle class="dotday" cx="${x(a)}" cy="${y(vals[a])}" r="2.5"/>`;
-      if (r > 0) {
-        const gapDays = dayNum[a] - dayNum[runs[r - 1][1]] - 1, gx = (x(a) + x(runs[r - 1][1])) / 2;
-        if (gapDays >= 7) svg += `<line class="gap" x1="${gx}" x2="${gx}" y1="${pad.t}" y2="${pad.t + ih}"/>`;
-        if (gapDays >= 60 && gx - lastGapLab > 90) {
-          const left = gx > W - 200;  // near the right edge, put the label before the line
-          svg += `<text class="gaplab" x="${left ? gx - 4 : gx + 4}" y="${pad.t + 10}" text-anchor="${left ? "end" : "start"}">${gapDays >= 300 ? Math.round(gapDays / 30.4) + " months" : Math.round(gapDays / 7) + " weeks"} without reports</text>`;
-          lastGapLab = gx;
-        }
+    const box = $("trend"), W = Math.max(240, box.clientWidth), H = 240;
+    const focusedYear = box.contains(document.activeElement) ? document.activeElement.dataset.year : null;
+    const pad = { l: 44, r: 16, t: 24, b: 30 }, iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+    trendCharts.clear();
+    let html = "";
+    const visible = D.dates.map((iso, d) => d).filter(d => yearOK(d) && dowOK(d));
+    D.years.forEach((year, yi) => {
+      const ids = visible.filter(d => dateYear[d] === yi); if (!ids.length) return;
+      const first = dayNum[ids[0]], last = dayNum[ids[ids.length - 1]];
+      const x = j => pad.l + (last === first ? iw / 2 : (dayNum[ids[j]] - first) / (last - first) * iw);
+      const vals = ids.map(d => dateN[d]);
+      const avg = ids.map((d, j) => {
+        let sum = 0, count = 0;
+        for (let k = j; k >= 0 && dayNum[d] - dayNum[ids[k]] <= 3; k--) { sum += vals[k]; count++; }
+        for (let k = j + 1; k < ids.length && dayNum[ids[k]] - dayNum[d] <= 3; k++) { sum += vals[k]; count++; }
+        return sum / count;
+      });
+      const ymax = Math.max(1, ...vals) * 1.08, y = v => pad.t + ih * (1 - v / ymax);
+      let svg = "";
+      const tickCount = Math.min(4, Math.max(1, Math.ceil(ymax / 1.08)));
+      for (let k = 0; k <= tickCount; k++) {
+        const v = ymax / 1.08 * k / tickCount;
+        svg += `<line class="grid" x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${pad.l - 6}" y="${y(v) + 4}" text-anchor="end">${fmt1(v)}</text>`;
       }
+      let start = 0;
+      for (let end = 1; end <= ids.length; end++) {
+        if (end < ids.length && dayNum[ids[end]] - dayNum[ids[end - 1]] === 1) continue;
+        if (end - start > 1) {
+          for (const [cls, values] of [["raw", vals], ["avg", avg]]) {
+            const path = values.slice(start, end).map((v, k) => `${k ? 'L' : 'M'}${x(start + k).toFixed(1)},${y(v).toFixed(1)}`).join("");
+            svg += `<path class="${cls}" d="${path}"/>`;
+          }
+        } else svg += `<circle class="dotday" cx="${x(start)}" cy="${y(vals[start])}" r="3"/>`;
+        start = end;
+      }
+      let lastLabel = -Infinity;
+      ids.forEach((d, j) => {
+        const previous = j ? D.dates[ids[j - 1]] : "";
+        if (j && D.dates[d].slice(0, 7) === previous.slice(0, 7)) return;
+        const xx = x(j); if (xx - lastLabel < 48 || xx > W - pad.r - 22) return;
+        svg += `<text x="${xx}" y="${H - 8}" text-anchor="start">${MON[+D.dates[d].slice(5, 7) - 1]}</text>`; lastLabel = xx;
+      });
+      const spikes = vals.map((v, j) => ({ j, v, ratio: avg[j] ? v / avg[j] : 0 }))
+        .filter(o => o.v >= 20 && o.ratio >= 1.25).sort((a, b) => b.ratio - a.ratio).slice(0, W < 600 ? 1 : 2);
+      spikes.forEach(({ j, v }) => {
+        const xx = x(j), yy = y(v), d = ids[j];
+        svg += `<g class="spike"><circle cx="${xx}" cy="${yy}" r="3"/></g>`;
+        if (W >= 600) svg += `<text x="${xx + (xx > W / 2 ? -8 : 8)}" y="${Math.max(12, yy - 9)}" text-anchor="${xx > W / 2 ? 'end' : 'start'}">${MON[+D.dates[d].slice(5, 7) - 1]} ${+D.dates[d].slice(8)} · ${fmt(v)}</text>`;
+      });
+      const selectedIndex = ids.indexOf(st.date);
+      if (selectedIndex >= 0) svg += `<circle class="sel" cx="${x(selectedIndex)}" cy="${y(vals[selectedIndex])}" r="5"/>`;
+      svg += `<line class="hair" x1="0" x2="0" y1="${pad.t}" y2="${pad.t + ih}" visibility="hidden"/>`;
+      const previousIndex = trendCursor.get(year) ?? 0;
+      const cursor = Math.min(previousIndex, ids.length - 1);
+      trendCursor.set(year, cursor);
+      trendCharts.set(year, { ids, vals, avg, x, W });
+      html += `<div class="trend-year"><h3>${year} · ${ids.length} matching report days</h3><svg data-year="${year}" viewBox="0 0 ${W} ${H}" tabindex="0" role="group" aria-label="${year} dispatch trend. Arrow keys explore report dates; Enter filters by date." aria-describedby="trend-detail-${year}">${svg}</svg><div class="trend-detail" id="trend-detail-${year}">${trendDescription(year, cursor)}</div></div>`;
     });
-    // x labels: first day of each month in long runs, plus the start of each later run
-    let lastX = -1e9, lastYear = "";
-    D.dates.forEach((iso, i) => {
-      const newMonth = i === 0 || iso.slice(0, 7) !== D.dates[i - 1].slice(0, 7);
-      const afterGap = i > 0 && dayNum[i] - dayNum[i - 1] >= 60;
-      if (!newMonth && !afterGap) return;
-      const xx = x(i); if (xx - lastX < (afterGap ? 30 : 46) || xx > W - pad.r - 24) return;
-      const [Y, M] = iso.split("-");
-      svg += `<text x="${xx}" y="${H - 10}" text-anchor="start">${MON[+M - 1]}${Y !== lastYear ? " ’" + Y.slice(2) : ""}</text>`;
-      lastX = xx; lastYear = Y;
-    });
-    // spikes: biggest jumps above the local average
-    const spikes = vals.map((v, i) => ({ i, v, r: avg[i] ? v / avg[i] : 0 })).filter(o => o.v >= 20 && o.r >= 1.25)
-      .sort((a, b) => b.r - a.r).slice(0, 3);
-    spikes.forEach(({ i, v }) => {
-      const xx = x(i), yy = y(v), [Y, M, Dd] = D.dates[i].split("-"), right = xx > W - 140;
-      svg += `<g class="spike"><circle cx="${xx}" cy="${yy}" r="4"/><text x="${right ? xx - 8 : xx + 8}" y="${Math.max(12, yy - 6)}" text-anchor="${right ? "end" : "start"}">${MON[+M - 1]} ${+Dd}, ${Y} · ${fmt(v)}</text></g>`;
-    });
-    if (st.date >= 0) svg += `<circle class="sel" cx="${x(st.date)}" cy="${y(vals[st.date])}" r="5"/>`;
-    svg += `<line class="hair" id="hair" x1="0" x2="0" y1="${pad.t}" y2="${pad.t + ih}" visibility="hidden"/>`;
-    box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Daily dispatches with 7-day average">${svg}</svg>`;
-    trendState = { x, n, vals, avg, W, pad };
-
-    // month summary (months with at least 10 report days)
+    box.innerHTML = html || '<p class="so-note">No report days match these filters.</p>';
+    if (focusedYear) box.querySelector(`[data-year="${focusedYear}"]`)?.focus({ preventScroll: true });
+    const total = visible.reduce((sum, d) => sum + dateN[d], 0);
     const months = {};
-    D.dates.forEach((iso, i) => { const m = iso.slice(0, 7); (months[m] = months[m] || { s: 0, d: 0 }); months[m].s += vals[i]; months[m].d++; });
-    // Compare months within 2024 only: the 2024-25 and 2026 reports come from different dispatch systems.
-    const full = Object.entries(months).filter(([m, o]) => o.d >= 10 && m.startsWith("2024")).map(([m, o]) => [m, o.s / o.d]);
-    const ml = m => `${MON[+m.slice(5) - 1]} ${m.slice(0, 4)}`;
-    if (full.length >= 2 && vals.some(v => v > 0)) {
-      full.sort((a, b) => b[1] - a[1]);
-      const top = spikes[0];
-      $("trend-insight").innerHTML = `<span>In 2024, the busiest month was <b>${ml(full[0][0])}</b>, ${fmt1(full[0][1])} per day; the quietest was <b>${ml(full[full.length - 1][0])}</b>, ${fmt1(full[full.length - 1][1])} per day.</span>` +
-        (top ? `<span>Biggest spike: <b>${dateLabel(D.dates[top.i])}</b> with ${fmt(top.v)} dispatches, ${top.r.toFixed(1)}× the surrounding week.</span>` : "");
-    } else $("trend-insight").innerHTML = "";
+    visible.filter(d => D.dates[d].startsWith("2024")).forEach(d => {
+      const month = D.dates[d].slice(0, 7); const item = months[month] ||= { n: 0, days: 0 }; item.n += dateN[d]; item.days++;
+    });
+    const full = Object.entries(months).filter(([, v]) => v.days >= 10).map(([m, v]) => [m, v.n / v.days]).sort((a, b) => b[1] - a[1]);
+    const label = m => `${MON[+m.slice(5) - 1]} 2024`;
+    $("trend-insight").innerHTML = !total ? '<span>No dispatches match these filters.</span>' : full.length >= 2 ?
+      `<span>In 2024, the busiest month was <b>${label(full[0][0])}</b>, ${fmt1(full[0][1])} per day; the quietest was <b>${label(full[full.length - 1][0])}</b>, ${fmt1(full[full.length - 1][1])} per day.</span>` : '<span>Not enough matching report days per month for a seasonal comparison.</span>';
   }
-  $("trend").addEventListener("pointermove", e => {
-    if (!trendState) return;
-    const svg = $("trend").querySelector("svg"), rect = svg.getBoundingClientRect();
-    const px = (e.clientX - rect.left) * (trendState.W / rect.width);
-    const { x, n, vals, avg } = trendState;
-    let best = 0; for (let i = 1; i < n; i++) if (Math.abs(x(i) - px) < Math.abs(x(best) - px)) best = i;
-    const hair = svg.querySelector("#hair"); hair.setAttribute("x1", x(best)); hair.setAttribute("x2", x(best)); hair.setAttribute("visibility", "visible");
-    showTip(e, `<b>${dateLabel(D.dates[best])}</b><br>${fmt(vals[best])} dispatches <span>· 7-day avg ${fmt1(avg[best])}</span>`);
-    trendState.hover = best;
-  });
-  $("trend").addEventListener("pointerleave", () => { tipf.hidden = true; $("trend").querySelector("#hair")?.setAttribute("visibility", "hidden"); });
-  $("trend").addEventListener("click", () => {
-    if (!trendState || trendState.hover == null) return;
-    const d = trendState.hover; st.date = st.date === d ? -1 : d; if (st.date >= 0 && st.year >= 0) st.year = dateYear[st.date];
-    update();
+  const trendCursor = new Map();
+  function trendDescription(year, j) {
+    const chart = trendCharts.get(year); if (!chart) return "";
+    return `${dateLabel(D.dates[chart.ids[j]])}: ${fmt(chart.vals[j])} dispatches · 7-day average ${fmt1(chart.avg[j])}`;
+  }
+  function exploreTrend(svg, j) {
+    const year = +svg.dataset.year, chart = trendCharts.get(year); if (!chart) return;
+    j = Math.max(0, Math.min(chart.ids.length - 1, j)); trendCursor.set(year, j);
+    const hair = svg.querySelector(".hair"); hair.setAttribute("x1", chart.x(j)); hair.setAttribute("x2", chart.x(j)); hair.setAttribute("visibility", "visible");
+    const detail = $("trend-detail-" + year); detail.setAttribute("aria-live", "polite"); detail.textContent = trendDescription(year, j);
+  }
+  function trendAtPointer(e, svg) {
+    const chart = trendCharts.get(+svg.dataset.year), rect = svg.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width * chart.W;
+    let best = 0; chart.ids.forEach((d, j) => { if (Math.abs(chart.x(j) - px) < Math.abs(chart.x(best) - px)) best = j; });
+    return best;
+  }
+  function chooseTrend(svg, j) {
+    const d = trendCharts.get(+svg.dataset.year).ids[j]; st.date = st.date === d ? -1 : d; update();
+  }
+  $("trend").addEventListener("pointermove", e => { const svg = e.target.closest("svg[data-year]"); if (svg) exploreTrend(svg, trendAtPointer(e, svg)); });
+  $("trend").addEventListener("click", e => { const svg = e.target.closest("svg[data-year]"); if (svg) { const j = trendAtPointer(e, svg); exploreTrend(svg, j); chooseTrend(svg, j); } });
+  $("trend").addEventListener("focusin", e => { const svg = e.target.closest("svg[data-year]"); if (svg) exploreTrend(svg, trendCursor.get(+svg.dataset.year) || 0); });
+  $("trend").addEventListener("keydown", e => {
+    const svg = e.target.closest("svg[data-year]"); if (!svg) return;
+    const chart = trendCharts.get(+svg.dataset.year); let j = trendCursor.get(+svg.dataset.year) || 0;
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); chooseTrend(svg, j); return; }
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    e.preventDefault(); j = e.key === "Home" ? 0 : e.key === "End" ? chart.ids.length - 1 : j + (e.key === "ArrowLeft" ? -1 : 1); exploreTrend(svg, j);
   });
   let lastDateN = null;
   new ResizeObserver(() => { if (lastDateN) renderTrend(lastDateN); }).observe($("trend"));
 
   // ---------- update everything from one pass over the records
   function update() {
+    if ($("qnote")) $("qnote").textContent = "";
+    const focused = document.activeElement;
+    const focusKey = focused?.closest("#patterns") ? ["data-u", "data-place", "data-g", "data-mix", "data-clear"].find(a => focused.hasAttribute(a)) : null;
+    const focusParent = focusKey ? focused.parentElement.closest("[id]")?.id : "";
+    const focusValue = focusKey ? focused.getAttribute(focusKey) : "";
     // Each control's counts apply all the *other* filters, so they say how many dispatches picking that option shows.
     const per = new Float64Array(D.locations.length);
     const typeN = new Float64Array(D.types.length), agN = new Float64Array(D.agencyTypes.length);
@@ -1301,6 +1350,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     renderCompare();
     renderPolicing();
     renderFlows();
+    if (focusKey && !focused.isConnected) {
+      const replacement = [...(document.getElementById(focusParent)?.querySelectorAll(`[${focusKey}]`) || [])].find(el => el.getAttribute(focusKey) === focusValue);
+      if (replacement) replacement.focus({ preventScroll: true });
+      else { $("total").tabIndex = -1; $("total").focus({ preventScroll: true }); }
+    }
     syncUrl();
   }
   let lastCurrent = [];
@@ -1321,6 +1375,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (st.hour >= 0) q.set("hour", st.hour);
     if (st.outside) q.set("outside", "1");
     if (pcMode !== "T") q.set("population", pcMode);
+    if (flowKind !== "FIRE") q.set("flow", flowKind);
     if (cmp.mode !== "place" || cmp.a !== "T:UTICA" || cmp.b !== "T:ROME" || cmp.ya !== 0 || cmp.yb !== D.years.length - 1) {
       q.set("compare", cmp.mode);
       q.set("compareA", cmp.mode === "place" ? cmp.a : D.years[cmp.ya]);
@@ -1351,6 +1406,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const h = q.get("hour"); if (h !== null && /^\d{1,2}$/.test(h) && +h < 24) st.hour = +h;
     st.outside = q.get("outside") === "1";
     if (q.get("population") === "V") pcMode = "V";
+    if (q.get("flow") === "EMS") flowKind = "EMS";
+    markFlowKind();
     $("pc-mode").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === pcMode));
     if (["place", "year"].includes(q.get("compare"))) {
       cmp.mode = q.get("compare");
@@ -1428,6 +1485,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     else qIn.removeAttribute("aria-activedescendant");
   }
   qIn.addEventListener("input", () => {
+    syncControls();
     const q = qIn.value.trim().toUpperCase().replace(/\s+/g, " ");
     $("qnote").textContent = "";
     if (q.length < 2) { hits = []; active = -1; renderSugg(); return; }
@@ -1438,19 +1496,21 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (!hits.length) $("qnote").textContent = "No street by that name in the reports.";
   });
   function goTo(li) {
+    if (!D.locations[li]) return;
     hits = []; active = -1; renderSugg();
     const l = D.locations[li];
     qIn.value = l[2];
     if (markers.has(li)) { select(li); map.once("moveend", () => markers.get(li)?.openTooltip()); $("qnote").textContent = ""; }
     else $("qnote").textContent = `No dispatches on ${l[2]} (${placeLabel(l[3])}) match the current filters.`;
     map.flyTo([l[0], l[1]], Math.max(map.getZoom(), 15.5), { duration: reduceMotion() ? 0 : 0.8 });
+    syncControls();
   }
   sugg.addEventListener("click", e => { const li = e.target.closest("[data-i]"); if (li) goTo(+li.dataset.i); });
   qIn.addEventListener("keydown", e => {
     if (e.key === "ArrowDown" && hits.length) { active = (active + 1) % hits.length; renderSugg(); e.preventDefault(); }
     else if (e.key === "ArrowUp" && hits.length) { active = (active - 1 + hits.length) % hits.length; renderSugg(); e.preventDefault(); }
-    else if (e.key === "Enter" && active >= 0) { goTo(hits[active]); e.preventDefault(); }
-    else if (e.key === "Escape") { hits = []; renderSugg(); }
+    else if (e.key === "Enter" && active >= 0 && hits[active] != null) { goTo(hits[active]); e.preventDefault(); }
+    else if (e.key === "Escape") { hits = []; active = -1; renderSugg(); }
   });
 
 
@@ -1469,7 +1529,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       `<div class="kpi"><b>${incidents ? (100 * multi / incidents).toFixed(0) : 0}%</b><span>of incidents got 2+ agencies</span></div>`;
     const sizes = inc.size, sz = sizes.reduce((a, b) => a + b, 0) || 1;
     const sc = ["var(--q2)", "var(--q4)", "var(--q6)", "var(--q7)"], names = ["1 agency", "2 agencies", "3 agencies", "4 or more"];
-    $("resp-size").innerHTML = sizes.map((v, k) => v / sz > 0.004 ? `<span style="flex:${v};background:${sc[k]}" title="${names[k]}: ${(100 * v / sz).toFixed(0)}% of incidents">${v / sz > 0.06 ? (100 * v / sz).toFixed(0) + "%" : ""}</span>` : "").join("");
+    $("resp-size").innerHTML = sizes.map((v, k) => v / sz > 0.004 ? `<span style="flex:${v};background:${sc[k]};color:${k < 2 ? '#0b0b0b' : '#fff'}" title="${names[k]}: ${(100 * v / sz).toFixed(0)}% of incidents">${v / sz > 0.06 ? (100 * v / sz).toFixed(0) + "%" : ""}</span>` : "").join("");
     $("resp-size-legend").innerHTML = names.map((n, k) => `<span><i style="background:${sc[k]}"></i>${n}</span>`).join("") + `<span style="color:var(--muted)">share of incidents</span>`;
     const top = Array.from(unitN, (n, u) => [u, n]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 10);
     const mx = top.length ? top[0][1] : 1;
@@ -1582,9 +1642,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     }
     $("cmp-mode").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === cmp.mode));
   }
-  $("cmp-mode").onclick = e => { const b = e.target.closest("button"); if (!b) return; cmp.mode = b.dataset.m; fillCompare(); renderCompare(); syncUrl(); };
-  $("cmp-a").onchange = e => { cmp.mode === "place" ? cmp.a = e.target.value : cmp.ya = +e.target.value; renderCompare(); syncUrl(); };
-  $("cmp-b").onchange = e => { cmp.mode === "place" ? cmp.b = e.target.value : cmp.yb = +e.target.value; renderCompare(); syncUrl(); };
+  $("cmp-mode").onclick = e => { const b = e.target.closest("button"); if (!b) return; cmp.mode = b.dataset.m; fillCompare(); renderCompare(); syncControls(); syncUrl(); };
+  $("cmp-a").onchange = e => { cmp.mode === "place" ? cmp.a = e.target.value : cmp.ya = +e.target.value; renderCompare(); syncControls(); syncUrl(); };
+  $("cmp-b").onchange = e => { cmp.mode === "place" ? cmp.b = e.target.value : cmp.yb = +e.target.value; renderCompare(); syncControls(); syncUrl(); };
   fillCompare();
 
   function renderCompare() {
@@ -1724,8 +1784,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     return out;
   })();
   let flowKind = "FIRE";
+  function markFlowKind() { $("flow-kind").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === flowKind)); }
   $("flow-kind").onclick = e => { const b = e.target.closest("button"); if (!b) return; flowKind = b.dataset.k;
-    $("flow-kind").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderFlows(); };
+    markFlowKind(); renderFlows(); syncControls(); syncUrl(); };
 
   const fmap = L.map("flowmap", { zoomSnap: 0.25, zoomControl: true, attributionControl: false, scrollWheelZoom: false, minZoom: 8, maxZoom: 13 });
   const fBaseR = L.canvas({ padding: 0.2 }), fBase = L.layerGroup().addTo(fmap), fFlows = L.layerGroup().addTo(fmap), fLabels = L.layerGroup().addTo(fmap);
