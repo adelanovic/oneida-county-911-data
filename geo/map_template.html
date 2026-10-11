@@ -1,0 +1,412 @@
+<title>Oneida County 911 Call Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=Public+Sans:wght@400;500;600&display=swap">
+<style>__LEAFLET_CSS__</style>
+<style>
+/* Layout: one-screen tool — filter bar on top, map left, ranked street list right (stacks on phones). */
+:root {
+  --bg: #eef0f1; --panel: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #7b7a75; --line: #d6d9dc;
+  --land: #fafaf8; --town: #aeb3b8; --road: #b38a4f; --road-2: #cfb58a; --street: #d2d5d8; --street-2: #e1e3e5;
+  --street-ink: #6b6e72; --water: #cddff0; --dot: #2a78d6; --dot-soft: rgba(42,120,214,.16);
+  --focus: #2a78d6;
+  --f-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121313; --panel: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #8f8e88; --line: #34352f;
+  --land: #1e1f1e; --town: #4d5156; --road: #9c7d4c; --road-2: #7a6646; --street: #45484d; --street-2: #36383c;
+  --street-ink: #9a9da2; --water: #1c2c3b; --dot: #3987e5; --dot-soft: rgba(57,135,229,.2);
+  --focus: #6da7ec; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121313; --panel: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #8f8e88; --line: #34352f;
+  --land: #1e1f1e; --town: #4d5156; --road: #9c7d4c; --road-2: #7a6646; --street: #45484d; --street-2: #36383c;
+  --street-ink: #9a9da2; --water: #1c2c3b; --dot: #3987e5; --dot-soft: rgba(57,135,229,.2);
+  --focus: #6da7ec; color-scheme: dark; }
+
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--f-body); }
+.app { height: 100%; display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; box-sizing: border-box; }
+
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 24px; }
+h1 { font: 600 1.6rem/1.1 var(--f-display); letter-spacing: .01em; margin: 0; text-wrap: balance; }
+.sub { color: var(--ink-2); margin: 0; font-size: .86rem; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label, .eyebrow { font: 500 .72rem/1 var(--f-body); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+select { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 7px 28px 7px 10px; max-width: 100%; }
+#type { width: 22rem; }
+select:focus-visible, button:focus-visible, .row:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.check { display: flex; gap: 8px; align-items: center; color: var(--ink-2); font-size: .86rem; padding-bottom: 8px; cursor: pointer; }
+.check input { accent-color: var(--dot); width: 16px; height: 16px; margin: 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); }
+.seg button { font: inherit; color: var(--ink-2); background: none; border: 0; padding: 7px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+
+.main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 12px; }
+#map { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); min-height: 320px; }
+.leaflet-container { background: var(--bg); font: inherit; }
+.side { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; display: flex; flex-direction: column; min-height: 0; }
+.tally { padding: 14px 16px 12px; border-bottom: 1px solid var(--line); display: grid; gap: 2px; }
+.big { font: 600 2rem/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.tally p { margin: 0; color: var(--ink-2); font-size: .82rem; }
+.list { overflow-y: auto; min-height: 0; flex: 1; padding: 6px 0; }
+.list .eyebrow { display: block; padding: 8px 16px 6px; }
+.row { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 16px; cursor: pointer; }
+.row:hover { background: var(--dot-soft); }
+.row .rk { color: var(--muted); font-variant-numeric: tabular-nums; font-size: .78rem; }
+.row .nm { min-width: 0; overflow-wrap: anywhere; }
+.row .nm small { display: block; color: var(--muted); font-size: .76rem; }
+.row .ct { font-variant-numeric: tabular-nums; font-weight: 600; }
+.legend { padding: 10px 16px 14px; border-top: 1px solid var(--line); display: grid; gap: 8px; font-size: .78rem; color: var(--ink-2); }
+.sizes { display: flex; align-items: flex-end; gap: 14px; }
+.sizes span { display: flex; flex-direction: column; align-items: center; gap: 3px; font-variant-numeric: tabular-nums; }
+.sizes i { display: block; border-radius: 50%; background: var(--dot-soft); border: 1.5px solid var(--dot); }
+.approx { display: flex; gap: 8px; align-items: center; }
+.approx i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px dashed var(--dot); flex: none; }
+.empty { padding: 16px; color: var(--ink-2); }
+
+.town-label { color: var(--muted); font: 500 .7rem/1 var(--f-display); letter-spacing: .08em; text-transform: uppercase;
+  white-space: nowrap; text-align: center; pointer-events: none; }
+.street-label { pointer-events: none; }
+.street-label span { position: absolute; left: 0; top: 0; transform-origin: 0 0; white-space: nowrap;
+  font: 500 .68rem/1 var(--f-body); color: var(--street-ink); letter-spacing: .02em;
+  text-shadow: 0 0 2px var(--land), 0 0 2px var(--land), 0 0 3px var(--land); }
+.leaflet-tooltip { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18); font: 13px/1.4 var(--f-body); padding: 8px 10px; }
+.leaflet-tooltip-top:before { border-top-color: var(--line); }
+.tip b { font-weight: 600; } .tip .c { color: var(--ink-2); } .tip ol { margin: 6px 0 0; padding-left: 18px; }
+.tip li { font-variant-numeric: tabular-nums; } .tip em { color: var(--muted); font-style: normal; font-size: .76rem; }
+.leaflet-bar a { background: var(--panel); color: var(--ink); border-bottom-color: var(--line); }
+.leaflet-control-attribution { background: var(--panel) !important; color: var(--muted); font-size: 10px; }
+
+@media (max-width: 760px) {
+  .app { height: auto; }
+  .main { grid-template-columns: 1fr; }
+  #map { height: 62vh; }
+  #type { width: 100%; }
+  .field.grow { flex: 1 1 100%; }
+  .list { max-height: 26rem; }
+}
+@media (prefers-reduced-motion: reduce) { .leaflet-zoom-anim .leaflet-zoom-animated { transition: none !important; } }
+</style>
+
+<div class="app">
+  <header>
+    <h1>Oneida County 911 Call Map</h1>
+    <p class="sub" id="span"></p>
+  </header>
+
+  <div class="filters" role="group" aria-label="Filters">
+    <div class="field"><label for="cat">Category</label><select id="cat"></select></div>
+    <div class="field grow"><label for="type">Call type</label><select id="type"></select></div>
+    <div class="field"><label for="city">City / town / village</label><select id="city"></select></div>
+    <div class="field"><label for="agency">Responder</label><select id="agency"></select></div>
+    <div class="field"><span class="eyebrow" id="year-lbl">Year</span><div class="seg" id="year" role="group" aria-labelledby="year-lbl"></div></div>
+    <label class="check" for="outside"><input type="checkbox" id="outside"> Show mutual-aid calls in neighboring counties</label>
+  </div>
+
+  <div class="main">
+    <div id="map" aria-label="Map of call locations"></div>
+    <aside class="side">
+      <div class="tally">
+        <span class="big" id="total">0</span>
+        <p id="tally-note"></p>
+      </div>
+      <div class="list" id="list"></div>
+      <div class="legend">
+        <div class="sizes" id="sizes"></div>
+        <div class="approx"><i></i><span>Street not found; placed at the town center</span></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const LABEL = {
+    MEDICAL: "Medical", TRAFFIC: "Traffic", WELFARE_ASSIST: "Welfare & assist", DOMESTIC_DISPUTE: "Domestic & dispute",
+    ADMIN_PROACTIVE: "Admin & proactive", PROPERTY_CRIME: "Property crime", PUBLIC_ORDER: "Public order", ALARM: "Alarm",
+    FIRE_HAZARD: "Fire & hazard", MENTAL_HEALTH: "Mental health", CALL_ISSUE: "Abandoned / unknown", ANIMAL: "Animal",
+    VIOLENT_CRIME: "Violent crime",
+    LOCAL_POLICE: "Local police", SHERIFF: "Sheriff", STATE_POLICE: "State police", CAMPUS_POLICE: "Campus police",
+    FIRE: "Fire", EMS: "EMS / ambulance", OTHER_911_CENTER: "Other 911 center", OTHER: "Other",
+  };
+  const fmt = n => n.toLocaleString("en-US");
+  const typeCat = D.types.map(t => t[1]);
+  const cityIdx = new Map(D.cities.map((c, i) => [c, i]));
+  const locCity = D.locations.map(l => cityIdx.get(l[3]));
+  const typeTotal = new Array(D.types.length).fill(0);
+  const cityTotal = new Array(D.cities.length).fill(0);
+  for (const r of D.counts) { typeTotal[r[1]] += r[4]; cityTotal[locCity[r[0]]] += r[4]; }
+  for (const r of D.unlocated) { typeTotal[r[0]] += r[4]; cityTotal[r[3]] += r[4]; }
+  const catTotal = {};
+  D.types.forEach((t, i) => catTotal[t[1]] = (catTotal[t[1]] || 0) + typeTotal[i]);
+  const rowsByLoc = D.locations.map(() => []);
+  D.counts.forEach(r => rowsByLoc[r[0]].push(r));
+
+  const st = { cat: "ALL", type: -1, year: -1, agency: -1, place: "", outside: false };
+  // Reported city codes roll up to town (or city) -> village; Rome Inside/Outside are districts of Rome.
+  const info = c => D.cityInfo[c] || ["", "", ""];
+  const isOutside = D.cities.map(c => { const k = info(c)[2]; return k !== "" && k !== "ONEIDA"; });
+  const cityOK = new Uint8Array(D.cities.length);
+  const placeCities = {};   // option value -> city indices
+  const addTo = (key, i) => (placeCities[key] = placeCities[key] || []).push(i);
+  D.cities.forEach((c, i) => {
+    const [town, village, county] = info(c);
+    if (county && county !== "ONEIDA") { addTo("C:" + county, i); return; }
+    if (!town) return;
+    addTo("T:" + town, i);
+    if (village) addTo("V:" + town + "|" + village, i);
+    const m = c.match(/^ROME (INSIDE|OUTSIDE)$/);
+    if (m) addTo("D:ROME|" + m[1], i);
+  });
+  function setPlace(v) {
+    st.place = v;
+    cityOK.fill(0);
+    (v ? placeCities[v] || [] : D.cities.map((c, i) => i)).forEach(i => cityOK[i] = 1);
+  }
+  setPlace("");
+  function placeLabel(city) {
+    const [town, village, county] = info(city);
+    const d = city.match(/^ROME (INSIDE|OUTSIDE)$/);
+    if (d) return `Rome · ${titleCase(d[1])} district`;
+    if (village) return `${titleCase(village)} (village)${town ? ", " + titleCase(town) : ""}`;
+    if (county && county !== "ONEIDA") return `${titleCase(town || city)}, ${titleCase(county)} County`;
+    return titleCase(town || city);
+  }
+  const showCity = i => cityOK[i] && (!isOutside[i] || st.outside || st.place.startsWith("C:"));
+  const $ = id => document.getElementById(id);
+  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const titleCase = s => s.toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase());
+
+  // ---------- controls
+  const catSel = $("cat"), typeSel = $("type"), agSel = $("agency"), citySel = $("city"), yearSeg = $("year");
+  const opt = (v, text) => { const o = document.createElement("option"); o.value = v; o.textContent = text; return o; };
+  catSel.append(opt("ALL", `All categories (${fmt(D.total)})`));
+  Object.entries(catTotal).sort((a, b) => b[1] - a[1]).forEach(([c, n]) => catSel.append(opt(c, `${LABEL[c] || c} (${fmt(n)})`)));
+  agSel.append(opt(-1, "All responders"));
+  D.agencyTypes.forEach((a, i) => agSel.append(opt(i, LABEL[a] || a)));
+  const placeTotal = key => (placeCities[key] || []).reduce((s, i) => s + cityTotal[i], 0);
+  const CITIES = new Set(["UTICA", "ROME", "SHERRILL"]);
+  citySel.append(opt("", "All of Oneida County"));
+  const towns = Object.keys(placeCities).filter(k => k.startsWith("T:")).map(k => k.slice(2)).sort();
+  const inCounty = document.createElement("optgroup"); inCounty.label = "Cities, towns and their villages";
+  towns.forEach(t => {
+    inCounty.append(opt("T:" + t, `${titleCase(t)} ${CITIES.has(t) ? "(city)" : "(town, all)"} · ${fmt(placeTotal("T:" + t))}`));
+    Object.keys(placeCities).filter(k => k.startsWith("D:" + t + "|")).sort().forEach(k =>
+      inCounty.append(opt(k, `\u2003${titleCase(k.split("|")[1])} district · ${fmt(placeTotal(k))}`)));
+    Object.keys(placeCities).filter(k => k.startsWith("V:" + t + "|")).sort().forEach(k => {
+      const v = k.split("|")[1];
+      const split = Object.keys(placeCities).filter(x => x.startsWith("V:") && x.endsWith("|" + v)).length > 1;
+      inCounty.append(opt(k, `\u2003${titleCase(v)} (village${split ? `, ${titleCase(t)} part` : ""}) · ${fmt(placeTotal(k))}`));
+    });
+  });
+  citySel.append(inCounty);
+  const out = document.createElement("optgroup"); out.label = "Neighboring counties (mutual aid)";
+  Object.keys(placeCities).filter(k => k.startsWith("C:")).sort().forEach(k =>
+    out.append(opt(k, `${titleCase(k.slice(2))} County · ${fmt(placeTotal(k))}`)));
+  citySel.append(out);
+  [["All", -1], ...D.years.map((y, i) => [String(y), i])].forEach(([t, v]) => {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = t; b.dataset.v = v;
+    b.setAttribute("aria-pressed", v === -1); yearSeg.append(b);
+  });
+  function fillTypes() {
+    typeSel.replaceChildren(opt(-1, st.cat === "ALL" ? "All call types" : `All ${LABEL[st.cat].toLowerCase()} calls`));
+    D.types.forEach((t, i) => { if (st.cat === "ALL" || t[1] === st.cat) typeSel.append(opt(i, `${t[0]} (${fmt(typeTotal[i])})`)); });
+  }
+  fillTypes();
+  catSel.onchange = () => { st.cat = catSel.value; st.type = -1; fillTypes(); update(); };
+  typeSel.onchange = () => { st.type = +typeSel.value; update(); };
+  agSel.onchange = () => { st.agency = +agSel.value; update(); };
+  citySel.onchange = () => { setPlace(citySel.value); update(); zoomToCity(); };
+  $("outside").onchange = e => { st.outside = e.target.checked; update(); };
+  yearSeg.onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    st.year = +b.dataset.v;
+    yearSeg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    update();
+  };
+  const match = (t, y, a) =>
+    (st.type >= 0 ? t === st.type : (st.cat === "ALL" || typeCat[t] === st.cat)) &&
+    (st.year < 0 || y === st.year) && (st.agency < 0 || a === st.agency);
+
+  // ---------- map + basemap (separate panes keep streets under the circles and names above them)
+  const map = L.map("map", { zoomSnap: 0.25, minZoom: 8, maxZoom: 17, attributionControl: true });
+  map.attributionControl.setPrefix(false).addAttribution("Basemap: US Census TIGER/Line 2024");
+  map.createPane("basePane").style.zIndex = 250;
+  map.createPane("namePane").style.zIndex = 450;
+  map.getPane("namePane").style.pointerEvents = "none";
+  const baseR = L.canvas({ pane: "basePane", padding: 0.3 });
+  const renderer = L.canvas({ padding: 0.3 });
+  const base = L.layerGroup().addTo(map);
+  const townLabels = L.layerGroup().addTo(map);
+  const streetLabels = L.layerGroup().addTo(map);
+  const dots = L.layerGroup().addTo(map);
+  const roadLayers = {};
+  let countyBounds;
+
+  const decode = flat => {
+    const out = []; let la = 0, lo = 0;
+    for (let i = 0; i < flat.length; i += 2) { la += flat[i]; lo += flat[i + 1]; out.push([la / 1e5, lo / 1e5]); }
+    return out;
+  };
+  const roadLines = Object.fromEntries(Object.entries(D.basemap.roads).map(([k, v]) => [k, v.map(decode)]));
+  // [min zoom, color token, weight at z10, weight at z16]
+  const ROAD_STYLE = { minor: [13, "--street-2", 0.6, 2.5], local: [11, "--street", 0.5, 4],
+    primary: [0, "--road-2", 1.3, 5.5], highway: [0, "--road", 2.2, 7] };
+  const ROAD_ORDER = ["minor", "local", "primary", "highway"];
+  const roadWeight = k => {
+    const [, , w0, w1] = ROAD_STYLE[k], t = Math.min(1, Math.max(0, (map.getZoom() - 10) / 6));
+    return w0 + (w1 - w0) * t;
+  };
+
+  function drawBase() {
+    base.clearLayers(); townLabels.clearLayers();
+    const towns = D.basemap.towns.map(t => L.polygon(t.rings, { renderer: baseR, color: css("--town"), weight: 1,
+      fillColor: css("--land"), fillOpacity: 1, interactive: false }));
+    towns.forEach(p => base.addLayer(p));
+    D.basemap.water.forEach(w => base.addLayer(L.polygon(w, { renderer: baseR, stroke: false, fillColor: css("--water"),
+      fillOpacity: 1, interactive: false })));
+    for (const k of ROAD_ORDER) {
+      roadLayers[k] = L.polyline(roadLines[k], { renderer: baseR, color: css(ROAD_STYLE[k][1]), weight: 1,
+        lineCap: "round", lineJoin: "round", interactive: false });
+    }
+    D.basemap.towns.forEach(t => townLabels.addLayer(L.marker(t.label, { pane: "namePane", interactive: false, keyboard: false,
+      icon: L.divIcon({ className: "town-label", html: t.name.replace(/ (town|city)$/, ""), iconSize: [120, 12], iconAnchor: [60, 6] }) })));
+    if (!countyBounds) countyBounds = L.featureGroup(towns).getBounds();
+  }
+
+  function syncZoom() {
+    const z = map.getZoom();
+    for (const k of ROAD_ORDER) {
+      const on = z >= ROAD_STYLE[k][0];
+      if (on) { roadLayers[k].setStyle({ weight: roadWeight(k) }); if (!base.hasLayer(roadLayers[k])) base.addLayer(roadLayers[k]); }
+      else if (base.hasLayer(roadLayers[k])) base.removeLayer(roadLayers[k]);
+    }
+    ROAD_ORDER.forEach(k => base.hasLayer(roadLayers[k]) && roadLayers[k].bringToFront());
+    const showTowns = z >= 9.5 && z < 13.5;
+    if (showTowns !== map.hasLayer(townLabels)) showTowns ? map.addLayer(townLabels) : map.removeLayer(townLabels);
+    drawStreetNames();
+  }
+
+  function drawStreetNames() {
+    streetLabels.clearLayers();
+    if (map.getZoom() < 14.5) return;
+    const b = map.getBounds().pad(0.1), seen = [];
+    let n = 0;
+    for (const [lat, lon, ang, ni] of D.basemap.labels) {
+      if (!b.contains([lat, lon])) continue;
+      const p = map.latLngToContainerPoint([lat, lon]);
+      if (seen.some(q => Math.abs(q.x - p.x) < 70 && Math.abs(q.y - p.y) < 18)) continue;
+      seen.push(p);
+      streetLabels.addLayer(L.marker([lat, lon], { pane: "namePane", interactive: false, keyboard: false,
+        icon: L.divIcon({ className: "street-label", iconSize: [0, 0],
+          html: `<span style="transform: rotate(${ang}deg) translate(-50%, -50%)">${D.basemap.labelNames[ni]}</span>` }) }));
+      if (++n > 400) break;
+    }
+  }
+  map.on("zoomend", syncZoom);
+  map.on("moveend", drawStreetNames);
+
+  function zoomToCity() {
+    if (!st.place) { map.fitBounds(countyBounds, { padding: [10, 10] }); return; }
+    const inCity = D.locations.filter((l, i) => cityOK[locCity[i]]);
+    const exact = inCity.filter(l => l[4] !== "municipality");
+    const pts = (exact.length ? exact : inCity).map(l => [l[0], l[1]]);
+    if (pts.length === 1) map.setView(pts[0], 14);
+    else if (pts.length) map.fitBounds(L.latLngBounds(pts), { padding: [30, 30], maxZoom: 15 });
+  }
+
+  // ---------- data layer
+  let current = [];
+  function tooltipHtml(li, n) {
+    const [lat, lon, street, city, prec, err, method, matched] = D.locations[li];
+    const byType = {};
+    for (const r of rowsByLoc[li]) if (match(r[1], r[2], r[3])) byType[r[1]] = (byType[r[1]] || 0) + r[4];
+    const top = Object.entries(byType).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const where = street || "(no street given)";
+    const dist = m => m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m / 10) * 10} m`;
+    let note = "";
+    if (prec === "municipality") note = `<em>Street not found in Census roads; shown at town center (typically ${dist(err)} off)</em><br>`;
+    else if (prec === "landmark") note = `<em>Placed at landmark: ${matched}</em><br>`;
+    else if (prec === "intersection") note = "<em>Exact intersection</em><br>";
+    else if (err != null) note = `<em>${err < 50 ? "Short street; placement is close" : `Street-level estimate, typically ${dist(err)} off`}` +
+      `${method === "fuzzy_risky" ? `; matched to ${matched}, check this` : ""}</em><br>`;
+    return `<div class="tip"><b>${where}</b><br><span class="c">${placeLabel(city)}</span><br>${note}` +
+      `<b>${fmt(n)}</b> ${n === 1 ? "call" : "calls"}` +
+      (st.type < 0 ? `<ol>${top.map(([t, c]) => `<li>${D.types[t][0]} · ${fmt(c)}</li>`).join("")}</ol>` : "") + "</div>";
+  }
+
+  function update() {
+    const per = new Float64Array(D.locations.length);
+    let unloc = 0, hidden = 0;
+    for (const r of D.counts) {
+      const c = locCity[r[0]];
+      if (!cityOK[c] || !match(r[1], r[2], r[3])) continue;
+      if (showCity(c)) per[r[0]] += r[4]; else hidden += r[4];
+    }
+    for (const r of D.unlocated) if (cityOK[r[3]] && showCity(r[3]) && match(r[0], r[1], r[2])) unloc += r[4];
+    current = [];
+    per.forEach((n, i) => { if (n > 0) current.push([i, n]); });
+    current.sort((a, b) => b[1] - a[1]);
+    const located = current.reduce((s, x) => s + x[1], 0);
+    const max = current.length ? current[0][1] : 1;
+    const R = 26, r = n => 2.5 + R * Math.sqrt(n / max);
+
+    dots.clearLayers();
+    const dot = css("--dot"), soft = css("--dot-soft"), ring = css("--panel");
+    current.forEach(([li, n]) => {
+      const loc = D.locations[li], approx = loc[4] === "municipality";
+      const m = L.circleMarker([loc[0], loc[1]], { renderer, radius: r(n), color: approx ? dot : ring,
+        weight: approx ? 1.5 : 1, dashArray: approx ? "3 3" : null, fillColor: dot, fillOpacity: approx ? 0.12 : 0.5 });
+      m.bindTooltip(() => tooltipHtml(li, n), { direction: "top", sticky: true, opacity: 1 });
+      dots.addLayer(m);
+    });
+
+    const all = located + unloc;
+    $("total").textContent = fmt(all);
+    $("tally-note").textContent = all === 0 ? "No calls match these filters." :
+      `calls · ${fmt(located)} mapped at ${fmt(current.length)} places; ${fmt(unloc)} had no location in the report.` +
+      (hidden ? ` ${fmt(hidden)} mutual-aid ${hidden === 1 ? "call" : "calls"} outside the county not shown.` : "");
+
+    const list = $("list");
+    list.replaceChildren();
+    if (!current.length) { list.innerHTML = '<p class="empty">Nothing to rank. Widen a filter above.</p>'; }
+    else {
+      const h = document.createElement("span"); h.className = "eyebrow"; h.textContent = "Busiest places";
+      list.append(h);
+      current.slice(0, 25).forEach(([li, n], k) => {
+        const [lat, lon, street, city] = D.locations[li];
+        const row = document.createElement("div"); row.className = "row"; row.tabIndex = 0; row.setAttribute("role", "button");
+        row.innerHTML = `<span class="rk">${k + 1}</span><span class="nm">${street || "Town center"}<small>${placeLabel(city)}</small></span><span class="ct">${fmt(n)}</span>`;
+        const go = () => map.flyTo([lat, lon], 15, { duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.8 });
+        row.onclick = go; row.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
+        list.append(row);
+      });
+    }
+
+    const steps = [max, Math.round(max / 4), Math.round(max / 20)].filter((v, i, a) => v >= 1 && a.indexOf(v) === i);
+    $("sizes").innerHTML = steps.map(v => `<span><i style="width:${2 * r(v)}px;height:${2 * r(v)}px"></i>${fmt(v)}</span>`).join("")
+      + `<span style="align-self:center;color:var(--muted)">calls per place</span>`;
+  }
+
+  $("span").textContent = `${fmt(D.total)} agency dispatches from county media reports, ${D.years[0]}–${D.years[D.years.length - 1]}. Each circle is one street within one town; reports give no house numbers.`;
+
+  drawBase();
+  map.fitBounds(countyBounds, { padding: [10, 10] });
+  syncZoom();
+  update();
+
+  // Repaint canvas layers when the viewer's theme changes.
+  const repaint = () => { drawBase(); syncZoom(); update(); };
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", repaint);
+  new MutationObserver(repaint).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+})();
+</script>

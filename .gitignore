@@ -1,0 +1,17 @@
+# Source PDFs and download logs from oneidacountyny.gov
+Oneida_County_911_Reports/
+
+# Generated data
+output/*
+!output/README.md
+# The map page embeds its own aggregated data and works standalone, so it is committed.
+!output/map/
+output/map/*
+!output/map/oneida_911_map.html
+
+# Census TIGER/Line downloads and intermediate geodata
+geo/tiger/
+geo/locations.csv
+geo/map_data.json
+
+__pycache__/
