@@ -293,6 +293,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .cmp-ctl { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: end; }
 .cmp-ctl select { width: 13rem; }
 .cmp-ctl .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+#cmp-period-label { display: flex; align-items: center; gap: 8px; min-height: 44px; }
 .cmp-table { width: 100%; border-collapse: collapse; font-size: .86rem; font-variant-numeric: tabular-nums; }
 .cmp-table th, .cmp-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--line); }
 .cmp-table th:first-child, .cmp-table td:first-child { text-align: left; color: var(--ink-2); font-weight: 400; }
@@ -561,13 +562,15 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     <div class="chart card" id="compare-section">
       <div class="chart-head">
         <h2>Compare</h2>
-        <p>Two places or two years side by side, with the other filters applied to both.</p>
+        <p>Compare reported dispatch activity, not unique emergencies. Places mode replaces the place filter; Years mode replaces the year and exact-date filters. Other filters apply to both summaries. The hourly profile always shows the full day.</p>
       </div>
       <div class="cmp-ctl">
         <div class="seg" id="cmp-mode" role="group" aria-label="Compare places or years"><button type="button" data-m="place" aria-pressed="true">Places</button><button type="button" data-m="year" aria-pressed="false">Years</button></div>
         <div class="field"><label for="cmp-a"><span class="sw" style="background:var(--cmp-a)"></span>A</label><select id="cmp-a"></select></div>
         <div class="field"><label for="cmp-b"><span class="sw" style="background:var(--cmp-b)"></span>B</label><select id="cmp-b"></select></div>
       </div>
+      <label id="cmp-period-label" hidden><input type="checkbox" id="cmp-common"> Use only calendar dates with reports in both years</label>
+      <p class="note-sm" id="cmp-scope" aria-live="polite"></p>
       <div id="cmp-out" style="display:grid;gap:14px"></div>
     </div>
     <div class="chart card" id="police-section">
@@ -758,7 +761,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     agSel.classList.toggle("active", st.agency >= 0);
     citySel.classList.toggle("active", st.place !== "");
     renderChips();
-    $("reset").hidden = Object.keys(DEFAULT).every(k => st[k] === DEFAULT[k]) && flowKind === "FIRE" && pcMode === "T" && pcScale === "observed" && cmp.mode === "place" && cmp.a === "T:UTICA" && cmp.b === "T:ROME" && cmp.ya === 0 && cmp.yb === D.years.length - 1 && selected == null && !userMoved && !qIn.value;
+    $("reset").hidden = Object.keys(DEFAULT).every(k => st[k] === DEFAULT[k]) && flowKind === "FIRE" && pcMode === "T" && pcScale === "observed" && !cmp.common && cmp.mode === "place" && cmp.a === "T:UTICA" && cmp.b === "T:ROME" && cmp.ya === 0 && cmp.yb === D.years.length - 1 && selected == null && !userMoved && !qIn.value;
     document.querySelectorAll("[data-hour-picker]").forEach(el => el.value = st.hour);
     const datePicker = $("report-date");
     datePicker.replaceChildren(opt(-1, "All report dates"), ...D.dates.flatMap((iso, d) => yearOK(d) && dowOK(d) ? [opt(d, dateLabel(iso))] : []));
@@ -788,7 +791,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   $("report-date").onchange = e => { st.date = +e.target.value; if (st.date >= 0 && st.month >= 0) st.month = dateMonth[st.date]; update(); };
   $("reset").onclick = () => { Object.assign(st, DEFAULT); selected = null; userMoved = false; pcMode = "T"; pcScale = "observed"; flowKind = "FIRE"; markFlowKind();
     qIn.value = ""; hits = []; active = -1; renderSugg(); $("qnote").textContent = "";
-    Object.assign(cmp, { mode: "place", a: "T:UTICA", b: "T:ROME", ya: 0, yb: D.years.length - 1 });
+    Object.assign(cmp, { mode: "place", a: "T:UTICA", b: "T:ROME", ya: 0, yb: D.years.length - 1, common: false });
     fillCompare(); $("pc-mode").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === pcMode));
     setPlace(""); fillTypes(); update(); zoomToPlace(); };
 
@@ -1500,6 +1503,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (st.outside) q.set("outside", "1");
     if (pcMode !== "T") q.set("population", pcMode);
     if (pcScale === "annual") q.set("rate", "annual");
+    if (cmp.common) q.set("comparePeriod", "common");
     if (flowKind !== "FIRE") q.set("flow", flowKind);
     if (cmp.mode !== "place" || cmp.a !== "T:UTICA" || cmp.b !== "T:ROME" || cmp.ya !== 0 || cmp.yb !== D.years.length - 1) {
       q.set("compare", cmp.mode);
@@ -1533,6 +1537,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     st.outside = q.get("outside") === "1";
     if (q.get("population") === "V") pcMode = "V";
     if (q.get("rate") === "annual") pcScale = "annual";
+    cmp.common = q.get("comparePeriod") === "common";
     if (q.get("flow") === "EMS") flowKind = "EMS";
     markFlowKind();
     $("pc-mode").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === pcMode));
@@ -1780,7 +1785,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   }
 
   // compare
-  const cmp = { mode: "place", a: "T:UTICA", b: "T:ROME", ya: 0, yb: D.years.length - 1 };
+  const cmp = { mode: "place", a: "T:UTICA", b: "T:ROME", ya: 0, yb: D.years.length - 1, common: false };
   function fillCompare() {
     const a = $("cmp-a"), b = $("cmp-b");
     if (cmp.mode === "place") {
@@ -1796,53 +1801,67 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   $("cmp-mode").onclick = e => { const b = e.target.closest("button"); if (!b) return; cmp.mode = b.dataset.m; fillCompare(); renderCompare(); syncControls(); syncUrl(); };
   $("cmp-a").onchange = e => { cmp.mode === "place" ? cmp.a = e.target.value : cmp.ya = +e.target.value; renderCompare(); syncControls(); syncUrl(); };
   $("cmp-b").onchange = e => { cmp.mode === "place" ? cmp.b = e.target.value : cmp.yb = +e.target.value; renderCompare(); syncControls(); syncUrl(); };
+  $("cmp-common").onchange = e => { cmp.common = e.target.checked; renderCompare(); syncControls(); syncUrl(); };
   fillCompare();
 
   function renderCompare() {
     const byPlace = cmp.mode === "place";
+    $("cmp-period-label").hidden = byPlace;
+    $("cmp-common").checked = cmp.common;
+    $("cmp-scope").textContent = byPlace ? "Place selection is ignored here. Year, month, exact date, weekday, hour, call-type and agency filters apply to both summaries. Places can overlap: villages are included in their towns. Population rates use reported areas; village labels can miss dispatches reported under a town alone." : `The two chosen years replace the page's year filter. The exact-date filter is ignored here${st.date >= 0 ? ` (${D.dates[st.date]} remains selected elsewhere)` : ""}; month, weekday, hour, place, call-type and agency filters apply. ${cmp.common ? "Only month/day dates with reports in both years are included; weekday filters apply separately in each year." : "Each year uses its own available dates. Different seasons and missing reports can affect comparisons; use shared calendar dates to align coverage."}`;
+    const available = [cmp.ya, cmp.yb].map(y => new Set(D.dates.filter((iso, d) => dateYear[d] === y && monthOK(d)).map(iso => iso.slice(5))));
+    const shared = new Set([...available[0]].filter(md => available[1].has(md)));
+    const allowedDate = d => byPlace ? yearOK(d) && dateOK(d) && dowOK(d) : monthOK(d) && dowOK(d) && (!cmp.common || shared.has(D.dates[d].slice(5)));
     const inA = new Uint8Array(D.cities.length), inB = new Uint8Array(D.cities.length);
     if (byPlace) { (placeCities[cmp.a] || []).forEach(i => inA[i] = 1); (placeCities[cmp.b] || []).forEach(i => inB[i] = 1); }
-    const side = () => ({ n: 0, hour: new Float64Array(24), grp: new Float64Array(groups.length), med: 0, de: 0 });
+    const side = () => ({ n: 0, hour: new Float64Array(24), grp: new Float64Array(groups.length), med: 0, priority: 0, de: 0 });
     const S = [side(), side()];
     for (let i = 0; i < N; i++) {
       const t = R.t[i], d = R.d[i], c = R.c[i];
-      if (!(typeOK(t) && agOK(R.a[i]) && unitOK(R.u[i]) && dowOK(d) && hourOK(R.h[i]))) continue;
-      if (byPlace && !(yearOK(d) && dateOK(d))) continue;
-      if (!byPlace && !(cityOK[c] && monthOK(d))) continue;
+      if (!(typeOK(t) && agOK(R.a[i]) && unitOK(R.u[i]) && allowedDate(d))) continue;
+      if (!byPlace && !cityOK[c]) continue;
       const matches = byPlace ? [inA[c], inB[c]] : [dateYear[d] === cmp.ya, dateYear[d] === cmp.yb];
       matches.forEach((match, k) => {
         if (!match) return;
-        const s = S[k]; s.n++; s.hour[R.h[i]]++; s.grp[typeGroup[t]]++;
-        if (R.m[i]) { s.med++; if (R.m[i] >= 5) s.de++; }
+        const s = S[k]; s.hour[R.h[i]]++;
+        if (!hourOK(R.h[i])) return;
+        s.n++; s.grp[typeGroup[t]]++;
+        if (typeCat[t] === "MEDICAL") {
+          s.med++;
+          if (R.m[i]) { s.priority++; if (R.m[i] >= 5) s.de++; }
+        }
       });
     }
     // report days per side
-    const daysFor = y => D.dates.reduce((s, iso, d) => s + ((y == null ? yearOK(d) && dateOK(d) : dateYear[d] === y && monthOK(d)) && dowOK(d) ? 1 : 0), 0);
+    const daysFor = y => D.dates.reduce((s, iso, d) => s + (allowedDate(d) && (y == null || dateYear[d] === y) ? 1 : 0), 0);
     const days = byPlace ? [daysFor(null), daysFor(null)] : [daysFor(cmp.ya), daysFor(cmp.yb)];
     const names = byPlace ? [cmp.a, cmp.b].map(k => populationPlaceName(k)) : [D.years[cmp.ya], D.years[cmp.yb]].map(String);
     const pops = byPlace ? [D.population?.[cmp.a], D.population?.[cmp.b]] : [null, null];
     const pct = (v, n) => n ? `${(100 * v / n).toFixed(1)}%` : "–";
     const rows = [
-      ["Dispatches", S.map(s => fmt(s.n))],
+      ["Dispatches", S.map((s, k) => days[k] ? fmt(s.n) : "No reports available")],
       ["Report days", days.map(fmt)],
       ["Per report day", S.map((s, k) => days[k] ? fmt1(s.n / days[k]) : "–")],
     ];
     if (byPlace) rows.push(["Per 1,000 residents (observed period)", S.map((s, k) => pops[k] && days[k] ? fmt1(s.n / pops[k] * 1000) : "–")]);
-    rows.push(["Medical share", S.map(s => pct(s.med, s.n))], ["Delta/Echo share of medical", S.map(s => pct(s.de, s.med))]);
-    const peak = s => { const m = Math.max(...s.hour); return m ? hourLabel(s.hour.indexOf(m)) : "–"; };
-    rows.push(["Peak hour", S.map(peak)]);
-    const table = `<table class="cmp-table"><thead><tr><th></th><th style="color:var(--cmp-a)">${esc(names[0])}</th><th style="color:var(--cmp-b)">${esc(names[1])}</th></tr></thead><tbody>` +
+    rows.push(["Medical share", S.map(s => pct(s.med, s.n))], ["Medical dispatches without a priority code", S.map((s, k) => days[k] ? fmt(s.med - s.priority) : "–")], ["Delta/Echo among priority-coded medical dispatches", S.map(s => pct(s.de, s.priority))]);
+    const peak = s => { const m = Math.max(...s.hour); if (!m) return "–"; const hours = Array.from(s.hour, (n, h) => n === m ? hourLabel(h) : null).filter(Boolean); return hours.length <= 3 ? hours.join(", ") : `Tie across ${hours.length} hours`; };
+    rows.push(["Peak hour (full day)", S.map(peak)]);
+    const table = `<table class="cmp-table cmp-summary"><thead><tr><th scope="col">Measure</th><th scope="col" style="color:var(--cmp-a)">${esc(names[0])}</th><th scope="col" style="color:var(--cmp-b)">${esc(names[1])}</th></tr></thead><tbody>` +
       rows.map(([l, v]) => `<tr><td>${l}</td><td>${v[0]}</td><td>${v[1]}</td></tr>`).join("") + `</tbody></table>`;
     // hour profile: average per report day
     const W = Math.max(300, $("cmp-out").clientWidth || 520), H = 170, pl = 40, pr = 10, pt = 10, pb = 24;
-    const prof = S.map((s, k) => Array.from(s.hour, v => days[k] ? v / days[k] : 0));
-    const ym = Math.max(1e-9, ...prof[0], ...prof[1]) * 1.1;
+    const prof = S.map((s, k) => Array.from(s.hour, v => days[k] ? v / days[k] : null));
+    const ym = Math.max(1e-9, ...prof.flat().filter(v => v != null)) * 1.1;
     const X = h => pl + h / 23 * (W - pl - pr), Y = v => pt + (H - pt - pb) * (1 - v / ym);
     let svg = "";
     for (let k = 0; k <= 3; k++) { const v = ym / 1.1 * k / 3; svg += `<line class="grid" x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${pl - 6}" y="${Y(v) + 4}" text-anchor="end">${fmt1(v)}</text>`; }
     for (let h = 0; h < 24; h += 3) svg += `<text x="${X(h)}" y="${H - 6}" text-anchor="middle">${String(h).padStart(2, "0")}</text>`;
-    prof.forEach((pr_, k) => svg += `<path class="${k ? "lb" : "la"}" d="${pr_.map((v, h) => `${h ? "L" : "M"}${X(h).toFixed(1)},${Y(v).toFixed(1)}`).join("")}"/>`);
-    const chart = `<div><h3 class="eyebrow" style="margin:0 0 6px">Dispatches per report day, by hour</h3><div class="cmp-chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Hourly profile comparison">${svg}</svg></div></div>`;
+    prof.forEach((pr_, k) => { if (days[k]) svg += `<path class="${k ? "lb" : "la"}" d="${pr_.map((v, h) => `${h ? "L" : "M"}${X(h).toFixed(1)},${Y(v).toFixed(1)}`).join("")}"/>`; });
+    if (st.hour >= 0) svg += `<line x1="${X(st.hour)}" x2="${X(st.hour)}" y1="${pt}" y2="${H - pb}" style="stroke:var(--ink);stroke-dasharray:3 3"/>`;
+    const hourDescription = h => `${hourLabel(h)}: ` + S.map((s, k) => `${names[k]}: ${days[k] ? `${fmt(s.hour[h])} dispatches, ${fmt1(prof[k][h])} per report day` : "no reports available"}`).join("; ");
+    for (let h = 0; h < 24; h++) svg += `<rect data-compare-hour="${h}" x="${Math.max(pl, X(h) - (W - pl - pr) / 46)}" y="${pt}" width="${(W - pl - pr) / 23}" height="${H - pt - pb}" fill="transparent" tabindex="${h === 0 ? 0 : -1}" role="button" aria-label="${esc(hourDescription(h))}"><title>${esc(hourDescription(h))}</title></rect>`;
+    const chart = `<div><h3 class="eyebrow" style="margin:0 0 6px">Dispatches per report day, by hour</h3><p class="note-sm">Full-day profile; the hour filter applies to the summary and call mix, and its hour is marked here. Hover, tap or use arrow keys to inspect an hour. Lines use A's blue and B's orange.</p><div class="cmp-chart"><svg viewBox="0 0 ${W} ${H}" role="group" aria-label="Hourly profile comparison">${svg}</svg></div><p class="note-sm" id="cmp-hour-detail" aria-live="polite">${esc(hourDescription(st.hour >= 0 ? st.hour : 0))}</p><details><summary>Hourly counts and rates</summary><div class="scroll-x"><table class="cmp-table"><thead><tr><th scope="col">Hour</th>${names.map(n => `<th scope="col">${esc(n)}: count / per day</th>`).join("")}</tr></thead><tbody>${Array.from({ length: 24 }, (_, h) => `<tr><th scope="row">${hourLabel(h)}</th>${S.map((s, k) => `<td>${days[k] ? `${fmt(s.hour[h])} / ${fmt1(prof[k][h])}` : "No reports available"}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details></div>`;
     // biggest differences in call mix (share of each side's dispatches)
     let diffs = "";
     if (S[0].n >= 30 && S[1].n >= 30) {
@@ -1850,11 +1869,29 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         .sort((a, b) => Math.abs(b[1] - b[2]) - Math.abs(a[1] - a[2])).slice(0, 6);
       diffs = `<div><h3 class="eyebrow" style="margin:0 0 6px">Biggest differences in call mix</h3><div class="diff">` +
         d.map(([i, a, b]) => `<div><span>${esc(groupLabel[i])}</span><span><b style="color:var(--cmp-a)">${(100 * a).toFixed(1)}%</b> vs <b style="color:var(--cmp-b)">${(100 * b).toFixed(1)}%</b></span></div>`).join("") +
-        `</div><p class="note-sm" style="margin-top:6px">Share of each side's dispatches.${byPlace ? "" : " The 2026 reports leave out traffic stops and premise checks and use partly different call-type names, so year-to-year differences are partly reporting changes."}</p></div>`;
+        `</div><p class="note-sm" style="margin-top:6px">Share of each side's dispatches.</p></div>`;
     } else diffs = `<p class="so-note">Too few dispatches on one side to compare the call mix.</p>`;
-    $("cmp-out").innerHTML = (byPlace && cmp.a === cmp.b) || (!byPlace && cmp.ya === cmp.yb) ? `<p class="so-note">Pick two different ${byPlace ? "places" : "years"}.</p>` : table + chart + diffs;
+    const yearIds = byPlace ? D.years.map((y, i) => i).filter(y => st.year < 0 || st.year === y) : [cmp.ya, cmp.yb];
+    const warning = yearIds.some(y => D.years[y] === 2026) ? `<p class="so-note">The 2026 reports omit traffic stops and premise checks and use partly different call-type names. Differences can reflect reporting changes, not changes in demand.</p>` : "";
+    const monthly = byPlace ? "" : `<details><summary>Report coverage by month</summary><p class="note-sm">Days used / calendar days matching the month and weekday filters. Shared-date mode may exclude otherwise available reports. Missing reports are not zero activity.</p><div class="scroll-x"><table class="cmp-table"><thead><tr><th scope="col">Month</th>${names.map(n => `<th scope="col">${esc(n)}</th>`).join("")}</tr></thead><tbody>${MON.map((m, month) => {
+      if (st.month >= 0 && st.month !== month + 1) return "";
+      return `<tr><th scope="row">${m}</th>${[cmp.ya, cmp.yb].map(y => {
+        const used = D.dates.reduce((n, iso, d) => n + (dateYear[d] === y && dateMonth[d] === month + 1 && allowedDate(d) ? 1 : 0), 0);
+        const count = new Date(Date.UTC(D.years[y], month + 1, 0)).getUTCDate();
+        let possible = 0; for (let day = 1; day <= count; day++) if (st.dow < 0 || (new Date(Date.UTC(D.years[y], month, day)).getUTCDay() + 6) % 7 === st.dow) possible++;
+        return `<td>${used} / ${possible}</td>`;
+      }).join("")}</tr>`;
+    }).join("")}</tbody></table></div></details>`;
+    $("cmp-out").innerHTML = (byPlace && cmp.a === cmp.b) || (!byPlace && cmp.ya === cmp.yb) ? `<p class="so-note">Pick two different ${byPlace ? "places" : "years"}.</p>` : table + warning + monthly + chart + diffs;
   }
-  new ResizeObserver(() => renderCompare()).observe($("cmp-out"));
+  const inspectCompareHour = el => { if (!el) return; $("cmp-hour-detail").textContent = el.getAttribute("aria-label"); $("cmp-out").querySelectorAll("[data-compare-hour]").forEach(r => r.tabIndex = r === el ? 0 : -1); };
+  $("cmp-out").addEventListener("pointerover", e => inspectCompareHour(e.target.closest("[data-compare-hour]")));
+  $("cmp-out").addEventListener("click", e => inspectCompareHour(e.target.closest("[data-compare-hour]")));
+  $("cmp-out").addEventListener("keydown", e => { const el = e.target.closest("[data-compare-hour]"); if (!el) return;
+    if (["ArrowLeft", "ArrowRight", "Home", "End", "Enter", " "].includes(e.key)) { e.preventDefault(); const h = +el.dataset.compareHour, next = e.key === "Home" ? 0 : e.key === "End" ? 23 : Math.max(0, Math.min(23, h + (e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0))); const target = $("cmp-out").querySelector(`[data-compare-hour="${next}"]`); inspectCompareHour(target); target.focus(); }
+  });
+  let compareWidth = -1;
+  new ResizeObserver(entries => { const width = entries[0].contentRect.width; if (Math.abs(width - compareWidth) > .5) { compareWidth = width; renderCompare(); } }).observe($("cmp-out"));
 
 
   // ---------- policing: estimated dispatch-type classification

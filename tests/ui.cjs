@@ -24,6 +24,10 @@ function datasetCounts() {
   const header = split(lines[0]), town = header.indexOf('town'), village = header.indexOf('village');
   const county = header.indexOf('county'), kind = header.indexOf('agency_type'), agency = header.indexOf('agency');
   const reportDate = header.indexOf('report_date');
+  const categoryColumn=header.indexOf('category'),priorityColumn=header.indexOf('mpds_level'),datetimeColumn=header.indexOf('call_datetime');
+  const comparison={towns:{},dates:{}};
+  const addComparison=(a,f)=>{a.n++;if(f[categoryColumn]==='MEDICAL'){a.medical++;if(f[priorityColumn])a.priority++;if(['D','E'].includes(f[priorityColumn]))a.de++;}a.hours[+f[hourColumn]]++;};
+  const comparisonSide=()=>({n:0,medical:0,priority:0,de:0,hours:Array(24).fill(0)});
   const seasonal = {}, seasonalMonday = {};
   const response = header.indexOf('response_type');
   const officerTypes = new Set(['TRAFFIC STOP','PREMISE CK','AREA CK','CITIZEN STOP','TRAFFIC DETAIL','DETAIL','WATER DETAIL',
@@ -36,6 +40,9 @@ function datasetCounts() {
   const population = { all: { known: 0, unknown: 0, utica: 0 }, years: {} };
   for (const line of lines.slice(1)) {
     const f = split(line); total++;
+    const callDate=f[datetimeColumn].slice(0,10);
+    addComparison(comparison.dates[callDate] ||= comparisonSide(),f);
+    if(['UTICA','ROME'].includes(f[town]))addComparison(comparison.towns[f[town]] ||= comparisonSide(),f);
     if (['FIRE', 'EMS'].includes(f[kind]) && !/nurse navigation/i.test(f[agency])) {
       let a = outsideBy.get(f[agency]);
       if (!a) outsideBy.set(f[agency], a = { known: 0, unknown: 0, towns: new Map(), dests: new Map() });
@@ -73,7 +80,7 @@ function datasetCounts() {
     const home = [...a.towns].sort((a, b) => b[1] - a[1])[0][0];
     return [name, { known: a.known, unknown: a.unknown, out: a.known - a.dests.get(home) }];
   }));
-  return { total, whitestown, whitesboro, fireUnknown, outside, population, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates };
+  return { total, whitestown, whitesboro, fireUnknown, outside, population, comparison, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates };
 }
 
 async function main() {
@@ -148,12 +155,70 @@ async function main() {
 
     const overlap = await evaluate(`(()=>{const a=document.querySelector('#cmp-a'),b=document.querySelector('#cmp-b');
       a.value='T:WHITESTOWN';a.dispatchEvent(new Event('change'));b.value='V:WHITESTOWN|WHITESBORO';b.dispatchEvent(new Event('change'));
-      const first=[...document.querySelectorAll('#cmp-out tbody tr:first-child td')].slice(1).map(e=>e.textContent);
+      const first=[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent);
       a.value='V:WHITESTOWN|WHITESBORO';a.dispatchEvent(new Event('change'));b.value='T:WHITESTOWN';b.dispatchEvent(new Event('change'));
-      const reverse=[...document.querySelectorAll('#cmp-out tbody tr:first-child td')].slice(1).map(e=>e.textContent);return {first,reverse}})()`);
+      const reverse=[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent);return {first,reverse}})()`);
     assert.deepEqual(overlap.first, [fmt(expected.whitestown), fmt(expected.whitesboro)]);
     assert.deepEqual(overlap.reverse, [fmt(expected.whitesboro), fmt(expected.whitestown)]);
     console.log('PASS: overlapping comparison populations are independent');
+
+    const readComparison=()=>evaluate(`Object.fromEntries([...document.querySelectorAll('#cmp-out .cmp-summary tbody tr')].map(r=>[r.children[0].textContent,[r.children[1].textContent,r.children[2].textContent]]))`);
+    await navigate(pageUrl);
+    const summary=await readComparison();
+    for(const [k,name] of ['UTICA','ROME'].entries()) {
+      const a=expected.comparison.towns[name];
+      assert.equal(summary['Dispatches'][k],fmt(a.n));
+      assert.equal(summary['Medical share'][k],(100*a.medical/a.n).toFixed(1)+'%');
+      assert.equal(summary['Medical dispatches without a priority code'][k],fmt(a.medical-a.priority));
+      assert.equal(summary['Delta/Echo among priority-coded medical dispatches'][k],(100*a.de/a.priority).toFixed(1)+'%');
+    }
+    const fullDay=await evaluate(`document.querySelector('#cmp-out .la').getAttribute('d')`);
+    await navigate(pageUrl+'?hour=3');
+    assert.equal(await evaluate(`document.querySelector('#cmp-out .la').getAttribute('d')`),fullDay);
+    const keyboardHour=await evaluate(`(()=>{const r=document.querySelector('#cmp-out [data-compare-hour="0"]');r.focus();r.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));return {hour:document.activeElement.dataset.compareHour,detail:document.querySelector('#cmp-hour-detail').textContent}})()`);
+    assert.equal(keyboardHour.hour,'1');assert(keyboardHour.detail.startsWith('01:00:'));
+    const openHours=await evaluate(`(()=>{const d=document.querySelector('#cmp-out details');d.open=true;return d.querySelectorAll('tbody tr').length})()`);
+    assert.equal(openHours,24);await delay(100);
+    assert(await evaluate(`document.querySelector('#cmp-out details').open`));
+    for(const query of ['cat=MEDICAL','type=EMS%20CALL']) {
+      await navigate(pageUrl+'?'+query);
+      assert.deepEqual((await readComparison())['Medical share'],['100.0%','100.0%']);
+    }
+    console.log('PASS: comparison medical counts match CSV classifications; full-day hourly values support keyboard inspection and stay expanded');
+
+    const yearQuery='?compare=year&compareA=2024&compareB=2026';
+    const dateEntries=Object.entries(expected.comparison.dates);
+    await navigate(pageUrl+yearQuery);const yearSummary=await readComparison();
+    await navigate(pageUrl+yearQuery+'&date=2024-01-01');
+    assert.deepEqual(await readComparison(),yearSummary);
+    assert((await evaluate(`document.querySelector('#cmp-scope').textContent`)).includes('2024-01-01 remains selected elsewhere'));
+    const missingMonth=Array.from({length:12},(_,m)=>m+1).find(m=>dateEntries.some(([iso])=>iso.startsWith('2024')&&+iso.slice(5,7)===m)&&!dateEntries.some(([iso])=>iso.startsWith('2026')&&+iso.slice(5,7)===m));
+    if(missingMonth) {
+      await navigate(pageUrl+yearQuery+'&month='+missingMonth);
+      const missing=await readComparison();
+      assert.equal(missing['Dispatches'][1],'No reports available');
+      assert.equal(missing['Report days'][1],'0');
+      assert(!await evaluate(`!!document.querySelector('#cmp-out .cmp-chart path.lb')`));
+      assert((await evaluate(`document.querySelector('#cmp-out').innerText`)).includes('2026 reports omit'));
+    }
+    await navigate(pageUrl+yearQuery);
+    const commonLink=await evaluate(`(()=>{const c=document.querySelector('#cmp-common');c.click();return location.href})()`);
+    assert(new URL(commonLink).searchParams.get('comparePeriod')==='common');
+    const commonSummary=await readComparison();
+    const mdSets=[2024,2026].map(y=>new Set(dateEntries.filter(([iso])=>iso.startsWith(String(y))).map(([iso])=>iso.slice(5))));
+    const sharedDates=new Set([...mdSets[0]].filter(md=>mdSets[1].has(md)));
+    for(const [k,y] of [2024,2026].entries()) {
+      const dates=dateEntries.filter(([iso])=>iso.startsWith(String(y))&&sharedDates.has(iso.slice(5)));
+      assert.equal(commonSummary['Report days'][k],fmt(dates.length));
+      assert.equal(commonSummary['Dispatches'][k],fmt(dates.reduce((s,[,a])=>s+a.n,0)));
+    }
+    await navigate(commonLink);
+    assert(await evaluate(`document.querySelector('#cmp-common').checked`));
+    assert.deepEqual(await readComparison(),commonSummary);
+    await evaluate(`document.querySelector('#reset').click()`);
+    assert(!await evaluate(`document.querySelector('#cmp-common').checked`));
+    assert(!new URL(await evaluate('location.href')).searchParams.has('comparePeriod'));
+    console.log('PASS: year comparisons disclose ignored dates, suppress missing-report lines and share/reset matched calendar periods');
 
     const agency = await evaluate(`(()=>{document.querySelector('#reset').click();
       const d=JSON.parse(document.querySelector('#data').textContent),u=d.agencies.indexOf('AmCare Ambulance');
@@ -237,7 +302,7 @@ async function main() {
       const hourly=location.search.includes('hour=0');document.querySelector('#reset').click();
       const q=document.querySelector('#q');q.value='GENESEE';q.dispatchEvent(new Event('input'));
       const active=q.getAttribute('aria-activedescendant');
-      const unnamed=[...document.querySelectorAll('[role="button"]')].filter(e=>!e.innerText.trim()&&!e.getAttribute('aria-label')&&!e.title).length;
+      const unnamed=[...document.querySelectorAll('[role="button"]')].filter(e=>!(e.innerText||e.textContent||'').trim()&&!e.getAttribute('aria-label')&&!e.title).length;
       return {next,dated,hourly,active,validActive:!!document.getElementById(active),unnamed}})()`);
     assert.equal(keyboard.next, 'cell:0:1');
     assert(keyboard.dated && keyboard.hourly && keyboard.validActive);
@@ -601,9 +666,9 @@ async function main() {
 
     await navigate(pageUrl+'?month=11&compare=year&compareA=2024&compareB=2025');
     assert.equal(await evaluate(`document.querySelector('#total').textContent`),fmt(seasonYears.reduce((s,y)=>s+expected.seasonal[y][11].n,0)));
-    const november=await evaluate(`({counts:[...document.querySelectorAll('#cmp-out tbody tr:first-child td')].slice(1).map(e=>e.textContent),
+    const november=await evaluate(`({counts:[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent),
       trendDates:[...document.querySelectorAll('#trend svg')].map(e=>e.dataset.year),chip:document.querySelector('[data-clear="month"]').innerText})`);
-    assert.deepEqual(november.counts,[fmt(expected.seasonal['2024'][11].n),fmt(expected.seasonal['2025'][11].n)]);
+    assert.deepEqual(november.counts,['2024','2025'].map(y=>expected.seasonal[y][11].days ? fmt(expected.seasonal[y][11].n) : 'No reports available'));
     assert(november.chip.includes('November'));
     await checkSeasons(expected.seasonal,seasonYears); // The month axis retains context.
     await evaluate(`document.querySelector('#season-top [data-month="6"]').focus();document.activeElement.click()`);
@@ -644,8 +709,8 @@ async function main() {
       await navigate(pageUrl+'?month=11&compare=year&compareA=2024&compareB=2025');
       const years=Object.keys(expected.seasonal);
       assert.equal(await evaluate(`document.querySelector('#total').textContent`),fmt(years.reduce((n,y)=>n+expected.seasonal[y][11].n,0)));
-      assert.deepEqual(await evaluate(`[...document.querySelectorAll('#cmp-out tbody tr:first-child td')].slice(1).map(e=>e.textContent)`),
-        [fmt(expected.seasonal['2024'][11].n),fmt(expected.seasonal['2025'][11].n)]);
+      assert.deepEqual(await evaluate(`[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent)`),
+        ['2024','2025'].map(y=>expected.seasonal[y][11].days ? fmt(expected.seasonal[y][11].n) : 'No reports available'));
       await evaluate(`document.querySelector('[data-clear="month"]').click()`);
       assert(!new URL(await evaluate('location.href')).searchParams.has('month'));
       assert.deepEqual(errors,[]);
@@ -677,6 +742,10 @@ async function main() {
         const pcLayout=await evaluate(`(()=>{const p=document.querySelector('#population-section'),r=p.getBoundingClientRect();return {fits:p.scrollWidth<=p.clientWidth,left:r.left,right:r.right,width:innerWidth,rows:[...p.querySelectorAll('.rank-row')].every(e=>e.scrollWidth<=e.clientWidth),buttons:[...p.querySelectorAll('#pc-scale button')].every(e=>e.scrollHeight<=e.clientHeight && e.getBoundingClientRect().height>=42)}})()`);
         assert(pcLayout.fits && pcLayout.rows && pcLayout.buttons && pcLayout.left>=0 && pcLayout.right<=pcLayout.width,JSON.stringify(pcLayout));
         await screenshot('population-'+width+'-'+theme);
+        await evaluate(`document.querySelector('#compare-section').scrollIntoView({behavior:'instant',block:'start'})`);
+        const compareLayout=await evaluate(`(()=>{const p=document.querySelector('#compare-section'),r=p.getBoundingClientRect();return {fits:p.scrollWidth<=p.clientWidth,left:r.left,right:r.right,width:innerWidth,summary:p.querySelector('.cmp-summary').getBoundingClientRect().width,available:p.clientWidth}})()`);
+        assert(compareLayout.fits && compareLayout.left>=0 && compareLayout.right<=compareLayout.width && compareLayout.summary<=compareLayout.available,JSON.stringify(compareLayout));
+        await screenshot('compare-'+width+'-'+theme);
         if(width===1440 || width===390) {
           await evaluate(`document.querySelector('#flows-section').scrollIntoView({behavior:'instant',block:'start'})`);
           await screenshot('connections-'+width+'-'+theme);
