@@ -291,6 +291,20 @@ class GeocodingRegressionTests(unittest.TestCase):
         self.assertEqual(r.precision, "landmark")
         self.assertEqual(r.expected_error_m, "")
 
+    def test_camden_village_gaps_use_exact_local_street_geometry(self):
+        for name in ["RIPLEY DR", "FLORENCE HILL RD", "DELANEY DR"]:
+            hit = self.gc.county_street(name, "CAMDEN VILLAGE")
+            self.assertIsNotNone(hit, name)
+            self.assertEqual(hit["matched"], name)
+            self.assertEqual(hit["precision"], "street")
+            self.assertGreater(hit["geom"].intersection(self.gc.poly("CAMDEN VILLAGE")).length, 0)
+            self.assertLessEqual(hit["geom"].difference(self.gc.poly("CAMDEN VILLAGE").buffer(self.gc.BUF)).length, .01)
+            self.assertIsNone(self.gc.county_street(name, "CAMDEN"))
+            r = self.locations[(self.locations.street == name) & (self.locations.city == "CAMDEN VILLAGE")].iloc[0]
+            self.assertEqual(r.precision, "street", name)
+            self.assertEqual(r.match_method, "county_roads", name)
+        self.assertIsNone(self.gc.county_street("RIPLEY RD", "CAMDEN VILLAGE"))
+
     def test_outside_whole_road_fallback_is_rejected(self):
         for name, city in [("OLD STATE RD", "TRENTON"), ("ROUTE 49", "WHITESTOWN"),
                            ("ROME NEW LONDON RD", "ROME OUTSIDE")]:

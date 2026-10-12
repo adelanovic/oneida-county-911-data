@@ -1,0 +1,171 @@
+{
+  "city": "CAMDEN VILLAGE",
+  "source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0",
+  "query_url": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27CAMDEN+VILLAGE%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27CAMDEN+VILLAGE%27%29%29+AND+UPPER%28FULL_STNAM%29+IN+%28%27DELANEY+DR%27%2C%27FLORENCE+HILL+RD%27%2C%27RIPLEY+DR%27%29&outFields=OBJECTID%2CFULL_STNAM%2CCITY_LEFT%2CCITY_RIGHT%2CDATEUPDATE%2CADD_SOURCE&returnGeometry=true&outSR=4326&orderByFields=OBJECTID",
+  "retrieved_utc": "2026-10-12T05:57:56+00:00",
+  "requested_names": [
+    "DELANEY DR",
+    "FLORENCE HILL RD",
+    "RIPLEY DR"
+  ],
+  "reviewed_aliases": {},
+  "street_names": [
+    "DELANEY DR",
+    "FLORENCE HILL RD",
+    "RIPLEY DR"
+  ],
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 4761,
+        "FULL_STNAM": "RIPLEY DR",
+        "CITY_LEFT": "CAMDEN VILLAGE",
+        "CITY_RIGHT": "CAMDEN VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.74543972412337,
+              43.32928456848069
+            ],
+            [
+              -75.74408191898257,
+              43.32992730807079
+            ],
+            [
+              -75.7439090382392,
+              43.32999182182733
+            ],
+            [
+              -75.74374369801124,
+              43.330027473607466
+            ],
+            [
+              -75.74174052188756,
+              43.33022421346859
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8088,
+        "FULL_STNAM": "FLORENCE HILL RD",
+        "CITY_LEFT": "CAMDEN VILLAGE",
+        "CITY_RIGHT": "CAMDEN VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.75477396134833,
+              43.34388879450664
+            ],
+            [
+              -75.75398216772147,
+              43.34550893307309
+            ],
+            [
+              -75.75364009980547,
+              43.34626307238018
+            ],
+            [
+              -75.75336857475425,
+              43.34689577588687
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10194,
+        "FULL_STNAM": "DELANEY DR",
+        "CITY_LEFT": "CAMDEN VILLAGE",
+        "CITY_RIGHT": "CAMDEN VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.75435402686011,
+              43.3308288014978
+            ],
+            [
+              -75.75430439123556,
+              43.33069079688374
+            ],
+            [
+              -75.75421113081501,
+              43.330538935627054
+            ],
+            [
+              -75.7540659512132,
+              43.33041123987897
+            ],
+            [
+              -75.75389466509077,
+              43.3302837169311
+            ],
+            [
+              -75.75372391119468,
+              43.33019907426057
+            ],
+            [
+              -75.75353369434808,
+              43.330124089053804
+            ],
+            [
+              -75.75329132400012,
+              43.330054212236284
+            ],
+            [
+              -75.75287926042841,
+              43.32998545207626
+            ],
+            [
+              -75.75258503159554,
+              43.32994450448309
+            ],
+            [
+              -75.75242186497461,
+              43.32994557803048
+            ],
+            [
+              -75.75226563703326,
+              43.32997995936562
+            ],
+            [
+              -75.75216838402548,
+              43.330033013429286
+            ],
+            [
+              -75.75206478013062,
+              43.330100402952795
+            ],
+            [
+              -75.7520069807067,
+              43.33017702160954
+            ],
+            [
+              -75.75192377934671,
+              43.33031098596799
+            ],
+            [
+              -75.75180823836892,
+              43.33046898701697
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

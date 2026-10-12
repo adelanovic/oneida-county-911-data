@@ -370,6 +370,19 @@ async function main() {
     await navigate(pageUrl);
     console.log('PASS: Clinton village street labels and Kirkland apartments retain reporting areas and source caveats on mobile');
 
+    await send('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
+    await navigate(pageUrl+'?place='+encodeURIComponent('V:CAMDEN|CAMDEN'));
+    await evaluate(`(()=>{const q=document.querySelector('#q');q.value='RIPLEY DR';q.dispatchEvent(new Event('input'));const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]==='RIPLEY DR'&&l[3]==='CAMDEN VILLAGE'});option.click()})()`);
+    await delay(1100);
+    const camdenDetail=await evaluate(`(()=>{const p=document.querySelector('#chart-help-dialog'),r=p.getBoundingClientRect();return {open:p.open,left:r.left,right:r.right,body:document.querySelector('#chart-help-body').textContent}})()`);
+    assert(camdenDetail.open && camdenDetail.left>=0 && camdenDetail.right<=320,JSON.stringify(camdenDetail));
+    assert(camdenDetail.body.includes('RIPLEY DR') && camdenDetail.body.includes('Camden (village)'),camdenDetail.body);
+    assert(camdenDetail.body.includes('Oneida County CAD') && camdenDetail.body.includes('not a verified incident site') && !camdenDetail.body.includes('Unmatched street'),camdenDetail.body);
+    await screenshot('camden-ripley-mobile');
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate(pageUrl);
+    console.log('PASS: Camden village street details retain village labels and road-estimate caveats on mobile');
+
     const overlap = await evaluate(`(()=>{const a=document.querySelector('#cmp-a'),b=document.querySelector('#cmp-b');
       a.value='T:WHITESTOWN';a.dispatchEvent(new Event('change'));b.value='V:WHITESTOWN|WHITESBORO';b.dispatchEvent(new Event('change'));
       const first=[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent);

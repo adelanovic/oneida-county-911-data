@@ -47,7 +47,7 @@ COUNTY_REFERENCES = {"UTICA": "utica_roads.json", "WHITESBORO VILLAGE": "whitesb
                      "MARCY": "marcy_roads.json", "ROME INSIDE": "rome_inside_roads.json",
                      "ROME OUTSIDE": "rome_outside_roads.json", "VERONA": "verona_roads.json",
                      "WESTMORELAND": "westmoreland_roads.json", "KIRKLAND": "kirkland_roads.json",
-                     "CLINTON VILLAGE": "clinton_roads.json"}
+                     "CLINTON VILLAGE": "clinton_roads.json", "CAMDEN VILLAGE": "camden_roads.json"}
 COUNTY_NAME_ALIASES = {"ROME INSIDE": {"BLACK RVER BLVD": "BLACK RIVER BLVD",
                                       "ERIE BLVD BLVD W": "ERIE BLVD WEST",
                                       "NORTH JAMES": "NORTH JAMES ST"},
