@@ -122,6 +122,21 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .chart > * { min-width: 0; }
 .chart-head { display: grid; gap: 4px; }
 .chart-head p { margin: 0; color: var(--ink-2); font-size: .84rem; max-width: 60ch; }
+.chart-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.chart-title h2 { flex: 1; }
+.chart-help { flex: 0 0 44px; width: 44px; height: 44px; margin-top: -8px; border: 0; background: transparent; color: var(--ink-2); cursor: pointer; display: grid; place-items: center; }
+.chart-help span { display: grid; place-items: center; width: 24px; height: 24px; border: 1px solid var(--line); border-radius: 50%; font: 600 .85rem/1 var(--f-body); }
+.chart-help:hover span { background: var(--dot-soft); border-color: var(--dot); }
+.help-dialog { width: min(36rem, calc(100vw - 32px)); max-height: min(80dvh, 46rem); box-sizing: border-box; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); box-shadow: 0 12px 48px #0004; }
+.help-dialog::backdrop { background: #0007; }
+.help-dialog-head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.help-dialog h2 { margin: 0; font-size: 1.1rem; }
+.help-dialog .help-close { flex: 0 0 auto; min-height: 44px; }
+.help-dialog-body { display: grid; gap: 12px; font-size: .9rem; line-height: 1.55; overflow-wrap: anywhere; }
+.help-dialog-body p { margin: 0; max-width: none; color: var(--ink-2); font-size: inherit; }
+.help-dialog-body a { color: var(--dot); }
+.help-dialog-body .about-grid { display: grid; gap: 16px; }
+.help-dialog-body h3 { margin: 0 0 4px; font-size: 1rem; }
 .scroll-x { overflow-x: auto; padding-bottom: 2px; }
 .insight { margin: 0; font-size: .86rem; color: var(--ink-2); display: grid; gap: 4px; }
 .insight b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -489,6 +504,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="trend-box" id="trend"></div>
       <div class="legend-line"><span><i class="raw"></i>Each report day</span><span><i></i>7-day average</span><span>○ Unusual spikes</span></div>
       <div class="insight" id="trend-insight"></div>
+      <p class="note-sm" data-report-warning>2026 reports omit traffic stops and premise checks.</p>
     </div>
     <!-- Seasons temporarily disabled; retain markup for later.
     <div class="chart card wide" id="seasons-section">
@@ -547,7 +563,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="seg" id="pc-mode" role="group" aria-label="Show towns or villages" style="width:max-content"><button type="button" data-m="T" aria-pressed="true">Cities &amp; towns</button><button type="button" data-m="V" aria-pressed="false">Villages</button></div>
       <div class="seg" id="pc-scale" role="group" aria-label="Population rate period"><button type="button" data-scale="observed" aria-pressed="true">Observed period</button><button type="button" data-scale="annual" aria-pressed="false">Annual equivalent</button></div>
       <p class="note-sm" id="pc-coverage" aria-live="polite"></p>
+      <p class="note-sm" id="pc-excluded-note"></p>
       <div class="rank" id="pc-list" style="max-height:30rem;overflow-y:auto"></div>
+      <p class="note-sm" id="pc-coverage-detail"></p>
       <p class="note-sm" id="pc-location-note"></p>
       <p class="note-sm">Rates describe reported response areas, not residents' personal risk. Visitors and repeat or multi-agency responses contribute to the counts. Village rates count only dispatches explicitly identified with that village; town-only labels may conceal additional village dispatches. Villages are included in town totals and must not be added to them.</p>
       <p class="note-sm">Some populations are adjusted to match reporting labels rather than official town boundaries: Waterville is grouped entirely with Sangerfield, Remsen village entirely with Remsen, and Sherrill separately from Vernon. This changes the populations shown for Marshall, Sangerfield, Remsen, Trenton, Vernon and Sherrill. New York Mills retains separate village parts in New Hartford and Whitestown. These are reporting-area comparisons, not verified rates within legal town boundaries.</p>
@@ -564,6 +582,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       </div>
       <label id="cmp-period-label" hidden><input type="checkbox" id="cmp-common"> Use only calendar dates with reports in both years</label>
       <p class="note-sm" id="cmp-scope" aria-live="polite"></p>
+      <p class="note-sm" id="cmp-status" aria-live="polite"></p>
+      <p class="note-sm" data-chart-help>Medical share counts all dispatches categorized as medical. Delta/Echo shares use only medical dispatches with a priority code; the table separately counts medical dispatches without one. The hourly profile ignores the hour filter to preserve the full day. Hover, tap or use arrow keys to inspect hours; the expanded table lists every hour's counts and rates. The 2026 reports omit traffic stops and premise checks and use partly different call-type names, so differences can reflect reporting changes rather than changes in demand.</p>
       <div id="cmp-out" style="display:grid;gap:14px"></div>
     </div>
     <div class="chart card" id="police-section">
@@ -577,6 +597,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         <div class="scroll-x"><div class="pshare" id="pol-hour"></div><div class="pshare-ax" id="pol-ax"></div></div></div>
       <div class="insight" id="pol-insight"></div>
       <label class="chart-picker">Filter by hour <select data-hour-picker aria-label="Filter police summary by hour"></select></label>
+      <p class="note-sm" data-report-warning>2026 reports omit traffic stops and premise checks.</p>
       <p class="note-sm">The 2026 reports omit traffic stops and premise checks, reducing the observed officer-initiated share. Category and call-type filters are ignored here; selecting a department clears them. The department list ignores the individual-agency filter and shows up to 12 departments with at least 20 matching dispatches, plus the selected department. Hourly comparisons ignore the hour filter and require 20 dispatches per hour; the summary applies the hour filter.</p>
     </div>
     <div class="chart card" id="outside-section">
@@ -607,6 +628,10 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   </section>
 </div>
 <div class="tip-float" id="tipf" hidden></div>
+<dialog class="help-dialog" id="chart-help-dialog" aria-labelledby="chart-help-title">
+  <div class="help-dialog-head"><h2 id="chart-help-title"></h2><button type="button" class="btn help-close" id="chart-help-close" autofocus>Close</button></div>
+  <div class="help-dialog-body" id="chart-help-body"></div>
+</dialog>
 
 <script>__LEAFLET_JS__</script>
 <script id="data" type="application/json">__DATA__</script>
@@ -1464,6 +1489,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     renderTrend(dateN);
     renderResponders(unitN, inc);
     renderUrgency(medHour, medCity);
+    const includesNewReports = D.dates.some((iso, d) => iso.startsWith("2026") && yearOK(d) && dateOK(d));
+    document.querySelectorAll("[data-report-warning]").forEach(el => el.hidden = !includesNewReports);
     renderPerCapita(cityN);
     renderCompare();
     renderPolicing();
@@ -1757,7 +1784,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const period = populationPeriod(), unavailable = !period.dates.length || (pcScale === "annual" && !!period.reason);
     const perYear = pcScale === "annual" ? period.factor : 1;
     $("pc-scale").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.scale === pcScale));
-    $("pc-coverage").textContent = period.dates.length ? `${fmt(period.dates.length)} covered days, ${period.dates[0]} to ${period.dates.at(-1)}${st.hour >= 0 ? `, hour ${hourLabel(st.hour)} only` : ""}. ${pcScale === "annual" ? unavailable ? period.reason + " Rates withheld; dispatch counts remain visible." : "Annual equivalent: observed dispatches scaled by calendar-year days / covered days, not a measured full-year total." : "Observed-period rates are not annual rates; longer covered periods accumulate more dispatches."} Missing report days are not treated as zero. Coverage can miss seasonal peaks.${period.dates.some(iso => iso.startsWith("2026")) ? " The 2026 reports omit some proactive police dispatch types; comparisons with earlier years reflect reporting differences too." : ""}` : "No covered days match the time filters.";
+    $("pc-coverage-detail").textContent = period.dates.length ? `${fmt(period.dates.length)} covered days, ${period.dates[0]} to ${period.dates.at(-1)}${st.hour >= 0 ? `, hour ${hourLabel(st.hour)} only` : ""}. ${pcScale === "annual" ? unavailable ? period.reason + " Rates withheld; dispatch counts remain visible." : "Annual equivalent: observed dispatches scaled by calendar-year days / covered days, not a measured full-year total." : "Observed-period rates are not annual rates; longer covered periods accumulate more dispatches."} Missing report days are not treated as zero. Coverage can miss seasonal peaks.${period.dates.some(iso => iso.startsWith("2026")) ? " The 2026 reports omit some proactive police dispatch types; comparisons with earlier years reflect reporting differences too." : ""}` : "No covered days match the time filters.";
+    $("pc-coverage").textContent = !period.dates.length ? "No covered days match the time filters." : pcScale === "annual" && unavailable ? period.reason + " Rates withheld; dispatch counts remain visible." : `${fmt(period.dates.length)} covered days (${period.dates[0]} to ${period.dates.at(-1)}). ${pcScale === "annual" ? "Annual equivalent, not a measured full-year total." : "Observed-period rates are not annual rates."}${period.dates.some(iso => iso.startsWith("2026")) ? " 2026 reports omit some police activity." : ""}`;
     let county = 0, unknown = 0;
     for (let i = 0; i < D.cities.length; i++) {
       const [town, , countyName] = info(D.cities[i]);
@@ -1765,6 +1793,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       else if (!isOutside[i]) unknown += cityN[i];
     }
     $("pc-location-note").textContent = `The county benchmark uses only dispatches assigned to an Oneida County town or city, matching the town ranking's location requirement. ${fmt(unknown)} dispatches without an assigned town or city are excluded. Neighboring-county dispatches are also excluded. Missing locations can affect agencies and places differently. County population: ${fmt(COUNTY_POP)}.`;
+    $("pc-excluded-note").textContent = `${fmt(unknown)} dispatches excluded from the benchmark: town or city unknown.`;
     const countyRate = COUNTY_POP ? county / COUNTY_POP * 1000 * perYear : 0;
     const rows = Object.keys(D.population).filter(k => k.startsWith(pcMode + ":")).map(k => {
       const n = (placeCities[k] || []).reduce((s, i) => s + cityN[i], 0), pop = D.population[k];
@@ -1801,6 +1830,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const byPlace = cmp.mode === "place";
     $("cmp-period-label").hidden = byPlace;
     $("cmp-common").checked = cmp.common;
+    $("cmp-status").textContent = byPlace ? "Place filter replaced by A and B. Hourly profile shows the full day." : `Year filter replaced by A and B. ${st.date >= 0 ? `Exact date ${D.dates[st.date]} ignored here. ` : ""}${cmp.common ? "Shared calendar dates only." : "Each year's available dates; coverage can differ."}`;
     $("cmp-scope").textContent = byPlace ? "Place selection is ignored here. Year, month, exact date, weekday, hour, call-type and agency filters apply to both summaries. Places can overlap: villages are included in their towns. Population rates use reported areas; village labels can miss dispatches reported under a town alone." : `The two chosen years replace the page's year filter. The exact-date filter is ignored here${st.date >= 0 ? ` (${D.dates[st.date]} remains selected elsewhere)` : ""}; month, weekday, hour, place, call-type and agency filters apply. ${cmp.common ? "Only month/day dates with reports in both years are included; weekday filters apply separately in each year." : "Each year uses its own available dates. Different seasons and missing reports can affect comparisons; use shared calendar dates to align coverage."}`;
     const available = [cmp.ya, cmp.yb].map(y => new Set(D.dates.filter((iso, d) => dateYear[d] === y && monthOK(d)).map(iso => iso.slice(5))));
     const shared = new Set([...available[0]].filter(md => available[1].has(md)));
@@ -1854,7 +1884,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (st.hour >= 0) svg += `<line x1="${X(st.hour)}" x2="${X(st.hour)}" y1="${pt}" y2="${H - pb}" style="stroke:var(--ink);stroke-dasharray:3 3"/>`;
     const hourDescription = h => `${hourLabel(h)}: ` + S.map((s, k) => `${names[k]}: ${days[k] ? `${fmt(s.hour[h])} dispatches, ${fmt1(prof[k][h])} per report day` : "no reports available"}`).join("; ");
     for (let h = 0; h < 24; h++) svg += `<rect data-compare-hour="${h}" x="${Math.max(pl, X(h) - (W - pl - pr) / 46)}" y="${pt}" width="${(W - pl - pr) / 23}" height="${H - pt - pb}" fill="transparent" tabindex="${h === 0 ? 0 : -1}" role="button" aria-label="${esc(hourDescription(h))}"><title>${esc(hourDescription(h))}</title></rect>`;
-    const chart = `<div><h3 class="eyebrow" style="margin:0 0 6px">Dispatches per report day, by hour</h3><p class="note-sm">Full-day profile; the hour filter applies to the summary and call mix, and its hour is marked here. Hover, tap or use arrow keys to inspect an hour. Lines use A's blue and B's orange.</p><div class="cmp-chart"><svg viewBox="0 0 ${W} ${H}" role="group" aria-label="Hourly profile comparison">${svg}</svg></div><p class="note-sm" id="cmp-hour-detail" aria-live="polite">${esc(hourDescription(st.hour >= 0 ? st.hour : 0))}</p><details><summary>Hourly counts and rates</summary><div class="scroll-x"><table class="cmp-table"><thead><tr><th scope="col">Hour</th>${names.map(n => `<th scope="col">${esc(n)}: count / per day</th>`).join("")}</tr></thead><tbody>${Array.from({ length: 24 }, (_, h) => `<tr><th scope="row">${hourLabel(h)}</th>${S.map((s, k) => `<td>${days[k] ? `${fmt(s.hour[h])} / ${fmt1(prof[k][h])}` : "No reports available"}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details></div>`;
+    const chart = `<div><h3 class="eyebrow" style="margin:0 0 6px">Dispatches per report day, by hour</h3><p class="note-sm">Full-day profile. Hover, tap or use arrow keys for values. A: blue; B: orange.</p><div class="cmp-chart"><svg viewBox="0 0 ${W} ${H}" role="group" aria-label="Hourly profile comparison">${svg}</svg></div><p class="note-sm" id="cmp-hour-detail" aria-live="polite">${esc(hourDescription(st.hour >= 0 ? st.hour : 0))}</p><details><summary>Hourly counts and rates</summary><div class="scroll-x"><table class="cmp-table"><thead><tr><th scope="col">Hour</th>${names.map(n => `<th scope="col">${esc(n)}: count / per day</th>`).join("")}</tr></thead><tbody>${Array.from({ length: 24 }, (_, h) => `<tr><th scope="row">${hourLabel(h)}</th>${S.map((s, k) => `<td>${days[k] ? `${fmt(s.hour[h])} / ${fmt1(prof[k][h])}` : "No reports available"}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details></div>`;
     // biggest differences in call mix (share of each side's dispatches)
     let diffs = "";
     if (S[0].n >= 30 && S[1].n >= 30) {
@@ -1865,7 +1895,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         `</div><p class="note-sm" style="margin-top:6px">Share of each side's dispatches.</p></div>`;
     } else diffs = `<p class="so-note">Too few dispatches on one side to compare the call mix.</p>`;
     const yearIds = byPlace ? D.years.map((y, i) => i).filter(y => st.year < 0 || st.year === y) : [cmp.ya, cmp.yb];
-    const warning = yearIds.some(y => D.years[y] === 2026) ? `<p class="so-note">The 2026 reports omit traffic stops and premise checks and use partly different call-type names. Differences can reflect reporting changes, not changes in demand.</p>` : "";
+    const warning = yearIds.some(y => D.years[y] === 2026) ? `<p class="so-note">2026 reports omit some proactive police dispatch types.</p>` : "";
     const monthly = byPlace ? "" : `<details><summary>Report coverage by month</summary><p class="note-sm">Days used / calendar days matching the month and weekday filters. Shared-date mode may exclude otherwise available reports. Missing reports are not zero activity.</p><div class="scroll-x"><table class="cmp-table"><thead><tr><th scope="col">Month</th>${names.map(n => `<th scope="col">${esc(n)}</th>`).join("")}</tr></thead><tbody>${MON.map((m, month) => {
       if (st.month >= 0 && st.month !== month + 1) return "";
       return `<tr><th scope="row">${m}</th>${[cmp.ya, cmp.yb].map(y => {
@@ -2163,7 +2193,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         <span class="note-sm${limited ? " coverage-warning" : ""}" style="grid-column:1 / -1">${fmt(a.unknown)} of ${fmt(total)} destinations unknown${total ? ` (${(100 * a.unknown / total).toFixed(0)}%)` : ""}.${limited ? " Limited location coverage." : ""}${n < 40 ? " Fewer than 40 known destinations; percentage withheld." : ""}${st.place && !a.serves ? " No matching dispatches in the selected place." : ""}</span>
         <span class="bar"><i style="width:${n >= 40 ? (100 * sh).toFixed(1) : 0}%"></i></span></div>`;
     }).join("") : `<p class="so-note">Not enough fire or ambulance dispatches match these filters.</p>`;
-    $("out-list").innerHTML += `<p class="note-sm">Showing ${fmt(outsideShowAll ? eligible.length : Math.min(12, eligible.length))} of ${fmt(eligible.length)} agencies with at least 40 matching dispatches with known destinations.${extraSelected ? " Selected agency also shown." : ""} ${st.place ? "Percentages and missing-location counts include all destinations for agencies serving the selected place." : ""}</p><p class="note-sm">${fmt(unknown)} dispatches with unknown destinations excluded across these agencies, including agencies below the 40-dispatch minimum.</p>`;
+    $("out-list").innerHTML += `<p class="note-sm">Showing ${fmt(outsideShowAll ? eligible.length : Math.min(12, eligible.length))} of ${fmt(eligible.length)} agencies with at least 40 known destinations.${extraSelected ? " Selected agency also shown." : ""}</p><p class="note-sm">${fmt(unknown)} dispatches with unknown destinations excluded.</p>`;
     $("out-expand").hidden = eligible.length <= 12;
     $("out-expand").textContent = outsideShowAll ? "Show fewer agencies" : `Show all ${fmt(eligible.length)} agencies`;
     $("out-expand").setAttribute("aria-expanded", outsideShowAll);
@@ -2206,6 +2236,50 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 
   drawBase();
   constrainCountyMap(map, countyBounds, 24);
+  // Keep detailed explanations in their original live nodes; copy current content only when opened.
+  const chartHelp = new Map();
+  const helpDialog = $("chart-help-dialog");
+  let helpTrigger = null;
+  const helpSections = [
+    ["time-patterns-section", "Dispatches per report day by hour and weekday. Select a square, hour or day to filter."],
+    ["coverage-section", "Darker days have more dispatches. Outlined dates have no records. Select a day to filter."],
+    ["flows-section", "Connections show response patterns, not vehicle journeys or confirmed mutual aid. Select a connection to filter."],
+    ["trend-section", "Daily dispatches and a 7-day average. Select a date to filter; missing days break the line."],
+    ["mix-section", "Dispatches per report day by hour. Select a call type to filter."],
+    ["responders-section", "Agency dispatches and estimated incidents for the current filters. Select an agency to filter."],
+    ["medical-section", "Dispatch-priority shares by hour. Select an hour to filter."],
+    ["population-section", "Dispatches per 1,000 residents across the covered dates. The tick marks the county benchmark."],
+    ["compare-section", "Compare dispatch activity for two places or years. Inspect the full-day hourly profile below."],
+    ["police-section", "Estimated dispatch-type shares, not confirmed officer activity. Select a department to filter."],
+    ["outside-section", "Share beyond the most-served town, not beyond a service boundary or confirmed mutual aid. Select an agency to filter."],
+    ["about", "Sources, coverage, definitions and methodology."]
+  ];
+  helpSections.forEach(([id, summary]) => {
+    const section = $(id), heading = section?.querySelector(".chart-head h2"), caption = section?.querySelector(".chart-head p");
+    if (!heading || !caption) return;
+    const source = document.createElement("div"); source.hidden = true; source.id = id + "-help-source";
+    const short = document.createElement("p"); short.textContent = summary; caption.replaceWith(short); source.append(caption);
+    section.querySelectorAll(":scope > p.note-sm:not(#pc-coverage):not(#pc-excluded-note):not(#cmp-status):not([data-report-warning]), :scope > [data-chart-help], :scope > .about-grid").forEach(node => source.append(node));
+    section.append(source);
+    const row = document.createElement("div"); row.className = "chart-title"; heading.replaceWith(row); row.append(heading);
+    const button = document.createElement("button"); button.type = "button"; button.className = "chart-help";
+    button.dataset.chartHelp = id; button.setAttribute("aria-label", "About " + heading.textContent); button.title = "About " + heading.textContent;
+    button.setAttribute("aria-haspopup", "dialog"); button.setAttribute("aria-controls", "chart-help-dialog"); button.setAttribute("aria-expanded", "false");
+    button.innerHTML = '<span aria-hidden="true">i</span>'; row.append(button);
+    chartHelp.set(id, { source, title: heading.textContent });
+  });
+  document.addEventListener("click", e => {
+    const button = e.target.closest("button[data-chart-help]"); if (!button) return;
+    const entry = chartHelp.get(button.dataset.chartHelp); if (!entry) return;
+    helpTrigger = button; $("chart-help-title").textContent = entry.title;
+    const content = [...entry.source.children].map(node => node.cloneNode(true));
+    content.forEach(node => { [node, ...node.querySelectorAll("[id], [aria-live]")].forEach(el => { el.removeAttribute("id"); el.removeAttribute("aria-live"); }); });
+    $("chart-help-body").replaceChildren(...content); button.focus({ preventScroll: true }); button.setAttribute("aria-expanded", "true"); helpDialog.showModal();
+  });
+  $("chart-help-close").onclick = () => helpDialog.close();
+  helpDialog.addEventListener("click", e => { const r = helpDialog.getBoundingClientRect(); if (e.target === helpDialog && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) helpDialog.close(); });
+  helpDialog.addEventListener("close", () => { if (helpDialog.open) return; helpTrigger?.setAttribute("aria-expanded", "false"); helpTrigger?.focus({ preventScroll: true }); });
+
   fitCounty();
   syncZoom();
   const linkedStreet = fromQuery();

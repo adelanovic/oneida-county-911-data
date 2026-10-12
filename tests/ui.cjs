@@ -153,6 +153,54 @@ async function main() {
     await screenshot('desktop');
     console.log('PASS: initial page works with external fonts and CDN blocked');
 
+    const helperSections=await evaluate(`[...document.querySelectorAll('button[data-chart-help]')].map(b=>b.dataset.chartHelp)`);
+    assert(helperSections.includes('population-section') && helperSections.includes('compare-section') && helperSections.includes('flows-section') && helperSections.includes('about'));
+    for(const id of helperSections) {
+      const help=await evaluate(`(()=>{const b=document.querySelector('button[data-chart-help="${id}"]');b.click();const d=document.querySelector('#chart-help-dialog');return {open:d.open,title:document.querySelector('#chart-help-title').textContent,body:document.querySelector('#chart-help-body').textContent,focused:d.contains(document.activeElement),expanded:b.getAttribute('aria-expanded'),duplicateIds:[...document.querySelectorAll('[id]')].map(e=>e.id).filter((v,i,a)=>a.indexOf(v)!==i)}})()`);
+      assert(help.open && help.focused && help.expanded==='true',id);
+      assert(help.title && help.body.length>40,id);
+      assert.deepEqual(help.duplicateIds,[],id);
+      await evaluate(`document.querySelector('#chart-help-close').click()`);
+      assert.equal(await evaluate(`document.activeElement.dataset.chartHelp`),id);
+    }
+    await evaluate(`document.querySelector('button[data-chart-help="population-section"]').click()`);
+    await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+    await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+    assert(!await evaluate(`document.querySelector('#chart-help-dialog').open`));
+    assert.equal(await evaluate(`document.activeElement.dataset.chartHelp`),'population-section');
+    await navigate(pageUrl+'?year=2024&rate=annual');
+    await evaluate(`document.querySelector('button[data-chart-help="population-section"]').click()`);
+    const filteredHelp=await evaluate(`document.querySelector('#chart-help-body').textContent`);
+    assert(filteredHelp.includes('364 covered days') && filteredHelp.includes('Annual equivalent'));
+    await evaluate(`document.querySelector('#chart-help-close').click()`);
+    assert(await evaluate(`document.querySelector('#pc-coverage').getBoundingClientRect().height>0 && document.querySelector('#pc-excluded-note').getBoundingClientRect().height>0 && document.querySelector('#pc-location-note').getBoundingClientRect().height===0`));
+    await navigate(pageUrl);
+    for(const [width,height,mobile] of [[1440,900,false],[390,844,true],[320,844,true]]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile});
+      for(const theme of ['light','dark']) {
+        await evaluate(`document.querySelector('#theme [data-theme="${theme}"]').click();document.querySelector('button[data-chart-help="population-section"]').click()`);
+        const geometry=await evaluate(`(()=>{const d=document.querySelector('#chart-help-dialog'),r=d.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:innerWidth,height:innerHeight,scroll:d.scrollWidth,client:d.clientWidth}})()`);
+        assert(geometry.left>=0 && geometry.right<=geometry.width && geometry.top>=0 && geometry.bottom<=geometry.height && geometry.scroll<=geometry.client,JSON.stringify(geometry));
+        await screenshot('chart-help-'+width+'-'+theme);
+        // A native dialog traps keyboard focus even when its content contains links.
+        await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+        await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+        assert(await evaluate(`document.querySelector('#chart-help-dialog').contains(document.activeElement)`));
+        await evaluate(`document.querySelector('#chart-help-close').click()`);
+      }
+    }
+    await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+    const helpTap=await evaluate(`(()=>{const b=document.querySelector('button[data-chart-help="flows-section"]');b.scrollIntoView({behavior:'instant',block:'center'});const r=b.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()`);
+    await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[helpTap]});
+    await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    assert(await evaluate(`document.querySelector('#chart-help-dialog').open`));
+    assert(await evaluate(`!!document.querySelector('#chart-help-body a[href*="new-york-mills-fire-department"]')`));
+    await evaluate(`document.querySelector('#chart-help-close').click()`);
+    await send('Emulation.setTouchEmulationEnabled',{enabled:false});
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate(pageUrl);
+    console.log('PASS: chart explanations use compact accessible dialogs with current data, focus return, Escape, mobile taps and both themes');
+
     const overlap = await evaluate(`(()=>{const a=document.querySelector('#cmp-a'),b=document.querySelector('#cmp-b');
       a.value='T:WHITESTOWN';a.dispatchEvent(new Event('change'));b.value='V:WHITESTOWN|WHITESBORO';b.dispatchEvent(new Event('change'));
       const first=[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent);
