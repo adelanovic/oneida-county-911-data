@@ -29,6 +29,7 @@ function datasetCounts() {
   const addComparison=(a,f)=>{a.n++;if(f[categoryColumn]==='MEDICAL'){a.medical++;if(f[priorityColumn])a.priority++;if(['D','E'].includes(f[priorityColumn]))a.de++;}a.hours[+f[hourColumn]]++;};
   const comparisonSide=()=>({n:0,medical:0,priority:0,de:0,hours:Array(24).fill(0)});
   const seasonal = {}, seasonalMonday = {};
+  const discoveries = {}, localProfiles = {};
   const response = header.indexOf('response_type');
   const officerTypes = new Set(['TRAFFIC STOP','PREMISE CK','AREA CK','CITIZEN STOP','TRAFFIC DETAIL','DETAIL','WATER DETAIL',
     'TOBACCO DETAIL','PARKING SUMMONS','WARRANT','SUMMONS','VEHICLE TRAFFIC LAW']);
@@ -45,6 +46,19 @@ function datasetCounts() {
     if(['LOCAL_POLICE','SHERIFF','STATE_POLICE','CAMPUS_POLICE'].includes(f[kind]))
       policeCounts[officerTypes.has(f[response]) ? 0 : adminTypes.test(f[response]) ? 1 : 2]++;
     const callDate=f[datetimeColumn].slice(0,10);
+    const discoveryYear=callDate.slice(0,4),discoveryMonth=+callDate.slice(5,7),discoveryDow=(new Date(callDate+'T00:00:00Z').getUTCDay()+6)%7;
+    for(const scope of ['all',...(f[town]==='UTICA'?['utica']:[]),...(discoveryDow===0?['monday']:[])]) {
+      const byType=(discoveries[scope] ||= {})[discoveryYear] ||= {};
+      const c=byType[f[response]] ||= {months:Array(13).fill(0),weekdays:Array(7).fill(0),hours:Array(24).fill(0)};
+      c.months[discoveryMonth]++;c.weekdays[discoveryDow]++;c.hours[+f[hourColumn]]++;
+    }
+    if(f[county]==='ONEIDA' && f[town]) for(const scope of ['all',...(discoveryDow===0?['monday']:[])]) {
+      const y=(localProfiles[scope] ||= {})[discoveryYear] ||= {total:0,types:{},places:{}};
+      y.total++;y.types[f[response]]=(y.types[f[response]]||0)+1;
+      for(const place of ['T:'+f[town],...(f[village]?['V:'+f[town]+'|'+f[village]]:[])]) {
+        const a=y.places[place] ||= {total:0,types:{}};a.total++;a.types[f[response]]=(a.types[f[response]]||0)+1;
+      }
+    }
     addComparison(comparison.dates[callDate] ||= comparisonSide(),f);
     if(['UTICA','ROME'].includes(f[town]))addComparison(comparison.towns[f[town]] ||= comparisonSide(),f);
     if (['FIRE', 'EMS'].includes(f[kind]) && !/nurse navigation/i.test(f[agency])) {
@@ -90,7 +104,7 @@ function datasetCounts() {
     const home = [...a.towns].sort((a, b) => b[1] - a[1])[0][0];
     return [name, { known: a.known, unknown: a.unknown, out: a.known - a.dests.get(home) }];
   }));
-  return { total, whitestown, whitesboro, fireUnknown, outside, population, comparison, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates, policeCounts, medical };
+  return { total, whitestown, whitesboro, fireUnknown, outside, population, comparison, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates, policeCounts, medical, discoveries, localProfiles };
 }
 
 async function main() {
@@ -162,6 +176,86 @@ async function main() {
     }
     await screenshot('desktop');
     console.log('PASS: initial page works with external fonts and CDN blocked');
+
+    if (await evaluate(`!!document.querySelector('#stories-section')`)) {
+    async function checkDiscoveries(scope='all',requireSome=true) {
+      const ids=await evaluate(`[...document.querySelectorAll('#story-list [data-story]')].map(b=>b.dataset.story)`);
+      if(requireSome)assert(ids.length>0,'Broad selections should produce supported local discoveries');
+      for(const id of ids) {
+        await evaluate(`document.querySelector('#story-list [data-story='+CSS.escape(${JSON.stringify(id)})+']').click()`);
+        const [kind,y,type,...placeParts]=id.split('|'),place=placeParts.join('|');
+        assert.equal(kind,'place','Discoveries should focus on local differences');
+        const c=expected.localProfiles[scope][y],here=c.places[place];
+        assert(here,'Discovery place must exist in the CSV');
+        const wanted=[{n:here.types[type]||0,d:here.total},{n:(c.types[type]||0)-(here.types[type]||0),d:c.total-here.total}];
+        const actual=await evaluate(`({bars:[...document.querySelectorAll('#story-bars [data-count]')].map(b=>({n:+b.dataset.count,d:+b.dataset.denominator})),mappedTotal:+document.querySelector('#story-map-note').dataset.total})`);
+        assert.deepEqual(actual.bars,wanted,'Local shares must match independent CSV counts: '+id);
+        assert.equal(actual.mappedTotal,wanted[0].n,'Map evidence must retain every local dispatch');
+        assert(wanted.every(v=>v.n>=50));assert(wanted[0].d>=500&&wanted[1].d>=1000);
+        assert((wanted[0].n/wanted[0].d)/(wanted[1].n/wanted[1].d)>=1.5);
+        assert(100*(wanted[0].n/wanted[0].d-wanted[1].n/wanted[1].d)>=1);
+      }
+      return {ids};
+    }
+    await checkDiscoveries();
+    assert((await evaluate(`[...document.querySelectorAll('#story-list [data-story]')].map(b=>b.dataset.story.split('|')[2])`)).every(t=>!['ASSIST','EMS CALL','FIREWORKS','BUILDING INSPECTION','PARKING SUMMONS','SUMMONS','TRAFFIC STOP'].includes(t)&&!t.includes('TRANSFER')),'Routine discoveries are hidden by default');
+    const savedStory=await evaluate(`document.querySelector('#story-detail').dataset.story`);
+    const discoveryUrl=await evaluate(`location.href`);
+    assert.equal(new URL(discoveryUrl).searchParams.get('story'),savedStory,'Selecting a discovery must create a shared view');
+    await navigate(discoveryUrl);
+    assert.equal(await evaluate(`document.querySelector('#story-detail').dataset.story`),savedStory,'Shared discovery restores evidence');
+    const typeFiltered=new URL(discoveryUrl);typeFiltered.searchParams.set('type',savedStory.split('|')[2]);
+    await navigate(typeFiltered.href);
+    await checkDiscoveries();
+    assert.equal(await evaluate(`document.querySelector('#story-detail').dataset.story`),savedStory,'Type filters preserve all-dispatch denominators');
+    const peakCount=await evaluate(`+document.querySelector('#story-bars [data-count]').dataset.count`);
+    await evaluate(`document.querySelector('#story-explore').click()`);
+    assert.equal(await evaluate(`document.querySelector('#total').textContent`),fmt(peakCount),'Explore applies exactly the peak selection');
+    await navigate(pageUrl+'?place=T:UTICA');
+    await checkDiscoveries();
+    await navigate(pageUrl+'?place='+encodeURIComponent('V:WHITESTOWN|WHITESBORO'));
+    await checkDiscoveries('all',false);
+    await navigate(pageUrl+'?year=2024&day=mon');
+    await checkDiscoveries('monday',false);
+
+    await navigate(pageUrl+'?year=2025');
+    assert.equal(await evaluate(`document.querySelectorAll('#story-list [data-story]').length`),0,'Sparse year coverage must suppress local discoveries');
+    await navigate(pageUrl+'?storyRoutine=1');
+    assert(await evaluate(`document.querySelector('#story-routine').checked`));
+    await checkDiscoveries();
+    assert.equal(new URL(await evaluate(`location.href`)).searchParams.get('storyRoutine'),'1','Routine preference survives sharing');
+    await evaluate(`document.querySelector('#reset').click()`);
+    assert(!await evaluate(`document.querySelector('#story-routine').checked`),'Reset restores routine suppression');
+    await navigate(pageUrl+'?date='+Object.keys(expected.comparison.dates)[0]);
+    assert.equal(await evaluate(`document.querySelectorAll('#story-list [data-story]').length`),0,'Single-day filters must not invent discoveries');
+    assert(await evaluate(`document.querySelector('#story-detail').getBoundingClientRect().height===0`),'Empty evidence is hidden');
+    await navigate();
+    for(const width of [1440,320]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width===320});
+      for(const theme of ['light','dark']) {
+        await evaluate(`document.querySelector('#theme [data-theme="${theme}"]').click();document.querySelector('#stories-section').scrollIntoView({block:'start',behavior:'instant'})`);
+        await delay(150);
+        assert(await evaluate(`document.documentElement.scrollWidth<=innerWidth+1`),'Discovery panel must fit mobile');
+        await screenshot('discoveries-'+width+'-'+theme);
+        await evaluate(`document.querySelector('#story-detail').scrollIntoView({block:'start',behavior:'instant'})`);
+        await screenshot('discovery-evidence-'+width+'-'+theme);
+      }
+    }
+    assert.deepEqual(errors,[]);
+    console.log('PASS: local discovery shares match CSV with disjoint county baselines; routine preference, coverage, exploration, sharing, filters and mobile themes work');
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate();
+
+    } else {
+      assert.equal(await evaluate(`document.querySelectorAll('#stories-section,.section-nav a[href="#stories-section"],button[data-chart-help="stories-section"]').length`),0);
+      await navigate(pageUrl+'?year=2024&story=legacy&storyRoutine=1');
+      assert.equal(await evaluate(`document.querySelector('#total').textContent`),fmt(Object.entries(expected.comparison.dates).filter(([d])=>d.startsWith('2024-')).reduce((n,[,v])=>n+v.n,0)));
+      assert(!new URL(await evaluate(`location.href`)).searchParams.has('story'));
+      assert(!new URL(await evaluate(`location.href`)).searchParams.has('storyRoutine'));
+      assert.deepEqual(errors,[]);
+      console.log('PASS: Find the story is disabled; legacy discovery links do not activate hidden controls');
+      await navigate();
+    }
 
     const replayDay = await evaluate(`(()=>{const s=document.querySelector('#replay-date'),d=JSON.parse(document.querySelector('#data').textContent);return d.dates[+s.value]})()`);
     const replayExpected = expected.comparison.dates[replayDay];

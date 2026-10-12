@@ -106,6 +106,24 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .replay-feed .link-btn { justify-self: start; text-align: left; }
 .replay-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: .8rem; }
 .replay-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+.story-layout { display:grid; grid-template-columns:minmax(230px,.8fr) minmax(0,2fr); gap:16px; }
+.story-list { display:grid; gap:10px; align-content:start; }
+.story-card { display:grid; gap:7px; width:100%; padding:14px; border:1px solid var(--line); border-radius:8px; background:var(--panel); color:var(--ink); text-align:left; font:inherit; cursor:pointer; overflow-wrap:anywhere; }
+.story-card[aria-pressed="true"] { border-color:var(--dot); background:var(--dot-soft); }
+.story-card small { color:var(--ink-2); }
+.story-detail { display:grid; gap:12px; min-width:0; align-content:start; }
+.story-detail[hidden] { display:none; }
+.story-detail h3 { margin:0; font-size:1.2rem; }
+#story-map { height:340px; border:1px solid var(--line); border-radius:8px; background:var(--bg); }
+#story-map .leaflet-popup-content { max-width:min(300px,calc(100vw - 125px)); }
+.story-evidence { display:grid; gap:12px; padding:14px; border:1px solid var(--line); border-radius:8px; }
+.story-bars { display:grid; gap:12px; }
+.story-bar { display:grid; gap:4px; font-size:.85rem; }
+.story-bar-track { height:14px; background:var(--q0); border-radius:3px; overflow:hidden; }
+.story-bar-track i { display:block; height:100%; background:var(--dot); }
+.story-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.story-empty { color:var(--ink-2); padding:12px 0; }
+@media(max-width:760px) { .story-layout { grid-template-columns:minmax(0,1fr); } .story-list { display:flex; min-width:0; overflow-x:auto; scroll-snap-type:x proximity; padding-bottom:8px; } .story-card { flex:0 0 88%; scroll-snap-align:start; } #story-map { height:300px; } }
 @media (max-width: 760px) { .replay-layout { grid-template-columns: minmax(0, 1fr); } #replay-map { height: 320px; } .replay-feed { max-height: 280px; } }
 .push { margin-left: auto; }
 
@@ -450,6 +468,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     </div>
     <nav class="section-nav" aria-label="Jump to a section">
       <a class="btn" href="#replay-section">Replay a day</a>
+      <!-- Find the story temporarily disabled: <a class="btn" href="#stories-section">Find the story</a> -->
       <a class="btn" href="#time-patterns-section">Time patterns</a>
       <a class="btn" href="#coverage-section">Report coverage</a>
       <a class="btn" href="#flows-section">Response connections</a>
@@ -490,6 +509,20 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   </div>
 
   <section class="patterns" id="patterns" aria-label="Response connections, time patterns and coverage">
+    <!-- Find the story temporarily disabled; retain markup for later.
+    <div class="chart card wide" id="stories-section">
+      <div class="chart-head"><h2>Find the story</h2><p>These comparisons describe the mix of agency dispatches, not resident risk, causes or statistical significance. Each place is compared with the rest of Oneida County, excluding that exact reporting area so the groups do not overlap. Unassigned locations and neighboring counties are excluded from both denominators. Time and responder filters apply equally to both sides; place chooses the area to investigate. Call-type and category filters restrict discoveries, but the share denominators always include all dispatch types. The year with the most covered days is analyzed separately; at least 80% calendar coverage and 28 covered dates are required. A place needs 500 dispatches and the comparison 1,000; a highlighted type needs 50 dispatches on each side, ten active dates in the place, a share ratio of 1.5 and a gap of one percentage point. Findings rank by percentage-point difference, with at most one per place and one per call type. Routine types are hidden by default: Admin &amp; proactive, traffic/citizen stops and details, summonses and vehicle-law work, fireworks, nurse navigation, nonspecific assist/EMS/traffic and call-issue labels, and labels indicating transfers or transport. This is an editorial selection, not a determination of how a call originated; transfers are not assumed to mean court transport. The checkbox includes them as candidates; denominators do not change. Reporting practices, agency coverage, facilities, visitor traffic and repeated dispatches can affect the shares. The 2026 reports omit traffic stops and premise checks; these two types are withheld for 2026 even with routine types enabled. Map points are estimates; all matching assigned-place dispatches remain in evidence counts, including those without coordinates.</p></div>
+      <label><input type="checkbox" id="story-routine"> Include routine and nonspecific types</label>
+      <div id="story-scope" class="insight"></div>
+      <div class="story-layout"><div class="story-list" id="story-list" aria-label="Discoveries"></div>
+        <div class="story-detail" id="story-detail">
+          <h3 id="story-title"></h3><div id="story-subtitle" class="insight"></div>
+          <div id="story-map" aria-label="Estimated locations for the selected discovery"></div>
+          <div class="story-evidence"><strong>The evidence</strong><div class="story-bars" id="story-bars"></div><div id="story-map-note" class="insight"></div><div class="story-actions"><button class="btn" type="button" id="story-explore">Explore these dispatches</button><button class="btn" type="button" id="story-share">Share this discovery</button></div><div id="story-message" role="status"></div></div>
+        </div>
+      </div>
+    </div>
+    -->
     <div class="chart card wide" id="replay-section">
       <div class="chart-head"><h2>Replay a day</h2><p>Playback follows recorded dispatch times, not vehicle movements, response durations or live activity. Every row is an agency dispatch, not a distinct emergency. Times retain their reported minute or second precision; simultaneous records have no inferred order. Pulses summarize the preceding 15 simulated minutes at estimated locations; facility and municipality estimates remain approximate. Unmapped and hidden outside-county dispatches stay in the counts and feed. The date picker applies only to replay; the page's time, location, call-type and agency filters limit available dispatches. Changing those filters pauses playback. Missing report dates are unavailable, not zero activity. Playback pauses when the page is hidden or the replay leaves the screen. Reduced-motion settings suppress expanding pulses.</p></div>
       <div class="replay-controls">
@@ -823,7 +856,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     agSel.classList.toggle("active", st.agency >= 0);
     citySel.classList.toggle("active", st.place !== "");
     renderChips();
-    $("reset").hidden = Object.keys(DEFAULT).every(k => st[k] === DEFAULT[k]) && flowKind === "FIRE" && pcMode === "T" && pcScale === "observed" && !cmp.common && cmp.mode === "place" && cmp.a === "T:UTICA" && cmp.b === "T:ROME" && cmp.ya === 0 && cmp.yb === D.years.length - 1 && selected == null && !userMoved && !qIn.value;
+    $("reset").hidden = Object.keys(DEFAULT).every(k => st[k] === DEFAULT[k]) && flowKind === "FIRE" && pcMode === "T" && pcScale === "observed" && !cmp.common && cmp.mode === "place" && cmp.a === "T:UTICA" && cmp.b === "T:ROME" && cmp.ya === 0 && cmp.yb === D.years.length - 1 && selected == null && !userMoved && !qIn.value && !storySelection && !storyRoutine;
     document.querySelectorAll("[data-hour-picker]").forEach(el => el.value = st.hour);
     const datePicker = $("report-date");
     datePicker.replaceChildren(opt(-1, "All report dates"), ...D.dates.flatMap((iso, d) => yearOK(d) && dowOK(d) ? [opt(d, dateLabel(iso))] : []));
@@ -851,7 +884,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     el.onchange = () => { st.hour = +el.value; update(); };
   });
   $("report-date").onchange = e => { st.date = +e.target.value; if (st.date >= 0 && st.month >= 0) st.month = dateMonth[st.date]; update(); };
-  $("reset").onclick = () => { Object.assign(st, DEFAULT); selected = null; userMoved = false; pcMode = "T"; pcScale = "observed"; flowKind = "FIRE"; markFlowKind();
+  $("reset").onclick = () => { Object.assign(st, DEFAULT); storySelection = ""; storyRoutine = false; selected = null; userMoved = false; pcMode = "T"; pcScale = "observed"; flowKind = "FIRE"; markFlowKind();
     qIn.value = ""; hits = []; active = -1; renderSugg(); $("qnote").textContent = "";
     Object.assign(cmp, { mode: "place", a: "T:UTICA", b: "T:ROME", ya: 0, yb: D.years.length - 1, common: false });
     fillCompare(); $("pc-mode").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === pcMode));
@@ -1454,11 +1487,18 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const medCity = new Float64Array(D.cities.length * 3), inc = { inv: 0, multi: 0, size: [0, 0, 0, 0], dispatches: 0 };
     const incidentSeen = new Set();
     const replayByDate = new Map();
+    // const storyByDate = new Map(); // Find the story temporarily disabled.
     let unloc = 0, failed = 0, hidden = 0, approximate = 0;
     for (let i = 0; i < N; i++) {
       const t = R.t[i], a = R.a[i], c = R.c[i], d = R.d[i], h = R.h[i], u = R.u[i], m = R.m[i];
       const mt = typeOK(t), my = yearOK(d), ma = agOK(a) && unitOK(u), mp = cityOK[c] === 1, md = dateOK(d), mw = dowOK(d), mh = hourOK(h);
       const time = md && mw && mh;
+      /* Find the story data collection temporarily disabled.
+      if (my && ma && time) {
+        if (!storyByDate.has(d)) storyByDate.set(d, []);
+        storyByDate.get(d).push(i);
+      }
+      */
       if (my && ma && mp && time) typeN[t]++;
       if (mt && my && mp && time && unitOK(u)) agN[a]++;
       if (mt && my && mp && time && agOK(a)) unitN[u]++;
@@ -1575,6 +1615,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     renderPolicing();
     renderFlows();
     setReplayData(replayByDate);
+    // renderStories(storyByDate); // Find the story temporarily disabled.
     // renderSeasons(); // Seasons panel temporarily disabled.
     if (focusKey && !focused.isConnected) {
       const replacement = [...(document.getElementById(focusParent)?.querySelectorAll(`[${focusKey}]`) || [])].find(el => el.getAttribute(focusKey) === focusValue);
@@ -1589,6 +1630,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   const DOW_KEY = DOW.map(d => d.toLowerCase());
   function toQuery() {
     const q = new URLSearchParams();
+    if (storySelection) q.set("story", storySelection);
+    if (storyRoutine) q.set("storyRoutine", "1");
     if (st.cat !== "ALL") q.set("cat", st.cat);
     if (st.type >= 0) q.set("type", D.types[st.type][0]);
     if (st.group >= 0) q.set("group", groups[st.group]);
@@ -2522,7 +2565,128 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   new IntersectionObserver(entries => { replayVisible = entries[0].isIntersecting; if (!replayVisible) pauseReplay(); }).observe($("replay-section"));
   new ResizeObserver(() => { replayMap.closePopup(); replayMap.invalidateSize({pan:false}); if (replayBounds) {constrainCountyMap(replayMap,replayBounds,24); if (replayOverview) fitReplay();} }).observe($("replay-map"));
 
+  // Inactive defaults keep reset/shared-link handling independent of the disabled panel.
+  let storySelection = "", storyRoutine = false;
+  /* Find the story temporarily disabled; retain analysis, map and handlers for later.
+  // Discoveries are descriptive comparisons, with denominators independent of matching rows.
+  let storySelection = new URLSearchParams(location.search).get("story") || "";
+  let storyRoutine = new URLSearchParams(location.search).get("storyRoutine") === "1";
+  let stories = [], storyRecordDays = new Map(), storyYear = -1, storyBaseTheme = "", storyBounds;
+  const storyMap = L.map("story-map",{zoomSnap:0.1,attributionControl:false,scrollWheelZoom:false,maxZoom:15,maxBoundsViscosity:1});
+  const storyBase = L.layerGroup().addTo(storyMap), storyPoints = L.layerGroup().addTo(storyMap), storyRenderer = L.canvas({padding:0.5});
+  function fitStoryCounty() { if (storyBounds) storyMap.fitBounds(storyBounds,{padding:[12,12],animate:false}); }
+  addCountyControl(storyMap,"reset-story-map",fitStoryCounty);
+  function drawStoryBase() {
+    const theme = css("--land")+css("--town")+css("--ink");
+    if (theme === storyBaseTheme) return;
+    storyBaseTheme = theme; storyBase.clearLayers();
+    const towns = D.basemap.towns.map(t => L.polygon(t.rings,{renderer:storyRenderer,color:css("--town"),weight:1,fillColor:css("--land"),fillOpacity:1,interactive:false}).addTo(storyBase));
+    storyBounds = L.featureGroup(towns).getBounds();
+    for (const kind of ["primary","highway"]) L.polyline(roadLines[kind] || [],{renderer:storyRenderer,color:css(kind === "highway" ? "--road" : "--road-2"),weight:1,interactive:false}).addTo(storyBase);
+    for (const t of D.basemap.towns) if (["UTICA","ROME","CAMDEN","BOONVILLE","NEW HARTFORD"].includes(t.key)) L.marker(t.label,{interactive:false,keyboard:false,icon:L.divIcon({className:"town-label",html:esc(t.name.replace(/ (town|city)$/, "")),iconSize:[120,12],iconAnchor:[60,6]})}).addTo(storyBase);
+    if (!storyMap._loaded) fitStoryCounty();
+  }
+  const storyRoutineType = t => ["ADMIN_PROACTIVE","CALL_ISSUE"].includes(typeCat[t]) || /^(ASSIST|EMS CALL|TRAFFIC|PEACE OFFICER|STANDBY|NOTIFICATION|TRAFFIC STOP|CITIZEN STOP|TRAFFIC DETAIL|VEHICLE TRAFFIC LAW|PARKING SUMMONS|FIREWORKS|NURSENAV|.*TRANSPORT.*|PRISONER.*|33[A-Z0-9].*|.*TRANSFER.*)$/.test(D.types[t][0]);
+  const storyTypeName = t => ({"MVA-CAR/DEER":"Car/deer crashes","ALARM POLICE":"Police alarms","FIRE AUTOMATIC ALARM":"Automatic fire alarms","CHECK WELFARE":"Welfare checks","MVA-PD":"Crashes with reported property damage","MVA-PI":"Crashes with reported injury"})[D.types[t][0]] || titleCase(D.types[t][0])+" dispatches";
+  function renderStories(days) {
+    storyRecordDays = days; drawStoryBase();
+    $("story-routine").checked = storyRoutine;
+    const covered = D.years.map(() => []);
+    D.dates.forEach((iso,d) => { if (yearOK(d) && dateOK(d) && dowOK(d)) covered[dateYear[d]].push(d); });
+    storyYear = covered.reduce((best,ds,y) => ds.length > (covered[best]?.length || 0) ? y : best,-1);
+    stories = [];
+    if (storyYear < 0) { finishStories("No report days match the current filters."); return; }
+    const year = D.years[storyYear], selectedDays = covered[storyYear];
+    let expectedDays = 0;
+    for (let m=1;m<=12;m++) for (let day=1;day<=new Date(Date.UTC(year,m,0)).getUTCDate();day++) {
+      const iso = `${year}-${String(m).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+      if ((st.date<0 || D.dates[st.date]===iso) && (st.month<0 || st.month===m) && (st.dow<0 || dowOf(iso)===st.dow)) expectedDays++;
+    }
+    const coverage = expectedDays ? selectedDays.length/expectedDays : 0;
+    const scope = `${year} \u00b7 ${fmt(selectedDays.length)} of ${fmt(expectedDays)} eligible days covered. Comparing dispatch shares with the rest of Oneida County; all types remain in share denominators.`;
+    if (coverage<0.8 || selectedDays.length<28 || st.place.startsWith("C:")) {finishStories(scope);return;}
+    const cityTotals = new Float64Array(D.cities.length), typeCities = new Map(), activeDates = new Map();
+    let countyTotal=0;
+    for (const d of selectedDays) for (const i of days.get(d) || []) {
+      const c=R.c[i],t=R.t[i],[town,,county]=info(D.cities[c]);
+      if (!town || county!=="ONEIDA") continue;
+      cityTotals[c]++;countyTotal++;
+      if (!typeOK(t) || (!storyRoutine && storyRoutineType(t)) || (year>=2026 && ["TRAFFIC STOP","PREMISE CK"].includes(D.types[t][0]))) continue;
+      if (!typeCities.has(t)) {typeCities.set(t,new Float64Array(D.cities.length));activeDates.set(t,new Map());}
+      typeCities.get(t)[c]++;
+      const dates=activeDates.get(t);if(!dates.has(c))dates.set(c,new Set());dates.get(c).add(d);
+    }
+    const places=st.place ? [st.place] : Object.keys(placeCities).filter(k=>k.startsWith("T:"));
+    for(const place of places) {
+      const cities=placeCities[place]||[],da=cities.reduce((n,c)=>n+cityTotals[c],0),db=countyTotal-da;
+      if(da<500||db<1000)continue;
+      typeCities.forEach((values,t)=>{
+        const a=cities.reduce((n,c)=>n+values[c],0),b=values.reduce((n,v)=>n+v,0)-a;
+        if(a<50||b<50) return;
+        const dates=new Set();for(const c of cities)for(const d of activeDates.get(t).get(c)||[])dates.add(d);
+        if(dates.size<10)return;
+        const gap=100*(a/da-b/db),ratio=(a/da)/(b/db);
+        if(ratio<1.5||gap<1)return;
+        const label=citySel.querySelector(`option[value="${CSS.escape(place)}"]`)?.dataset.label || titleCase(place.slice(2));
+        const name=label.replace(/ \(town, all\)| \(city\)/g,"");
+        stories.push({id:["place",year,D.types[t][0],place].join("|"),t,kind:"place",place,placeName:name,year,title:`${name}: ${storyTypeName(t)} stand out`,a,b,da,db,ratio,gap,unit:"dispatch share"});
+      });
+    }
+    stories.sort((a,b)=>b.gap-a.gap||b.a-a.a||a.id.localeCompare(b.id));
+    const all=stories, selected=[],placesUsed=new Set(),typesUsed=new Map();
+    for(const s of all)if(selected.length<4&&!placesUsed.has(s.place)&&(typesUsed.get(s.t)||0)<1){selected.push(s);placesUsed.add(s.place);typesUsed.set(s.t,(typesUsed.get(s.t)||0)+1);}
+    const shared=all.find(s=>s.id===storySelection);if(shared&&!selected.includes(shared))selected.push(shared);
+    stories=selected;
+    finishStories(scope);
+  }
+  function finishStories(scope) {
+    $("story-scope").textContent=scope; $("story-message").textContent="";
+    const chosen=stories.find(s=>s.id===storySelection)||stories[0];
+    if (!stories.some(s=>s.id===storySelection)) storySelection="";
+    $("story-detail").hidden=!chosen;
+    $("story-list").innerHTML=stories.length ? stories.map(s=>`<button type="button" class="story-card" data-story="${esc(s.id)}" aria-pressed="${s===chosen}"><span class="eyebrow">Local dispatch mix</span><strong>${esc(s.title)}</strong><small>${(100*s.a/s.da).toFixed(1)}% here vs ${(100*s.b/s.db).toFixed(1)}% elsewhere \u00b7 ${s.year}<br>${fmt(s.a)} local dispatches \u00b7 view evidence \u2192</small></button>`).join("") : '<div class="story-empty">Nothing strong enough to highlight for this selection. Try another place or a broader period with good coverage. We do not fill this space with weaker findings.</div>';
+    if (chosen) showStory(chosen); else storyPoints.clearLayers();
+    $("reset").hidden = $("reset").hidden && !storySelection;
+  }
+  function showStory(s) {
+    $("story-title").textContent=s.title;
+    $("story-subtitle").textContent=`${s.year} \u00b7 Reported type: ${D.types[s.t][0]} \u00b7 ${s.gap.toFixed(1)} percentage points higher than the rest of Oneida County (${s.ratio.toFixed(1)}\u00d7 the share). This compares dispatch mix, not resident risk.`;
+    const rates=[100*s.a/s.da,100*s.b/s.db],max=Math.max(...rates),labels=[s.placeName,"Rest of Oneida County"];
+    $("story-bars").innerHTML=rates.map((r,k)=>`<div class="story-bar" data-count="${k ? s.b : s.a}" data-denominator="${k ? s.db : s.da}"><strong>${esc(labels[k])}: ${r.toFixed(1)}% of dispatches</strong><div class="story-bar-track" aria-hidden="true"><i style="width:${r/max*100}%"></i></div><span>${fmt(k?s.b:s.a)} of ${fmt(k?s.db:s.da)} assigned-place dispatches</span></div>`).join("");
+    storyPoints.clearLayers(); storyMap.closePopup();
+    const points=new Map(), peakDates=new Map(); let total=0, unmapped=0, hidden=0;
+    for (const [d,rows] of storyRecordDays) if (dateYear[d]===storyYear) for (const i of rows) {
+      if (R.t[i]!==s.t || !(placeCities[s.place]||[]).includes(R.c[i]))continue;
+      total++; peakDates.set(d,(peakDates.get(d)||0)+1); if (!R.l[i]) {unmapped++;continue;} if(!showCity(R.c[i])){hidden++;continue;}
+      const li=R.l[i]-1, l=D.locations[li],key=l[0]+","+l[1];let p=points.get(key);
+      if(!p)points.set(key,p={li,n:0,members:new Map()});p.n++;p.members.set(li,(p.members.get(li)||0)+1);
+    }
+    for(const {li,n,members} of points.values()) {const l=D.locations[li];L.circleMarker([l[0],l[1]],{renderer:storyRenderer,radius:4+Math.min(9,Math.log2(n+1)),color:css("--dot"),fillColor:css("--dot"),fillOpacity:0.55,weight:1}).bindPopup(`<b>${fmt(n)} dispatches at this estimated point</b><div style="max-height:180px;overflow:auto">${[...members].map(([j,count])=>`<p><b>${esc(D.locations[j][2]||"No street reported")}: ${fmt(count)}</b><br>${esc(placeLabel(D.locations[j][3]))}<br><small>${esc(locationNote(j))}</small></p>`).join("")}</div><small>Reported locations can share an estimate; not a count of unique emergencies.</small>`).addTo(storyPoints);}
+    const largest=Math.max(0,...peakDates.values());
+    $("story-map-note").textContent=`${fmt(total)} local dispatches across ${fmt(peakDates.size)} dates; busiest date: ${fmt(largest)} (${total ? Math.round(largest/total*100) : 0}%). A few events may drive this pattern. ${fmt(total-unmapped-hidden)} mapped · ${fmt(unmapped)} unmapped · ${fmt(hidden)} outside current map visibility. Locations are estimates.`;
+    $("story-map-note").dataset.total=total;
+    $("story-explore").dataset.story=s.id; $("story-share").dataset.story=s.id;
+    $("story-detail").dataset.story=s.id;
+  }
+  $("story-list").addEventListener("click",e=>{const b=e.target.closest("[data-story]");if(!b)return;const s=stories.find(s=>s.id===b.dataset.story);if(!s)return;storySelection=s.id;$("story-list").querySelectorAll("button").forEach(el=>el.setAttribute("aria-pressed",el===b));showStory(s);$("reset").hidden=false;syncUrl();});
+  $("story-explore").addEventListener("click",()=>{
+    const s=stories.find(s=>s.id===$("story-explore").dataset.story);if(!s)return;
+    st.type=s.t;st.group=-1;st.cat=typeCat[s.t];st.year=D.years.indexOf(s.year);
+    setPlace(s.place);
+    storySelection="";update();zoomToPlace();$("map").scrollIntoView({block:"center",behavior:reduceMotion()?"auto":"smooth"});
+  });
+  $("story-routine").addEventListener("change",e=>{storyRoutine=e.target.checked;storySelection="";update();});
+  $("story-share").addEventListener("click",async()=>{
+    storySelection=$("story-share").dataset.story;syncUrl();
+    try {await navigator.clipboard.writeText(location.href);$("story-message").textContent="Discovery link copied.";}
+    catch {$("story-message").textContent="Copy the address bar to share this discovery.";}
+  });
+  new ResizeObserver(()=>{storyMap.closePopup();storyMap.invalidateSize({pan:false});if(storyBounds){constrainCountyMap(storyMap,storyBounds,24);fitStoryCounty();}}).observe($("story-map"));
+
+  */
+
   const helpSections = [
+    // ["stories-section", "What stands out locally? Compare a place's dispatch mix with the rest of Oneida County, then inspect or share the evidence."],
     ["replay-section", "Watch recorded dispatches unfold. Choose a date, press Play or seek through the day. Page filters apply."],
     ["time-patterns-section", "Dispatches per report day by hour and weekday. Select a square, hour or day to filter."],
     ["coverage-section", "Darker days have more dispatches. Outlined dates have no records. Select a day to filter."],
