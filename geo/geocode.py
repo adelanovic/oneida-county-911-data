@@ -216,6 +216,8 @@ def n_pieces(geom_m, gap=150.0):
 
 class Geocoder:
     BUF = 200.0  # meters of tolerance at municipal boundaries
+    MAX_ADDRESS_DENSITY = 1.0  # address-range proxy per meter; larger values are suspect
+    MAX_EDGE_ADDRESSES = 1000
 
     def __init__(self):
         roads = load(TIGER / "tl_2024_36065_roads" / "tl_2024_36065_roads")
@@ -279,27 +281,35 @@ class Geocoder:
         return self._cand[city]
 
     def resolve(self, name, city):
-        if name in self.geom:
-            return name, "exact" if self.is_primary[name] else "alias"
         alt = ORDINAL_RE.sub(lambda m: ORDINALS[m.group(1)], name)
         alt = re.sub(r"^(\d+) ST\b", lambda m: m.group(1) + ordinal_suffix(int(m.group(1))) + " ST", alt)
-        if alt in self.geom:
-            return alt, "ordinal"
         muni = self.poly(city)
         local = set(self.candidates(city)) if muni is not None else set()
-        same_key = self.by_key.get(match_key(alt), [])
-        if same_key:
-            inside = [n for n in same_key if n in local] or same_key
-            return inside[0], "spelling"
+        choices = []
+        if name in self.geom:
+            choices.append((name, "exact" if self.is_primary[name] else "alias"))
+        if alt != name and alt in self.geom:
+            choices.append((alt, "ordinal"))
+        choices.extend((n, "spelling") for n in sorted(self.by_key.get(match_key(alt), [])))
+        # A same-named road elsewhere in the county must not mask a local ordinal/spelling variant.
+        for candidate in choices:
+            if muni is None or candidate[0] in local:
+                return candidate
         if muni is not None:
-            for cand in difflib.get_close_matches(name, list(local), n=3, cutoff=0.86):
+            fuzzy = []
+            for cand in difflib.get_close_matches(alt, sorted(local), n=3, cutoff=0.86):
                 dc, dn = directions(cand), directions(name)
                 if dc and dn and dc != dn:
                     continue  # "E LAKE ST" is not "W LAKE ST"; "HANGAR RD W" may still be "HANGAR RD"
-                risky = suffix_of(cand) != suffix_of(name) or re.findall(r"\d+", cand) != re.findall(r"\d+", name)
+                risky = suffix_of(cand) != suffix_of(alt) or re.findall(r"\d+", cand) != re.findall(r"\d+", alt)
                 if risky:
                     continue  # conflicting street types/numbers require a reviewed alias
-                return cand, "fuzzy"
+                fuzzy.append(cand)
+            # An unqualified street name cannot establish which directional branch was reported.
+            if not directions(name) and len({tuple(sorted(directions(c))) for c in fuzzy if directions(c)}) > 1:
+                return None, None
+            if fuzzy:
+                return fuzzy[0], "fuzzy"
         return None, None
 
     def street(self, name, city):
@@ -315,9 +325,8 @@ class Geocoder:
                 clip = g.intersection(muni.buffer(self.BUF))
                 if not clip.is_empty and clip.length > 0:
                     out = dict(geom=clip, matched=matched, method=method, precision="street", area=muni.buffer(self.BUF))
-                elif g.distance(muni) < 3000:
-                    out = dict(geom=g, matched=matched, method=method, precision="street_nearby", area=None)
-            elif g.length < 20_000:
+                # No whole-road fallback: one nearby piece can share a name with distant roads.
+            elif g.length < 5_000 and n_pieces(g) == 1:
                 out = dict(geom=g, matched=matched, method=method, precision="street_nearby", area=None)
         self._street[key] = out
         return out
@@ -331,9 +340,12 @@ class Geocoder:
             d = np.sqrt(((pts - p) ** 2).sum(-1)) if len(pts) else np.zeros(1)
             return p, float((d * ws).sum() / ws.sum()) if len(pts) else 0.0, float(d.max())
         if method == "address":
-            segs = self.addr.get(hit["matched"], [])
+            segs = [(s, n) for s, n in self.addr.get(hit["matched"], [])
+                    if s.length > 0 and 0 < n <= self.MAX_EDGE_ADDRESSES
+                    and n / s.length <= self.MAX_ADDRESS_DENSITY]
             if hit["area"] is not None:
-                segs = [(s.intersection(hit["area"]), n) for s, n in segs if s.intersects(hit["area"])]
+                segs = [(clip, n * clip.length / s.length) for s, n in segs if s.intersects(hit["area"])
+                        for clip in [s.intersection(hit["area"])]]
             segs = [(s, n) for s, n in segs if not s.is_empty and s.length > 0 and n > 0]
             if segs:
                 geoms, dens = [], []
@@ -372,12 +384,18 @@ class Geocoder:
             return None
         area = muni.buffer(self.BUF)
         q = norm_landmark(name)
+        if q == norm_landmark(city.removesuffix(" VILLAGE")):
+            return None  # A municipality name is not a specific facility.
         qt = set(q.split())
         best = None
         for ln, raw, g in self.landmarks:
             if not g.intersects(area):
                 continue
             lt = set(ln.split())
+            specific = {"HELIPORT", "AIRPORT", "PARKING", "ENTRANCE", "STATION", "TERMINAL",
+                        "SCHOOL", "CHURCH", "CEMETERY", "HOSPITAL"}
+            if (lt & specific) - qt:
+                continue  # A resort's heliport is not the resort itself.
             score = difflib.SequenceMatcher(None, q, ln).ratio()
             if qt and qt <= lt:
                 score = max(score, 0.9)
@@ -405,7 +423,7 @@ def main():
                 a, b = gc.street(parts[0], r.city), gc.street(parts[1], r.city)
                 if a and b:
                     x = a["geom"].intersection(b["geom"])
-                    if not x.is_empty:
+                    if x.geom_type == "Point":
                         p = x if x.geom_type == "Point" else x.representative_point()
                         lat, lon = to_deg(p)
                         row.update(latitude=lat, longitude=lon, precision="intersection", match_method="intersection",
@@ -423,11 +441,10 @@ def main():
             if row["precision"] == "none" and muni is not None:
                 lm = gc.landmark(r.street, r.city)
                 if lm:
-                    c = lm[2].centroid if lm[2].geom_type != "Point" else lm[2]
+                    c = lm[2].representative_point() if lm[2].geom_type != "Point" else lm[2]
                     lat, lon = to_deg(c)
-                    rad = math.sqrt(lm[2].area / math.pi) if lm[2].area else 0
                     row.update(latitude=lat, longitude=lon, precision="landmark", match_method="landmark",
-                               matched_name=lm[1], expected_error_m=round(rad / 2), max_error_m=round(rad))
+                               matched_name=lm[1])  # Facility geometry does not establish incident accuracy.
         if r.street and row["precision"] == "none" and muni is not None:
             p, err, mx = gc.municipality_point(r.city)
             lat, lon = to_deg(Point(p))

@@ -64,6 +64,17 @@ class DatasetRegressionTests(unittest.TestCase):
         self.assertTrue((self.records["l"][missing] == 0).all())
         self.assertTrue((self.records["q"] == missing.astype(int)).all())
 
+    def test_every_packed_location_matches_its_source_record(self):
+        ids = self.records["l"].astype(np.int64) - 1
+        mapped = ids >= 0
+        self.assertTrue((mapped == self.df.geo_precision.ne("none").to_numpy()).all())
+        points = np.asarray(self.data["locations"], dtype=object)[ids[mapped]]
+        source = self.df.loc[mapped]
+        np.testing.assert_array_equal(points[:, 2], source.street)
+        np.testing.assert_array_equal(points[:, 3], source.city)
+        np.testing.assert_array_equal(points[:, 4], source.geo_precision)
+        np.testing.assert_allclose(points[:, :2].astype(float), source[["geo_latitude", "geo_longitude"]].astype(float), atol=0.0000051, rtol=0)
+
     def test_cluster_boundaries_and_agencies(self):
         df = self.df
         groups = df.groupby("incident_cluster_id")

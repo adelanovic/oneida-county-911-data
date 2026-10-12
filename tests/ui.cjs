@@ -93,7 +93,7 @@ async function main() {
   let spawnError;
   browser.on('error', error => { spawnError = error; });
   let ws, send;
-  const watchdog = setTimeout(() => { console.error('Browser regression check timed out'); browser.kill(); process.exitCode = 1; ws?.close(); }, 120000);
+  const watchdog = setTimeout(() => { console.error('Browser regression check timed out'); browser.kill(); process.exitCode = 1; ws?.close(); }, 180000);
   try {
     let target;
     for (let attempt = 0; attempt < 80; attempt++) {
@@ -201,6 +201,56 @@ async function main() {
     await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
     await navigate(pageUrl);
     console.log('PASS: chart explanations use compact accessible dialogs with current data, focus return, Escape, mobile taps and both themes');
+
+    const pointAuditExpression = `(()=>{
+      const d=JSON.parse(document.querySelector('#data').textContent),decode=(s,T)=>new T(Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer);
+      const locations=decode(d.records.l,Uint16Array),cities=decode(d.records.c,Uint8Array),dates=decode(d.records.d,Uint16Array),groups=new Map(),q=new URLSearchParams(location.search);
+      for(let i=0;i<locations.length;i++){
+        if(!locations[i])continue;const info=d.cityInfo[d.cities[cities[i]]],county=info[2];if(county && county!=='ONEIDA')continue;
+        if(q.has('year')&&!d.dates[dates[i]].startsWith(q.get('year')+'-'))continue;
+        if(q.get('place')?.startsWith('T:')&&info[0]!==q.get('place').slice(2))continue;
+        const li=locations[i]-1,l=d.locations[li],key=l[0]+','+l[1];
+        if(!groups.has(key))groups.set(key,{n:0,members:new Set()});const g=groups.get(key);g.n++;g.members.add(li);
+      }
+      const rows=[...document.querySelectorAll('#list .row')].map(row=>{const l=d.locations[+row.dataset.li],g=groups.get(l[0]+','+l[1]);return {actual:+row.querySelector('.ct').textContent.replaceAll(',',''),expected:g.n,members:+row.dataset.members,expectedMembers:g.members.size}});
+      const coordinate=d.locations.filter(l=>l[2]===''&&l[3]===''&&l[4]==='coordinates')[1];
+      return {rows,points:groups.size,total:[...groups.values()].reduce((n,g)=>n+g.n,0),mapped:document.querySelector('#s-mapped').textContent,coordinate:coordinate.slice(0,2),members:d.locations.filter(l=>l[0]===coordinate[0]&&l[1]===coordinate[1]).length};
+    })()`;
+    const pointAudit = await evaluate(pointAuditExpression);
+    pointAudit.rows.forEach(r=>{assert.equal(r.actual,r.expected);assert.equal(r.members,r.expectedMembers);});
+    assert(pointAudit.mapped.includes(fmt(pointAudit.points)) && pointAudit.mapped.includes(fmt(pointAudit.total)));
+    await navigate(pageUrl+'?year=2024&place=T%3AUTICA');
+    const filteredPoints=await evaluate(pointAuditExpression);
+    filteredPoints.rows.forEach(r=>{assert.equal(r.actual,r.expected);assert.equal(r.members,r.expectedMembers);});
+    assert(filteredPoints.mapped.includes(fmt(filteredPoints.total)) && filteredPoints.mapped.includes(fmt(filteredPoints.points)));
+    await navigate(pageUrl);
+    await evaluate(`document.querySelector('#list .row[data-members]:not([data-members="1"])').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))`);
+    await delay(1100);
+    assert(await evaluate(`document.querySelector('#chart-help-dialog').open && !!document.querySelector('#chart-help-body .point-details ol li')`));
+    const breakdown=await evaluate(`(()=>{const d=document.querySelector('.point-details');return {total:+d.querySelector('p').textContent.split(' dispatches')[0].replaceAll(',',''),sum:[...d.querySelectorAll('li b')].reduce((n,b)=>n+Number(b.textContent.slice(b.textContent.lastIndexOf(':')+1).replaceAll(',','')),0)}})()`);
+    assert.equal(breakdown.sum,breakdown.total);
+    await screenshot('point-breakdown-desktop');
+    await navigate(pageUrl+'?street='+encodeURIComponent('|')+'&point='+encodeURIComponent(pointAudit.coordinate.join(',')));
+    assert.equal(await evaluate(`new URLSearchParams(location.search).get('point')`),pointAudit.coordinate.join(','));
+    await navigate(pageUrl+'?street='+encodeURIComponent('|'));
+    assert.equal(await evaluate(`new URLSearchParams(location.search).get('street')`),null,'Ambiguous legacy coordinate links must not pick the first point');
+    await navigate(pageUrl);
+    for(const theme of ['light','dark']){
+      await send('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
+      await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+      await evaluate(`document.querySelector('#theme [data-theme="${theme}"]').click()`);
+      const tap=await evaluate(`(()=>{const row=document.querySelector('#list .row:not([data-members="1"])');row.scrollIntoView({block:'center',behavior:'instant'});const r=row.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()`);
+      await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[tap]});await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(1100);
+      await evaluate(`document.querySelector('#map').scrollIntoView({block:'center',behavior:'instant'})`);
+      const popup=await evaluate(`(()=>{const p=document.querySelector('#chart-help-dialog'),r=p.getBoundingClientRect();return {open:p.open,left:r.left,right:r.right,width:innerWidth,items:p.querySelectorAll('.point-details ol li').length,close:p.querySelector('#chart-help-close').getBoundingClientRect().height}})()`);
+      assert(popup.open && popup.items>1 && popup.left>=0 && popup.right<=popup.width && popup.close>=44,JSON.stringify(popup));
+      await screenshot('point-breakdown-mobile-'+theme);
+      await evaluate(`document.querySelector('#chart-help-close').click()`);
+    }
+    await send('Emulation.setTouchEmulationEnabled',{enabled:false});
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate(pageUrl);
+    console.log('PASS: co-located dispatches share point totals and accessible source breakdowns; coordinate links restore unambiguously on desktop/mobile');
 
     const overlap = await evaluate(`(()=>{const a=document.querySelector('#cmp-a'),b=document.querySelector('#cmp-b');
       a.value='T:WHITESTOWN';a.dispatchEvent(new Event('change'));b.value='V:WHITESTOWN|WHITESBORO';b.dispatchEvent(new Event('change'));

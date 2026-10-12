@@ -372,6 +372,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .leaflet-tooltip-top:before { border-top-color: var(--line); }
 .tip b { font-weight: 600; } .tip .c { color: var(--ink-2); } .tip ol { margin: 6px 0 0; padding-left: 18px; }
 .tip li { font-variant-numeric: tabular-nums; } .tip li + li { margin-top: 1px; } .tip em { display: block; color: var(--muted); font-style: normal; font-size: .76rem; margin: 2px 0 4px; }
+.point-details { overflow-wrap: anywhere; line-height: 1.45; }
+.point-details ol { padding-left: 20px; }
+.point-details li + li { margin-top: 10px; }
 .leaflet-bar a { background: var(--panel); color: var(--ink); border-bottom-color: var(--line); }
 .leaflet-bar a:hover { background: var(--dot-soft); color: var(--ink); }
 .map-home { display: block; min-height: 36px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); color: var(--ink); font: inherit; cursor: pointer; box-shadow: 0 1px 5px rgba(0,0,0,.25); }
@@ -440,7 +443,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     </nav>
 
     <div class="main">
-      <div id="map" aria-label="Map of call locations"></div>
+      <div id="map" tabindex="-1" aria-label="Map of call locations"></div>
       <aside class="side card" aria-label="Summary for the current filters">
         <div class="tally">
           <div class="tally-head"><span class="big" id="total">0</span><span>dispatches match</span></div>
@@ -456,7 +459,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         <div class="list" id="list"></div>
         <div class="legend">
           <div class="sizes" id="sizes"></div>
-          <div class="approx"><i></i><span>Street not found; placed at the town center</span></div>
+          <div class="approx"><i></i><span>Unmatched street or tentative location; select for details</span></div>
         </div>
       </aside>
     </div>
@@ -963,20 +966,39 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 
   // ---------- map tooltips + selection
   const dist = m => m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m / 10) * 10} m`;
-  function tooltipHtml(li, n) {
+  let visibleGroups = new Map();
+  function pointGroup(li) { return visibleGroups.get(li) || { li, n: 0, members: [[li, 0]] }; }
+  function pointLabel(li) {
+    const g = pointGroup(li), locs = g.members.map(([i]) => D.locations[i]);
+    if (locs.every(l => l[4] === "municipality")) return "Unmatched streets (approximate point)";
+    if (locs.length === 1) return locs[0][2] || "Reported coordinates";
+    const names = [...new Set(locs.map(l => l[7]).filter(Boolean))];
+    return names.length === 1 && locs.every(l => l[7] === names[0]) ? names[0] : "Shared map point";
+  }
+  function pointPlaces(li) { return [...new Set(pointGroup(li).members.map(([i]) => placeLabel(D.locations[i][3])))].join(" / "); }
+  function locationNote(li) {
     const [, , street, city, prec, err, method, matched] = D.locations[li];
+    if (prec === "municipality") return "Unmatched street; approximate municipality point, not an incident site";
+    if (prec === "landmark") return `Approximate landmark location: ${matched}; incident accuracy unknown`;
+    if (prec === "intersection") return "Matched road intersection; incident location not independently verified";
+    if (prec === "coordinates") return "Coordinates printed in the source report";
+    if (prec === "street_nearby") return "Municipality unknown; tentative street estimate";
+    const match = method !== "exact" && matched ? ` matched to ${matched};` : "";
+    return err != null ? `Street estimate;${match} modeled expected error ${dist(err)}, not measured accuracy` : "Estimated location";
+  }
+  function pointDetailsHtml(li) {
+    const g = pointGroup(li);
+    return `<div class="point-details"><p>${fmt(g.n)} dispatches at this map point. Reported locations are preserved below; this is not a count of unique emergencies.</p><ol>` +
+      g.members.map(([i, n]) => { const l = D.locations[i]; return `<li><b>${esc(l[2] || "No street given")}: ${fmt(n)}</b><br>${esc(placeLabel(l[3]))}<br><small>${esc(locationNote(i))}</small></li>`; }).join("") + "</ol></div>";
+  }
+  function tooltipHtml(li, n) {
+    const g = pointGroup(li);
     const byType = {};
-    for (let k = locStart[li]; k < locStart[li + 1]; k++) { const i = locRecs[k]; if (fullMatch(i)) byType[R.t[i]] = (byType[R.t[i]] || 0) + 1; }
+    for (const [member] of g.members) for (let k = locStart[member]; k < locStart[member + 1]; k++) { const i = locRecs[k]; if (fullMatch(i)) byType[R.t[i]] = (byType[R.t[i]] || 0) + 1; }
     const top = Object.entries(byType).sort((a, b) => b[1] - a[1]).slice(0, 4);
-    let note = "";
-    if (prec === "municipality") note = `Street not found in Census roads; approximate municipality point (modeled expected error ${dist(err)})`;
-    else if (prec === "landmark") note = `Placed at landmark: ${matched}`;
-    else if (prec === "intersection") note = "Exact intersection";
-    else if (prec === "coordinates") note = "Coordinates printed in the source report";
-    else if (err != null) note = (err < 50 ? "Short street; small modeled uncertainty" : `Street estimate; modeled expected error ${dist(err)}`) +
-      (method === "fuzzy_risky" ? `; matched to ${matched}, check this` : "");
-    return `<div class="tip"><b>${esc(street || "No street given")}</b><br><span class="c">${esc(placeLabel(city))}</span>` +
-      (note ? `<em>${esc(note)}</em>` : "<br>") + `<b>${fmt(n)}</b> ${n === 1 ? "call" : "dispatches"}` +
+    const note = g.members.length > 1 ? `${g.members.length} reported locations share this point. Select it for the breakdown.` : locationNote(li);
+    return `<div class="tip"><b>${esc(pointLabel(li))}</b><br><span class="c">${esc(pointPlaces(li))}</span>` +
+      `<em>${esc(note)}</em><b>${fmt(n)}</b> ${n === 1 ? "dispatch" : "dispatches"}` +
       (st.type < 0 && top.length > 1 ? `<ol>${top.map(([t, c]) => `<li>${esc(D.types[t][0])} · ${fmt(c)}</li>`).join("")}</ol>` : "") + "</div>";
   }
 
@@ -990,7 +1012,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     ring = L.circleMarker(m.getLatLng(), { renderer, radius: m.getRadius() + 4, color: css("--select"), weight: 2.5,
       fill: false, interactive: false });
     dots.addLayer(ring);
-    document.querySelector(`.row[data-li="${li}"]`)?.classList.add("on");
+    document.querySelector(`.row[data-li="${pointGroup(li).li}"]`)?.classList.add("on");
     syncControls();
     syncUrl();
   }
@@ -1422,8 +1444,15 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     });
     syncControls();
 
-    const current = [];
-    per.forEach((n, i) => { if (n > 0) current.push([i, n]); });
+    const groups = new Map(); visibleGroups = new Map();
+    per.forEach((n, i) => {
+      if (!n) return;
+      const l = D.locations[i], key = `${l[0]},${l[1]}`;
+      if (!groups.has(key)) groups.set(key, { li: i, n: 0, members: [] });
+      const g = groups.get(key); g.n += n; g.members.push([i, n]); visibleGroups.set(i, g);
+    });
+    groups.forEach(g => g.members.sort((a, b) => b[1] - a[1] || a[0] - b[0]));
+    const current = [...groups.values()].map(g => [g.li, g.n]);
     current.sort((a, b) => b[1] - a[1]);
     lastCurrent = current;
     const located = current.reduce((s, x) => s + x[1], 0);
@@ -1434,18 +1463,18 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const dot = css("--dot"), panel = css("--panel");
     // Largest first, so small circles stay on top and stay hoverable.
     current.forEach(([li, n]) => {
-      const loc = D.locations[li], approx = loc[4] === "municipality";
+      const loc = D.locations[li], g = pointGroup(li), approx = g.members.some(([i]) => ["municipality", "street_nearby"].includes(D.locations[i][4]));
       const m = L.circleMarker([loc[0], loc[1]], { renderer, radius: r(n), color: approx ? dot : panel,
         weight: approx ? 1.5 : 1, dashArray: approx ? "3 3" : null, fillColor: dot, fillOpacity: approx ? 0.12 : 0.5 });
       m.bindTooltip(() => tooltipHtml(li, n), { direction: "top", sticky: true, opacity: 1 });
-      m.on("click", () => select(li));
-      markers.set(li, m);
+      m.on("click", () => { select(li); showPointDetails(li, $("map")); });
+      g.members.forEach(([i]) => markers.set(i, m));
       dots.addLayer(m);
     });
 
     const all = located + unloc + failed + hidden;
     $("total").textContent = fmt(all);
-    $("s-mapped").textContent = all ? `${fmt(located)} at ${fmt(current.length)} ${current.length === 1 ? "place" : "places"}` : "0";
+    $("s-mapped").textContent = all ? `${fmt(located)} at ${fmt(current.length)} map ${current.length === 1 ? "point" : "points"}` : "0";
     $("s-unloc").textContent = fmt(unloc);
     $("s-failed").textContent = fmt(failed);
     $("s-approx").textContent = fmt(approximate);
@@ -1458,17 +1487,17 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       list.innerHTML = `<p class="empty">${all ? "No matching dispatches can be shown with the current map visibility settings." : "No dispatches match these filters."} ` +
         `Try a wider category, another year, or <b>Reset filters</b>.</p>`;
     } else {
-      const h = document.createElement("span"); h.className = "eyebrow"; h.textContent = "Busiest places";
+      const h = document.createElement("span"); h.className = "eyebrow"; h.textContent = "Busiest map points";
       list.append(h);
       current.slice(0, 25).forEach(([li, n], k) => {
         const [lat, lon, street, city] = D.locations[li];
         const row = document.createElement("div"); row.className = "row"; row.tabIndex = 0; row.setAttribute("role", "button");
-        row.dataset.li = li;
-        row.innerHTML = `<span class="rk">${k + 1}</span><span class="nm">${esc(street || "Town center")}<small>${esc(placeLabel(city))}</small></span><span class="ct">${fmt(n)}</span>`;
+        row.dataset.li = li; row.dataset.members = pointGroup(li).members.length; row.setAttribute("aria-haspopup", "dialog");
+        row.innerHTML = `<span class="rk">${k + 1}</span><span class="nm">${esc(pointLabel(li))}<small>${esc(pointPlaces(li))}</small></span><span class="ct">${fmt(n)}</span>`;
         const go = () => {
           countyOverview = false;
           select(li);
-          map.once("moveend", () => markers.get(li)?.openTooltip());
+          showPointDetails(li, row);
           map.flyTo([lat, lon], Math.max(map.getZoom(), 15), { duration: reduceMotion() ? 0 : 0.8 });
         };
         row.onclick = go; row.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
@@ -1479,7 +1508,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 
     const steps = [max, Math.round(max / 4), Math.round(max / 20)].filter((v, i, a) => v >= 1 && a.indexOf(v) === i);
     $("sizes").innerHTML = steps.map(v => `<span><i style="width:${2 * r(v)}px;height:${2 * r(v)}px"></i>${fmt(v)}</span>`).join("")
-      + `<span class="cap">dispatches per place</span>`;
+      + `<span class="cap">dispatches per map point</span>`;
 
     renderPatterns(heatN, dateN);
     let daysSel = 0;
@@ -1532,7 +1561,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       q.set("compareB", cmp.mode === "place" ? cmp.b : D.years[cmp.yb]);
     }
     if (userMoved) { const c = map.getCenter(); q.set("view", [c.lat.toFixed(5), c.lng.toFixed(5), map.getZoom()].join(",")); }
-    if (selected != null) q.set("street", `${D.locations[selected][2]}|${D.locations[selected][3]}`);
+    if (selected != null) { const l = D.locations[selected]; q.set("street", `${l[2]}|${l[3]}`); q.set("point", `${l[0]},${l[1]}`); }
     return q.toString();
   }
   function syncUrl() {
@@ -1578,7 +1607,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       countyOverview = false; map.setView(view.slice(0, 2), view[2], { animate: false }); userMoved = true;
     }
     const sk = q.get("street");
-    return sk ? D.locations.findIndex(l => `${l[2]}|${l[3]}` === sk) : -1;
+    const matches = D.locations.map((l, i) => [l, i]).filter(([l]) => `${l[2]}|${l[3]}` === sk);
+    const exact = matches.find(([l]) => `${l[0]},${l[1]}` === q.get("point"));
+    if (exact) return exact[1];
+    // Legacy links with ambiguous reported names must not select an arbitrary coordinate.
+    return matches.length === 1 ? matches[0][1] : -1;
   }
   $("copy").onclick = () => {
     syncUrl();
@@ -1613,8 +1646,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     saveCsv(fileStem() + "-dispatches.csv", rows);
   };
   $("dl-places").onclick = () => {
-    const rows = [["rank", "street", "place", "dispatches", "latitude", "longitude", "location_precision", "typical_location_error_m"]];
-    lastCurrent.forEach(([li, n], k) => { const l = D.locations[li]; rows.push([k + 1, l[2] || "Town center", placeLabel(l[3]), n, l[0], l[1], l[4], l[5] ?? ""]); });
+    const rows = [["rank", "map_point", "place", "dispatches", "latitude", "longitude", "location_precision", "modeled_expected_error_m", "reported_locations"]];
+    lastCurrent.forEach(([li, n], k) => { const l = D.locations[li], g = pointGroup(li); rows.push([k + 1, pointLabel(li), pointPlaces(li), n, l[0], l[1], g.members.length === 1 ? l[4] : "grouped", g.members.length === 1 ? l[5] ?? "" : "", JSON.stringify(g.members.map(([i, count]) => ({ street: D.locations[i][2], city: D.locations[i][3], precision: D.locations[i][4], dispatches: count })))]); });
     saveCsv(fileStem() + "-places.csv", rows);
   };
 
@@ -1654,7 +1687,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     hits = []; active = -1; renderSugg();
     const l = D.locations[li];
     qIn.value = l[2];
-    if (markers.has(li)) { select(li); map.once("moveend", () => markers.get(li)?.openTooltip()); $("qnote").textContent = ""; }
+    if (markers.has(li)) { select(li); showPointDetails(li, qIn); $("qnote").textContent = ""; }
     else $("qnote").textContent = `No dispatches on ${l[2]} (${placeLabel(l[3])}) match the current filters.`;
     map.flyTo([l[0], l[1]], Math.max(map.getZoom(), 15.5), { duration: reduceMotion() ? 0 : 0.8 });
     syncControls();
@@ -2224,7 +2257,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const days = D.yearDays.reduce((a, b) => a + b, 0);
     $("about-coverage").innerHTML = `The collection has reports for <b>${days}</b> days: ${D.years.map((y, i) => `<b>${D.yearDays[i]}</b> in ${y}`).join(", ")}. ` +
       `It is what could be recovered from the county's website, not a complete archive, so a day without a report means no report was found, not that no dispatches happened. The coverage calendar shows exactly which days are included.`;
-    $("about-location").innerHTML = `The reports usually give a street and a town rather than a house number. Each street is matched to Census roads within its town and placed where that street's addresses are concentrated, so a circle stands for a whole street. ` +
+    $("about-location").innerHTML = `The reports usually give a street and a town rather than a house number. Streets are matched to Census roads within the reported municipality, allowing a 200 m boundary tolerance. Plausible address-range weights guide placement; these are not verified address counts. Circles combine matching dispatches at the same estimated point. Select a point for its reported-location breakdown; original streets and coordinates remain in dispatch downloads. Unmatched streets are grouped at an approximate municipality point, not an incident site. ` +
       `The median modeled expected error is <b>${med == null ? "unavailable" : fmt(Math.round(med / 10) * 10) + " m"}</b>. This describes the assumed distribution along matched streets, not measured distances to actual incidents or a verified accuracy percentage; long rural roads have greater uncertainty. ` +
       `<b>${pct(town / N)}</b> of dispatches have a reported street that could not be matched and use an approximate municipality point (dashed circles). ` +
       `<b>${pct(none / N)}</b> have no reported location and remain unmapped; <b>${fmt(failed)}</b> have a reported location that could not be mapped. Coordinates printed in a report are preserved individually.`;
@@ -2232,7 +2265,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 
   const days = D.yearDays.reduce((a, b) => a + b, 0);
   $("span").innerHTML = `<b>${fmt(D.total)}</b> agency dispatches from county media reports on <b>${days}</b> days ` +
-    `(${D.years.map((y, i) => `${y}: ${D.yearDays[i]}`).join(", ")}). Each circle is one street within one town; ` +
+    `(${D.years.map((y, i) => `${y}: ${D.yearDays[i]}`).join(", ")}). Circles group dispatches at estimated map points; ` +
     `reports usually give no house numbers.`;
 
   drawBase();
@@ -2241,6 +2274,19 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   const chartHelp = new Map();
   const helpDialog = $("chart-help-dialog");
   let helpTrigger = null;
+  function showExplanation(title, content, trigger) {
+    helpTrigger = trigger;
+    $("chart-help-title").textContent = title;
+    $("chart-help-body").replaceChildren(...content);
+    $("chart-help-body").scrollTop = 0;
+    trigger?.focus({ preventScroll: true });
+    if (trigger?.matches("button[data-chart-help]")) trigger.setAttribute("aria-expanded", "true");
+    helpDialog.showModal();
+  }
+  function showPointDetails(li, trigger) {
+    const content = document.createElement("div"); content.innerHTML = pointDetailsHtml(li);
+    showExplanation(pointLabel(li), [...content.children], trigger);
+  }
   const helpSections = [
     ["time-patterns-section", "Dispatches per report day by hour and weekday. Select a square, hour or day to filter."],
     ["coverage-section", "Darker days have more dispatches. Outlined dates have no records. Select a day to filter."],
@@ -2272,10 +2318,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   document.addEventListener("click", e => {
     const button = e.target.closest("button[data-chart-help]"); if (!button) return;
     const entry = chartHelp.get(button.dataset.chartHelp); if (!entry) return;
-    helpTrigger = button; $("chart-help-title").textContent = entry.title;
     const content = [...entry.source.children].map(node => node.cloneNode(true));
     content.forEach(node => { [node, ...node.querySelectorAll("[id], [aria-live]")].forEach(el => { el.removeAttribute("id"); el.removeAttribute("aria-live"); }); });
-    $("chart-help-body").replaceChildren(...content); button.focus({ preventScroll: true }); button.setAttribute("aria-expanded", "true"); helpDialog.showModal();
+    showExplanation(entry.title, content, button);
   });
   $("chart-help-close").onclick = () => helpDialog.close();
   helpDialog.addEventListener("keydown", e => {
@@ -2286,7 +2331,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
   helpDialog.addEventListener("click", e => { const r = helpDialog.getBoundingClientRect(); if (e.target === helpDialog && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) helpDialog.close(); });
-  helpDialog.addEventListener("close", () => { if (helpDialog.open) return; helpTrigger?.setAttribute("aria-expanded", "false"); helpTrigger?.focus({ preventScroll: true }); });
+  helpDialog.addEventListener("close", () => { if (helpDialog.open) return; if (helpTrigger?.matches("button[data-chart-help]")) helpTrigger.setAttribute("aria-expanded", "false"); helpTrigger?.focus({ preventScroll: true }); });
 
   fitCounty();
   syncZoom();

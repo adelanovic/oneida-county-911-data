@@ -1,8 +1,9 @@
-"""Score point-placement methods against the only ground truth in the reports: intersection calls.
+"""Compare point-placement methods using intersections inferred from reported street names.
 
 A call logged at "A / B" happened where A crosses B. Taking that crossing as the true location of a call on
 street A (and on street B), we ask each method to place "street A in this town" without knowing B, and measure
-the distance to the crossing. Intersection calls are not a random sample of calls on a street (they sit at
+the distance to the crossing. These crossings use the same TIGER geometry as the geocoder; they are not
+independent incident ground truth. Intersection calls are not a random sample of calls on a street (they sit at
 corners, not mid-block), so read the numbers as a comparison between methods rather than an absolute error.
 
 Also prints the fuzzy and landmark matches from geo/locations.csv for manual review.
@@ -33,7 +34,7 @@ def main():
         if not (a and b) or a["precision"] != "street" or b["precision"] != "street":
             continue
         x = a["geom"].intersection(b["geom"])
-        if x.is_empty:
+        if x.geom_type != "Point":
             continue
         truth = np.array([(x if x.geom_type == "Point" else x.representative_point()).x,
                           (x if x.geom_type == "Point" else x.representative_point()).y])
@@ -47,6 +48,7 @@ def main():
             rows.append(res)
     ev = pd.DataFrame(rows)
     print(f"test cases: {len(ev)} street placements from {ev.n.sum() // 2} intersection calls\n")
+    print("Comparison only: inferred TIGER crossings, not independent incident ground truth or a representative accuracy sample.\n")
     methods = ["town_center", "midpoint", "uniform", "address"]
 
     def wq(col, q):
@@ -64,7 +66,7 @@ def main():
             print(f"  streets {lo/1000:.0f}-{hi/1000:.0f} km: n={len(s)}  " +
                   "  ".join(f"{m} {np.average(s[m], weights=s.n):.0f} m" for m in methods))
     wins = (ev.address < ev.midpoint - 1).mul(ev.n).sum(), (ev.midpoint < ev.address - 1).mul(ev.n).sum()
-    print(f"address beats midpoint on {wins[0]} calls, loses on {wins[1]}")
+    print(f"address beats midpoint on {wins[0]} call-weighted street placements, loses on {wins[1]} (two street placements per intersection dispatch)")
 
     loc = pd.read_csv(ROOT / "geo" / "locations.csv", keep_default_na=False)
     for meth in ("fuzzy", "landmark", "alias"):
