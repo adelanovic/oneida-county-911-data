@@ -10,7 +10,7 @@ from shapely.geometry import LineString, Point, box
 from shapely.ops import unary_union
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "geo"))
-from geocode import Geocoder, medoid, to_m  # noqa: E402
+from geocode import Geocoder, medoid, to_m, norm_cad, county_name_key  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -30,6 +30,42 @@ class GeocodingRegressionTests(unittest.TestCase):
             stored = self.locations[(self.locations.street == "SECOND ST") & (self.locations.city == city)].iloc[0]
             self.assertEqual(stored.matched_name, "2ND ST", city)
             self.assertEqual(stored.precision, "street", city)
+
+    def test_county_reference_resolves_missing_streets_locally(self):
+        for name in ["HOSPITAL DR", "UTICA ZOO WAY", "WEAVER ST", "TRENTON AVE", "HARBOR PT"]:
+            hit = self.gc.county_street(name, "UTICA")
+            self.assertIsNotNone(hit, name)
+            self.assertEqual(hit["method"], "county_roads")
+            self.assertLessEqual(hit["geom"].difference(self.gc.poly("UTICA").buffer(self.gc.BUF)).length, .01)
+            self.assertIsNone(self.gc.county_street(name, "ROME INSIDE"))
+            stored = self.locations[(self.locations.street == name) & (self.locations.city == "UTICA")].iloc[0]
+            self.assertEqual(stored.match_method, "county_roads", name)
+
+    def test_county_reference_preserves_direction_and_ramp(self):
+        main = self.gc.county_street("N SOUTH ARTERIAL", "UTICA")
+        ramp = self.gc.county_street("N SOUTH ARTERIAL RAMP", "UTICA")
+        self.assertIsNotNone(main)
+        self.assertIsNotNone(ramp)
+        self.assertNotEqual(main["matched"], ramp["matched"])
+        self.assertNotEqual(county_name_key("DAWES CT E"), county_name_key("DAWES CT W"))
+        self.assertIsNone(self.gc.county_street("DAWES CT", "UTICA"))
+        self.assertIsNone(self.gc.county_street("WEAVER RD", "UTICA"))
+
+    def test_kennedy_complex_estimates_do_not_claim_incident_accuracy(self):
+        points = set()
+        for suffix in ["HI RISE", "E", "W", "ENTRANCE"]:
+            name = "KENNEDY PLAZA APTS " + suffix
+            stored = self.locations[(self.locations.street == name) & (self.locations.city == "UTICA")].iloc[0]
+            self.assertEqual(stored.precision, "landmark")
+            self.assertEqual(stored.match_method, "county_roads")
+            self.assertEqual(stored.expected_error_m, "")
+            points.add((stored.latitude, stored.longitude))
+        self.assertEqual(len(points), 4)
+
+    def test_alphanumeric_house_number_does_not_break_numbered_streets(self):
+        self.assertEqual(norm_cad("1131A SEYMOUR AVE"), "SEYMOUR AVE")
+        self.assertEqual(norm_cad("6 ST"), "6 ST")
+        self.assertEqual(norm_cad("6TH ST"), "6TH ST")
 
     def test_outside_whole_road_fallback_is_rejected(self):
         for name, city in [("OLD STATE RD", "TRENTON"), ("ROUTE 49", "WHITESTOWN"),

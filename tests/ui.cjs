@@ -252,6 +252,19 @@ async function main() {
     await navigate(pageUrl);
     console.log('PASS: co-located dispatches share point totals and accessible source breakdowns; coordinate links restore unambiguously on desktop/mobile');
 
+    for (const street of ['HOSPITAL DR','KENNEDY PLAZA APTS HI RISE']) {
+      await navigate(pageUrl+'?place=T%3AUTICA&street='+encodeURIComponent(street+'|UTICA'));
+      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));q.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))})()`);
+      await delay(1100);
+      const note=await evaluate(`document.querySelector('#chart-help-body').textContent`);
+      assert(note.includes('Oneida County CAD'),note);
+      assert(!note.includes('Unmatched street'),note);
+      if(street.includes('APTS')) assert(note.includes('not independently verified'),note);
+      await screenshot(street.includes('APTS') ? 'county-complex-details' : 'county-hospital-details');
+    }
+    await navigate(pageUrl);
+    console.log('PASS: recovered county road and complex points disclose their source and uncertainty');
+
     const overlap = await evaluate(`(()=>{const a=document.querySelector('#cmp-a'),b=document.querySelector('#cmp-b');
       a.value='T:WHITESTOWN';a.dispatchEvent(new Event('change'));b.value='V:WHITESTOWN|WHITESBORO';b.dispatchEvent(new Event('change'));
       const first=[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent);

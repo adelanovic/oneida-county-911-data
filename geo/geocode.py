@@ -1,7 +1,11 @@
-"""Geocode each (street, city) in output/oneida_911_records.csv using Census TIGER/Line 2024 data.
+"""Geocode each (street, city) using Census TIGER/Line 2024 and pinned county CAD gap-fill data.
 
 The reports name a street (no house number) and a city/town/village. Each pair is resolved to the stretch of
 that street inside the municipality, then reduced to one point:
+
+Reviewed Utica gaps first try exact names in the saved county CAD road subset, preserving direction and ramp
+qualifiers and clipping to the same municipality tolerance. These use road-length medoids; apartment/access
+features are approximate landmarks without an incident-accuracy estimate. Other locations use the steps below.
 
   1. Name matching: TIGER primary names plus every alternate name (FEATNAMES, e.g. "Genesee St" = "State Rte 12"),
      ordinal spelling ("SECOND ST" -> "2ND ST"), then fuzzy matching against roads that cross the municipality.
@@ -16,14 +20,15 @@ that street inside the municipality, then reduced to one point:
 Outputs geo/locations.csv: one row per (street, city) with the point, how it was found, and how uncertain it is:
   precision        coordinates | intersection | street | street_nearby | landmark | municipality | none
   match_method     exact | alias | ordinal | spelling | fuzzy | fuzzy_risky | landmark | municipality | ...
-  matched_name     the TIGER name used
+  matched_name     the reference name used
   street_length_m  length of the matched stretch inside the municipality
-  expected_error_m address-weighted mean distance from the point to the stretch (typical placement error if calls
-                   happen where addresses are); for municipality fallbacks, the same measured over the municipality
+  expected_error_m modeled mean distance under address-range or road-length weights; for municipality
+                   fallbacks, under an assumed distribution over the municipality; not verified incident accuracy
   max_error_m      farthest point of the stretch from the chosen point
   n_pieces         disconnected pieces of the stretch (>1 means the name covers separate roads)
 """
 import difflib
+import json
 import math
 import re
 from collections import defaultdict
@@ -71,7 +76,7 @@ def norm_tiger(name):
 def norm_cad(street):
     s = street.upper().strip()
     # A few rows carry a house number ("114 CHURCH ST"); keep "6 ST" (6th Street) intact.
-    m = re.match(r"^\d+\s+(.+)$", s)
+    m = re.match(r"^\d+[A-Z]?\s+(.+)$", s)
     if m and m.group(1) not in SUFFIXES and not re.match(r"^(ST|ND|RD|TH)\b", m.group(1)):
         s = m.group(1)
     s = re.sub(r"\s+(EB|WB|NB|SB|RAMP|EXIT \d+\w* RAMP|EXIT \d+\w*|ACCESS RD)$", "", s)
@@ -89,6 +94,12 @@ SUFFIXES = {"ST", "RD", "AVE", "BLVD", "DR", "LN", "PL", "CT", "CIR", "TER", "WA
 def match_key(name):
     toks = re.sub(r"['.]", "", name.upper()).replace("-", " ").split()
     return "".join(KEY_WORDS.get(t, t) for t in toks)
+
+
+def county_name_key(name):
+    """Exact spelling/abbreviation key for county street names; never a fuzzy match."""
+    words = {**DIR_WORDS, "ROAD": "RD", "SAINT": "ST"}
+    return match_key(" ".join(words.get(t, t) for t in name.upper().split()))
 
 
 def suffix_of(name):
@@ -267,6 +278,31 @@ class Geocoder:
                     self.landmarks.append((norm_landmark(r["FULLNAME"]), r["FULLNAME"], to_m(g)))
         self._cand = {}
         self._street = {}
+        # Pinned public county CAD geometry fills reviewed gaps in the Census file.
+        # Restrict it to Utica and exact names, preserving ramp/direction qualifiers.
+        reference = json.loads((ROOT / "geo/reference/utica_roads.json").read_text(encoding="utf-8"))
+        self.county_roads = defaultdict(list)
+        for feature in reference["features"]:
+            attrs = feature["attributes"]
+            geom = to_m(MultiLineString(feature["geometry"]["paths"]))
+            self.county_roads[county_name_key(attrs["FULL_STNAM"])].append((attrs["FULL_STNAM"], geom))
+
+    def county_street(self, name, city):
+        """An exact county CAD name match, clipped to the reported municipality."""
+        if city != "UTICA":
+            return None
+        matches = self.county_roads.get(county_name_key(name), [])
+        if not matches:
+            return None
+        area = self.poly(city).buffer(self.BUF)
+        geom = unary_union([g for _, g in matches]).intersection(area)
+        if geom.is_empty or geom.length <= 0:
+            return None
+        # CAD includes named access drives inside complexes. Their road extent does
+        # not establish the building, entrance, or incident's positional accuracy.
+        facility = "APTS" in name.upper().split()
+        return dict(geom=geom, matched=" / ".join(sorted({n for n, _ in matches})),
+                    method="county_roads", precision="landmark" if facility else "street", area=area)
 
     def poly(self, city):
         if city not in self._poly_cache:
@@ -418,9 +454,11 @@ def main():
         # Coordinate-only dispatches are preserved individually by attach_geocodes.py.
         # A (blank street, city) lookup must never stand in for a reported point.
         if r.street:
-            parts = [norm_cad(p) for p in r.street.split(" / ")]
+            raw_parts = r.street.split(" / ")
+            parts = [norm_cad(p) for p in raw_parts]
             if len(parts) == 2:
-                a, b = gc.street(parts[0], r.city), gc.street(parts[1], r.city)
+                a, b = [gc.county_street(raw, r.city) or gc.street(part, r.city)
+                        for raw, part in zip(raw_parts, parts)]
                 if a and b:
                     x = a["geom"].intersection(b["geom"])
                     if x.geom_type == "Point":
@@ -429,14 +467,16 @@ def main():
                         row.update(latitude=lat, longitude=lon, precision="intersection", match_method="intersection",
                                    matched_name=f"{a['matched']} / {b['matched']}", expected_error_m=0, max_error_m=0)
             if row["precision"] == "none":
-                for part in parts:
-                    hit = gc.street(part, r.city)
+                for raw, part in zip(raw_parts, parts):
+                    hit = gc.county_street(raw, r.city) or gc.street(part, r.city)
                     if hit:
-                        p, err, mx = gc.place_on(hit)
+                        p, err, mx = gc.place_on(hit, "uniform" if hit["method"] == "county_roads" else "address")
                         lat, lon = to_deg(Point(p))
                         row.update(latitude=lat, longitude=lon, precision=hit["precision"], match_method=hit["method"],
                                    matched_name=hit["matched"], street_length_m=round(hit["geom"].length),
-                                   expected_error_m=round(err), max_error_m=round(mx), n_pieces=n_pieces(hit["geom"]))
+                                   expected_error_m=None if hit["precision"] == "landmark" else round(err),
+                                   max_error_m=None if hit["precision"] == "landmark" else round(mx),
+                                   n_pieces=n_pieces(hit["geom"]))
                         break
             if row["precision"] == "none" and muni is not None:
                 lm = gc.landmark(r.street, r.city)

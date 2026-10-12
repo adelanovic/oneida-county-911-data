@@ -51,14 +51,14 @@ The dispatch data covers 681 days: 364 in 2024, 194 in 2025 and 123 in 2026. Thr
 | `town` | The city (Utica, Rome, Sherrill) or town the call is in. Villages roll up to the town that contains them (Whitesboro → `WHITESTOWN`), and Rome Inside/Outside both become `ROME`. Use this for town-level grouping. |
 | `village` | The village within the town, if any (e.g. `WHITESBORO`). New York Mills straddles two towns; the dispatch code records which part. |
 | `district` | Sub-area qualifier: `INSIDE`/`OUTSIDE` (Rome's inner and outer districts), `HINCKLEY` (Trenton). |
-| `county` | `ONEIDA`, or the neighboring county for the few mutual-aid calls (Herkimer, Oswego, Madison, Lewis). |
-| `outside_county` | True for the 16 mutual-aid dispatches the reports place in neighboring counties. |
-| `latitude` `longitude` | Present when a 2026 report printed coordinates in place of a street (33 retained rows). Preserved individually in the geocoded columns and map. |
-| `location_missing` | No street and no coordinates (about 16%; mostly traffic stops and some police calls). |
-| `geo_latitude` `geo_longitude` | Estimated point for the street within its town, from `geo/geocode.py` (Census TIGER/Line 2024). The point sits where the street's addresses are concentrated. |
-| `geo_precision` | `street` (80%), `municipality` (3%, street not found, so the town center is used), `intersection`, `street_nearby`, `landmark`, `coordinates`, `none` (16%, no location in the report). |
-| `geo_match_method` | How the street name was matched: `exact`, `ordinal`, `spelling` (punctuation or abbreviation only), `fuzzy`, `fuzzy_risky` (street type or number differs; treat with care), `landmark`, `municipality`. |
-| `geo_expected_error_m` | Modeled expected distance under an assumed distribution of addresses/road lengths. This is not a measured distance to the incident or a validated accuracy probability. Long roads can have several km of uncertainty. |
+| `county` | `ONEIDA`, a reported neighboring county, or blank when unknown. A neighboring-county location alone does not establish mutual aid. |
+| `outside_county` | True when the reported location is assigned to a county other than Oneida. |
+| `latitude` `longitude` | Coordinates printed in the source report. Preserved individually in the geocoded columns, map data and dispatch downloads. |
+| `location_missing` | No reported street and no reported coordinates. These dispatches stay unmapped. |
+| `geo_latitude` `geo_longitude` | Estimated point from Census TIGER/Line 2024, a saved county CAD road-reference subset for Utica gaps, or the original reported coordinates. Matched streets are clipped to the reported municipality with a 200 m boundary tolerance. Plausible house-number ranges guide placement; they are not verified address counts. |
+| `geo_precision` | `street`, `municipality` (unmatched street placed at an approximate municipality point), `intersection`, `street_nearby` (tentative short-road match without a known municipality), `landmark`, `coordinates`, or `none` (missing or unresolved location). |
+| `geo_match_method` | `exact`, `alias`, `ordinal`, `spelling`, `fuzzy`, `county_roads` (exact county CAD name, scoped to Utica), `reported`, `intersection`, `landmark`, or `municipality`; blank if unresolved. Conflicting numbers, street types and ambiguous directional fuzzy matches are rejected. |
+| `geo_expected_error_m` | Modeled expected distance under an assumed distribution of address ranges/road lengths. This is not a measured distance to the incident or a validated accuracy probability. Long roads can have several km of uncertainty. Blank for landmark estimates, including county CAD apartment/access features, because facility geometry does not establish incident accuracy. County road estimates use road-length weighting. |
 | `incident_cluster_id` | Heuristic group with the same type and reported place, bounded to 120 s from its first row (5 s for municipality-only records). Coordinates distinguish coordinate-only locations. Completely unspecified locations are not merged. |
 | `agencies_in_cluster` | Number of distinct agencies in that cluster. |
 | `agency_raw` `response_type_raw` `location_raw` | Cleaned text before normalization, for auditing. |
@@ -66,6 +66,7 @@ The dispatch data covers 681 days: 364 in 2024, 194 in 2025 and 123 in 2026. Thr
 
 ## Caveats for modeling
 
+- **Map points aggregate dispatches, not incidents.** The map combines matching dispatches at identical displayed coordinates and shows the original reported-location breakdown when selected. This includes a single approximate municipality point for unmatched streets. Dispatch exports preserve individual source fields; places exports contain point totals and their grouped-location breakdowns.
 - **Rows are agency dispatches, not unique emergencies.** One crash can produce 4 rows (ambulance, fire, state police, sheriff). Deduplicate on `incident_cluster_id` when you count incidents.
 - **Coverage has gaps:** 364 days with records in 2024 (all but two), 194 in 2025, and 123 in 2026. Don't treat this as a continuous time series without accounting for missing and empty reports (see `../Oneida_County_911_Reports/coverage.csv`).
 - **The CAD system changed in 2026:** coarser timestamps and partly different call-type wording. Include `report_format` as a feature or control for it.
