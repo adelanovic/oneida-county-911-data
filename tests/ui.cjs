@@ -32,7 +32,8 @@ function datasetCounts() {
   const response = header.indexOf('response_type');
   const officerTypes = new Set(['TRAFFIC STOP','PREMISE CK','AREA CK','CITIZEN STOP','TRAFFIC DETAIL','DETAIL','WATER DETAIL',
     'TOBACCO DETAIL','PARKING SUMMONS','WARRANT','SUMMONS','VEHICLE TRAFFIC LAW']);
-  const policeMonths={}, policeDates={};
+  const policeMonths={}, policeDates={}, policeCounts=[0,0,0];
+  const adminTypes=/^(DATA|RECORDS CHECK|BACKGROUND INV|PISTOL PERMIT|SORA\b.*|TEST|TRAINING|INTERNAL|DO NOT TAG|POLYGRAPH|PERSONNEL COMP|SUBPOENA SERVED)$/;
   const hourColumn=header.indexOf('hour');
   let total = 0, whitestown = 0, whitesboro = 0;
   const fireUnknownBy = new Map(), hasHome = new Set();
@@ -40,6 +41,8 @@ function datasetCounts() {
   const population = { all: { known: 0, unknown: 0, utica: 0 }, years: {} };
   for (const line of lines.slice(1)) {
     const f = split(line); total++;
+    if(['LOCAL_POLICE','SHERIFF','STATE_POLICE','CAMPUS_POLICE'].includes(f[kind]))
+      policeCounts[officerTypes.has(f[response]) ? 0 : adminTypes.test(f[response]) ? 1 : 2]++;
     const callDate=f[datetimeColumn].slice(0,10);
     addComparison(comparison.dates[callDate] ||= comparisonSide(),f);
     if(['UTICA','ROME'].includes(f[town]))addComparison(comparison.towns[f[town]] ||= comparisonSide(),f);
@@ -80,7 +83,7 @@ function datasetCounts() {
     const home = [...a.towns].sort((a, b) => b[1] - a[1])[0][0];
     return [name, { known: a.known, unknown: a.unknown, out: a.known - a.dests.get(home) }];
   }));
-  return { total, whitestown, whitesboro, fireUnknown, outside, population, comparison, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates };
+  return { total, whitestown, whitesboro, fireUnknown, outside, population, comparison, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates, policeCounts };
 }
 
 async function main() {
@@ -505,6 +508,16 @@ async function main() {
     console.log('PASS: desktop/mobile layouts, themes and no JavaScript exceptions');
 
     await navigate(pageUrl);
+    const policeSummary=await evaluate(`document.querySelector('#pol-insight').innerText`);
+    const policeTotal=expected.policeCounts.reduce((a,b)=>a+b,0);
+    assert(policeSummary.includes('Of '+fmt(policeTotal)+' police dispatches,'));
+    for(const count of expected.policeCounts) {
+      const pct=100*count/policeTotal;
+      const formatted=count===0?'0%':count===policeTotal?'100%':pct<0.1?'<0.1%':pct>99.9?'>99.9%':pct.toFixed(1)+'%';
+      assert(policeSummary.includes(formatted+' ('+fmt(count)+')'));
+    }
+    assert(policeSummary.includes('This compares proportions, not dispatch volume.'));
+    console.log('PASS: police summary percentages and counts match the CSV without rounding small shares to zero');
     const policeHour = await evaluate(`(()=>{
       const d=JSON.parse(document.querySelector('#data').textContent),bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
       const units=bytes(d.records.u),hours=bytes(d.records.h),police=new Set(['LOCAL_POLICE','SHERIFF','STATE_POLICE','CAMPUS_POLICE']);
@@ -512,7 +525,7 @@ async function main() {
       document.querySelector('#pol-hour [data-k="hour:7"]').click();
       return {expected,text:document.querySelector('#pol-insight').innerText,legend:document.querySelector('#pol-list').parentElement.innerText};
     })()`);
-    assert(policeHour.text.includes('of ' + policeHour.expected.toLocaleString('en-US') + ' police dispatches'));
+    assert(policeHour.text.includes('Of ' + policeHour.expected.toLocaleString('en-US') + ' police dispatches,'));
     assert(policeHour.legend.includes('Other dispatch types'));
     assert(!policeHour.legend.includes('calls from the public'));
     console.log('PASS: police summary uses the selected hour and describes estimated dispatch types');
@@ -523,7 +536,8 @@ async function main() {
     assert(zeroHour>=0,'Expected an eligible hour with a genuine zero officer-initiated share');
     const policeMinimum = await evaluate(`({text:document.querySelector('#pol-insight').innerText,
       zero:document.querySelector('#pol-hour [data-k="hour:${zeroHour}"]').getAttribute('aria-label')})`);
-    assert(policeMinimum.text.includes('lowest at '+String(zeroHour).padStart(2,'0')+':00 (0%)'));
+    const range=String(zeroHour).padStart(2,'0')+':00\u2013'+String((zeroHour+1)%24).padStart(2,'0')+':00';
+    assert(policeMinimum.text.includes('lowest during '+range+' (0%)') || policeMinimum.text.includes('0% at every hour with at least 20 dispatches.'));
     assert(policeMinimum.zero.includes('0% likely officer-initiated'));
     const sparseDate=Object.keys(expected.policeDates).sort().find(d=>expected.policeDates[d].some(n=>n>0&&n<20));
     const sparseHour=expected.policeDates[sparseDate].findIndex(n=>n>0&&n<20);

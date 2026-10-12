@@ -1963,6 +1963,15 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   const ADMIN = name => /^(DATA|RECORDS CHECK|BACKGROUND INV|PISTOL PERMIT|SORA\b.*|TEST|TRAINING|INTERNAL|DO NOT TAG|POLYGRAPH|PERSONNEL COMP|SUBPOENA SERVED)$/.test(name);
   const typeClass = D.types.map(([name]) => OFFICER.has(name) ? 0 : ADMIN(name) ? 1 : 2);   // 0 likely officer, 1 admin, 2 other
   const CLASS_COLOR = ["var(--c1)", "var(--c3)", "var(--c2)"];
+  function policePercent(count, total) {
+    if (!total) return "—";
+    if (!count) return "0%";
+    if (count === total) return "100%";
+    const value = 100 * count / total;
+    if (value < 0.1) return "<0.1%";
+    if (value > 99.9) return ">99.9%";
+    return value.toFixed(1) + "%";
+  }
   const isPoliceUnit = D.agencies.map((a, u) => POLICE.has(D.agencyKind[u]));
   {
     let h = "", ax = "";
@@ -1975,7 +1984,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   $("pol-hour").addEventListener("pointermove", e => {
     const el = e.target.closest("[data-k]"); if (!el || !polHour) { tipf.hidden = true; return; }
     const x = +el.dataset.k.split(":")[1], c = polHour[x], n = c[0] + c[1] + c[2];
-    showTip(e, `<b>${hourLabel(x)}–${hourLabel((x + 1) % 24)}</b><br>` + (n >= 20 ? `${(100 * c[0] / n).toFixed(0)}% likely officer-initiated <span>· ${fmt(n)} police dispatches</span>` : `<span>Insufficient data: ${fmt(n)} dispatches (minimum 20)</span>`));
+    showTip(e, `<b>${hourLabel(x)}–${hourLabel((x + 1) % 24)}</b><br>` + (n >= 20 ? `${esc(policePercent(c[0], n))} likely officer-initiated <span>· ${fmt(c[0])} of ${fmt(n)} police dispatches</span>` : `<span>Insufficient data: ${fmt(n)} dispatches (minimum 20)</span>`));
   });
   $("pol-hour").addEventListener("pointerleave", () => tipf.hidden = true);
 
@@ -2081,8 +2090,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     if (st.unit >= 0 && isPoliceUnit[st.unit] && !rows.some(r => r[0] === st.unit) && dept.has(st.unit)) { const c = dept.get(st.unit); rows.push([st.unit, c, c[0] + c[1] + c[2]]); }
     $("pol-list").innerHTML = rows.length ? rows.map(([u, c, n]) => `<div class="rank-row${st.unit === u ? " on" : ""}" data-u="${u}" tabindex="0" role="button">
       <span class="nm">${esc(D.agencies[u])}<small>${fmt(n)} dispatches</small></span>
-      <span class="v">${(100 * c[0] / n).toFixed(0)}%<small>likely officer-initiated</small></span>
-      <span class="mixbar" title="Likely officer-initiated ${(100 * c[0] / n).toFixed(0)}% · administrative ${(100 * c[1] / n).toFixed(0)}% · other dispatch types ${(100 * c[2] / n).toFixed(0)}%">${c.map((v, k) => v ? `<i style="flex:${v};background:${CLASS_COLOR[k]}"></i>` : "").join("")}</span></div>`).join("")
+      <span class="v">${esc(policePercent(c[0], n))}<small>likely officer-initiated</small></span>
+      <span class="mixbar" title="Likely officer-initiated ${esc(policePercent(c[0], n))} · administrative ${esc(policePercent(c[1], n))} · other dispatch types ${esc(policePercent(c[2], n))}">${c.map((v, k) => v ? `<i style="flex:${v};background:${CLASS_COLOR[k]}"></i>` : "").join("")}</span></div>`).join("")
       : `<p class="so-note">${dept.size ? "Matching departments have fewer than 20 dispatches; not enough data for the ranking." : "No police dispatches match these filters."}</p>`;
     const share = hour.map(c => { const n = c[0] + c[1] + c[2]; return n >= 20 ? c[0] / n : null; });
     const eligible = share.map((v, x) => x).filter(x => share[x] !== null);
@@ -2091,15 +2100,21 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       el.style.height = `${(100 * (share[x] || 0) / mx).toFixed(1)}%`; el.classList.toggle("on", st.hour === x);
       el.style.background = share[x] === null ? "var(--muted)" : "";
       el.setAttribute("aria-pressed", st.hour === x);
-      el.setAttribute("aria-label", `${hourLabel(x)}: ${share[x] === null ? "insufficient data (fewer than 20 dispatches)" : (100 * share[x]).toFixed(0) + "% likely officer-initiated"}; filter by hour`);
+      el.setAttribute("aria-label", `${hourLabel(x)}: ${share[x] === null ? "insufficient data (fewer than 20 dispatches)" : policePercent(hour[x][0], hour[x].reduce((a, b) => a + b, 0)) + " likely officer-initiated"}; filter by hour`);
     });
     const tot = [0, 0, 0]; hour.forEach((c, x) => { if (hourOK(x)) c.forEach((v, k) => tot[k] += v); });
     const n = tot[0] + tot[1] + tot[2];
     const pk = eligible.reduce((best, x) => best < 0 || share[x] > share[best] ? x : best, -1);
     const lo = eligible.reduce((best, x) => best < 0 || share[x] < share[best] ? x : best, -1);
-    $("pol-insight").innerHTML = n ? `<span><b>${(100 * tot[0] / n).toFixed(0)}%</b> of ${fmt(n)} ${st.unit >= 0 && isPoliceUnit[st.unit] ? esc(D.agencies[st.unit]) : "police"} dispatches were classified as likely officer-initiated, ` +
-      `${(100 * tot[1] / n).toFixed(0)}% administrative and ${(100 * tot[2] / n).toFixed(0)}% other dispatch types.</span>` +
-      (pk >= 0 ? `<span>Across eligible hours, the likely officer-initiated share peaks at <b>${hourLabel(pk)}</b> (${(100 * share[pk]).toFixed(0)}%) and is lowest at <b>${hourLabel(lo)}</b> (${(100 * share[lo]).toFixed(0)}%).</span>` : "<span>Not enough data to compare hours.</span>") : "<span>No police dispatches match the summary filters.</span>";
+    const hourRange = x => `${hourLabel(x)}–${hourLabel((x + 1) % 24)}`;
+    const hourPct = x => policePercent(hour[x][0], hour[x].reduce((a, b) => a + b, 0));
+    const hourlyInsight = eligible.length < 2 ? "Not enough hours with at least 20 dispatches to compare." : share[pk] === share[lo]
+      ? `The likely officer-initiated share is ${esc(hourPct(pk))} at every hour with at least 20 dispatches.`
+      : `Across the full day, this share is highest during <b>${hourRange(pk)}</b> (${esc(hourPct(pk))}) and lowest during <b>${hourRange(lo)}</b> (${esc(hourPct(lo))}). This compares proportions, not dispatch volume.`;
+    $("pol-insight").innerHTML = n ? `<span>Of ${fmt(n)} ${st.unit >= 0 && isPoliceUnit[st.unit] ? esc(D.agencies[st.unit]) : "police"} dispatches, ` +
+      `<b>${esc(policePercent(tot[0], n))}</b> (${fmt(tot[0])}) were classified as likely officer-initiated, ` +
+      `<b>${esc(policePercent(tot[1], n))}</b> (${fmt(tot[1])}) as administrative and <b>${esc(policePercent(tot[2], n))}</b> (${fmt(tot[2])}) as other dispatch types.</span> ` +
+      `<span>${hourlyInsight}</span>` : "<span>No police dispatches match the summary filters.</span>";
   }
   $("pol-list").addEventListener("click", e => { const r = e.target.closest("[data-u]"); if (r) toggleUnit(+r.dataset.u, true); });
   $("pol-list").addEventListener("keydown", e => { const r = e.target.closest("[data-u]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleUnit(+r.dataset.u, true); } });
