@@ -1,0 +1,6230 @@
+{
+  "city": "ROME INSIDE",
+  "source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0",
+  "query_url": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27ROME+INSIDE%27%2C%27ROME%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27ROME+INSIDE%27%2C%27ROME%27%29%29+AND+UPPER%28FULL_STNAM%29+IN+%28%27ACE+PL%27%2C%27AIR+CITY+BLVD%27%2C%27AVENUE+A%27%2C%27AVENUE+B%27%2C%27BATEAUX+PLACE%27%2C%27BLACK+RIVER+BLVD%27%2C%27BOARDMAN+LN%27%2C%27BOMBER+DR%27%2C%27BROADWAY+ST%27%2C%27CLIPPINGER+LN%27%2C%27DART+CIR%27%2C%27EILENBERG+LN%27%2C%27ERIE+BLVD%27%2C%27ERIE+BLVD+WEST%27%2C%27FORT+STANWIX+PK+NORTH%27%2C%27FORT+STANWIX+PK+SOUTH%27%2C%27GEIGER+RD%27%2C%27GIGLIOTTI+AVE%27%2C%27KING+PIN+LN%27%2C%27LIAM+LN%27%2C%27MEADOW+BROOK+APTS%27%2C%27MOHAWK+ACRS+NORTH%27%2C%27MOHAWK+ACRS+SOUTH%27%2C%27NORTH+DOXTATOR+AVE%27%2C%27NORTH+JAMES+ST%27%2C%27PARK+DRIVE+MNR+2%27%2C%27PARKWAY+ST%27%2C%27RCH%27%2C%27REVERE+PK%27%2C%27RIVERVIEW+PKY+NORTH%27%2C%27SOUTH+DOXTATOR+AVE%27%2C%27STATE+ROUTE+26+S+RAMP%27%2C%27STATE+ROUTE+365+WEST+RAMP%27%2C%27TAMARACK+DR%27%2C%27THE+BEECHES%27%2C%27WATER+TREATMENT+ACCESS+RD%27%2C%27WUNCH+AVE%27%29&outFields=OBJECTID%2CFULL_STNAM%2CCITY_LEFT%2CCITY_RIGHT%2CDATEUPDATE%2CADD_SOURCE&returnGeometry=true&outSR=4326&orderByFields=OBJECTID",
+  "retrieved_utc": "2026-10-12T05:21:32+00:00",
+  "requested_names": [
+    "105 N DOXTATOR AVE",
+    "107 1",
+    "112B NORTH DOXTATOR AVE",
+    "1808 1",
+    "314 NORTH ST V",
+    "511 1",
+    "512 1",
+    "519 1",
+    "ACE PL",
+    "AIR CITY BLVD",
+    "AVENUE A",
+    "AVENUE B",
+    "BATEAUX PL",
+    "BLACK RIVER RD",
+    "BLACK RVER BLVD",
+    "BOARDMAN LN",
+    "BOMBER DR",
+    "BROADWAY ST",
+    "CLIPPINGER LN",
+    "DART CIR",
+    "EILENBERG LN",
+    "ERIE BLVD",
+    "ERIE BLVD BLVD W",
+    "FORT STANWIX PK NORTH",
+    "FORT STANWIX PK SOUTH",
+    "FOX ST",
+    "GEIGER RD",
+    "GIGLIOTTI AVE",
+    "KING PIN LN",
+    "LIAM LN",
+    "MEADOW BROOK APTS",
+    "MOHAWK ACRS NORTH",
+    "MOHAWK ACRS SOUTH",
+    "N DOXTATOR AVE",
+    "NORTH JAMES",
+    "PARK DRIVE MNR 2",
+    "PARKWAY ST",
+    "RCH",
+    "REVERE PK",
+    "RIVERVIEW PKY NORTH",
+    "ROUTE 26 SOUTH RAMP",
+    "ROUTE 365 WEST RAMP",
+    "S DOXTATOR AVE",
+    "TAMARACK DR",
+    "THE BEECHES",
+    "W DOMINICK RD",
+    "WATER TREATMENT ACCESS RD",
+    "WUNCH AVE"
+  ],
+  "reviewed_aliases": {
+    "BLACK RVER BLVD": "BLACK RIVER BLVD",
+    "ERIE BLVD BLVD W": "ERIE BLVD WEST",
+    "NORTH JAMES": "NORTH JAMES ST"
+  },
+  "street_names": [
+    "ACE PL",
+    "AIR CITY BLVD",
+    "AVENUE A",
+    "AVENUE B",
+    "BATEAUX PLACE",
+    "BLACK RIVER BLVD",
+    "BOARDMAN LN",
+    "BOMBER DR",
+    "BROADWAY ST",
+    "CLIPPINGER LN",
+    "DART CIR",
+    "EILENBERG LN",
+    "ERIE BLVD",
+    "ERIE BLVD WEST",
+    "FORT STANWIX PK NORTH",
+    "FORT STANWIX PK SOUTH",
+    "GEIGER RD",
+    "GIGLIOTTI AVE",
+    "KING PIN LN",
+    "LIAM LN",
+    "MEADOW BROOK APTS",
+    "MOHAWK ACRS NORTH",
+    "MOHAWK ACRS SOUTH",
+    "NORTH DOXTATOR AVE",
+    "NORTH JAMES ST",
+    "PARK DRIVE MNR 2",
+    "PARKWAY ST",
+    "RCH",
+    "REVERE PK",
+    "RIVERVIEW PKY NORTH",
+    "SOUTH DOXTATOR AVE",
+    "STATE ROUTE 26 S RAMP",
+    "STATE ROUTE 365 WEST RAMP",
+    "TAMARACK DR",
+    "THE BEECHES",
+    "WATER TREATMENT ACCESS RD",
+    "WUNCH AVE"
+  ],
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 1822,
+        "FULL_STNAM": "NORTH DOXTATOR AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47462041086085,
+              43.21892653483785
+            ],
+            [
+              -75.47412690402588,
+              43.21952638427754
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1824,
+        "FULL_STNAM": "NORTH DOXTATOR AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47412690402588,
+              43.21952638427754
+            ],
+            [
+              -75.47356338348504,
+              43.22014704674572
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1825,
+        "FULL_STNAM": "NORTH DOXTATOR AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47356338348504,
+              43.22014704674572
+            ],
+            [
+              -75.47249899995353,
+              43.22132909464811
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1826,
+        "FULL_STNAM": "NORTH DOXTATOR AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47249899995353,
+              43.22132909464811
+            ],
+            [
+              -75.47173938741047,
+              43.222197861576696
+            ],
+            [
+              -75.4705377893758,
+              43.22351260625278
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1835,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47048875313291,
+              43.2147730777365
+            ],
+            [
+              -75.47169520295725,
+              43.21536079314887
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1966,
+        "FULL_STNAM": "TAMARACK DR",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45138206403108,
+              43.24091353116637
+            ],
+            [
+              -75.4508193983366,
+              43.24154054781416
+            ],
+            [
+              -75.45000104460729,
+              43.24246480768324
+            ],
+            [
+              -75.44989877403832,
+              43.24258370538123
+            ],
+            [
+              -75.44976901356885,
+              43.24297202157335
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2075,
+        "FULL_STNAM": "WUNCH AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4645041624666,
+              43.215795214654534
+            ],
+            [
+              -75.46396481953347,
+              43.216391223029525
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2084,
+        "FULL_STNAM": "WUNCH AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46396481953347,
+              43.216391223029525
+            ],
+            [
+              -75.46342542309401,
+              43.21698154703727
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2091,
+        "FULL_STNAM": "WUNCH AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46503566170247,
+              43.215190711684464
+            ],
+            [
+              -75.4645041624666,
+              43.215795214654534
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2093,
+        "FULL_STNAM": "WUNCH AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46556732215303,
+              43.21460893618169
+            ],
+            [
+              -75.46503566170247,
+              43.215190711684464
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2099,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46227003062903,
+              43.2121953714178
+            ],
+            [
+              -75.46301710427979,
+              43.2124168473748
+            ],
+            [
+              -75.46402772007417,
+              43.21269818484836
+            ],
+            [
+              -75.4647131769233,
+              43.212887828339376
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2334,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44696265259074,
+              43.225131480195756
+            ],
+            [
+              -75.44605664067832,
+              43.22641754223724
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2341,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44426867840717,
+              43.22897177884512
+            ],
+            [
+              -75.44333262845164,
+              43.23022619175153
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2342,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44605664067832,
+              43.22641754223724
+            ],
+            [
+              -75.44514231834069,
+              43.22767993416424
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2384,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4497052741297,
+              43.22124364247991
+            ],
+            [
+              -75.44952244550451,
+              43.22150457146431
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2385,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45031196177094,
+              43.22019417296691
+            ],
+            [
+              -75.4497052741297,
+              43.22124364247991
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2388,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45097183586972,
+              43.21890160946628
+            ],
+            [
+              -75.45031196177094,
+              43.22019417296691
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2394,
+        "FULL_STNAM": "FORT STANWIX PK SOUTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4541204217832,
+              43.216860943338105
+            ],
+            [
+              -75.45475142077144,
+              43.217151601161376
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2401,
+        "FULL_STNAM": "FORT STANWIX PK SOUTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4531402323845,
+              43.21638687686769
+            ],
+            [
+              -75.4541204217832,
+              43.216860943338105
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2406,
+        "FULL_STNAM": "FORT STANWIX PK SOUTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45254046429733,
+              43.21610867428989
+            ],
+            [
+              -75.45268661639764,
+              43.21617176042172
+            ],
+            [
+              -75.4531402323845,
+              43.21638687686769
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2410,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45578862759113,
+              43.212481544161136
+            ],
+            [
+              -75.45526533700384,
+              43.213091820402376
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2413,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45526533700384,
+              43.213091820402376
+            ],
+            [
+              -75.45474158412493,
+              43.21364127713699
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2417,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45474158412493,
+              43.21364127713699
+            ],
+            [
+              -75.45417496721008,
+              43.21426229835275
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2423,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4536488370543,
+              43.2148782071599
+            ],
+            [
+              -75.4531279474582,
+              43.21547201852537
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2425,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45417496721008,
+              43.21426229835275
+            ],
+            [
+              -75.4536488370543,
+              43.2148782071599
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2428,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4531279474582,
+              43.21547201852537
+            ],
+            [
+              -75.45258957941199,
+              43.216049477381546
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2445,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45136678741743,
+              43.218170836296956
+            ],
+            [
+              -75.45097183586972,
+              43.21890160946628
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2447,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45254046429733,
+              43.21610867428989
+            ],
+            [
+              -75.45211073346346,
+              43.216626602987446
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2458,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44950886344739,
+              43.21614795024219
+            ],
+            [
+              -75.4488433462022,
+              43.217064844368025
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2460,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44986261875508,
+              43.215626217587534
+            ],
+            [
+              -75.44950886344739,
+              43.21614795024219
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2473,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4517932720859,
+              43.212907260892365
+            ],
+            [
+              -75.4516574754385,
+              43.21312198739086
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2474,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4516574754385,
+              43.21312198739086
+            ],
+            [
+              -75.45124974712242,
+              43.21372121196096
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2475,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45124974712242,
+              43.21372121196096
+            ],
+            [
+              -75.45078440050688,
+              43.214352393859116
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2481,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45031663939922,
+              43.21496644459226
+            ],
+            [
+              -75.44986261875508,
+              43.215626217587534
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2483,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45078440050688,
+              43.214352393859116
+            ],
+            [
+              -75.45031663939922,
+              43.21496644459226
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2497,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44952244550451,
+              43.22150457146431
+            ],
+            [
+              -75.44877091538912,
+              43.22259340079589
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2499,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44877091538912,
+              43.22259340079589
+            ],
+            [
+              -75.44786344562716,
+              43.223882996136965
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2503,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44786344562716,
+              43.223882996136965
+            ],
+            [
+              -75.44696265259074,
+              43.225131480195756
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2528,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4458525528445,
+              43.22150393563274
+            ],
+            [
+              -75.44495190123065,
+              43.22276817830211
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2530,
+        "FULL_STNAM": "CLIPPINGER LN",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44435885572729,
+              43.225772519500346
+            ],
+            [
+              -75.44524880126298,
+              43.22450134334255
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2534,
+        "FULL_STNAM": "RIVERVIEW PKY NORTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44354797101443,
+              43.22475454377137
+            ],
+            [
+              -75.44283052944142,
+              43.22448000029789
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2535,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4440435052882,
+              43.2240703814719
+            ],
+            [
+              -75.44363959716148,
+              43.22463029884257
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2536,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44354797101443,
+              43.22475454377137
+            ],
+            [
+              -75.44314836257378,
+              43.225294417079745
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2537,
+        "FULL_STNAM": "RIVERVIEW PKY NORTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44283052944142,
+              43.22448000029789
+            ],
+            [
+              -75.44270707186232,
+              43.22463581675496
+            ],
+            [
+              -75.44238003984668,
+              43.22500589356631
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2539,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44495190123065,
+              43.22276817830211
+            ],
+            [
+              -75.4440435052882,
+              43.2240703814719
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2551,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4480958737744,
+              43.21813950053049
+            ],
+            [
+              -75.44751242411954,
+              43.21911927923432
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2607,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43757331314194,
+              43.238567271263165
+            ],
+            [
+              -75.43688518146779,
+              43.2395426419536
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2612,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44243922596985,
+              43.23151355473487
+            ],
+            [
+              -75.44068366700199,
+              43.23405706065862
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2613,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44068366700199,
+              43.23405706065862
+            ],
+            [
+              -75.43996161401228,
+              43.23507211999376
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2615,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44333262845164,
+              43.23022619175153
+            ],
+            [
+              -75.44243922596985,
+              43.23151355473487
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2617,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4413489011897,
+              43.22787464165186
+            ],
+            [
+              -75.4405588929924,
+              43.22898035907533
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2619,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4405588929924,
+              43.22898035907533
+            ],
+            [
+              -75.43954654303764,
+              43.23037883109254
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2620,
+        "FULL_STNAM": "CLIPPINGER LN",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44255198349404,
+              43.22831355350488
+            ],
+            [
+              -75.44435885572729,
+              43.225772519500346
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2623,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44188022437845,
+              43.22709212124094
+            ],
+            [
+              -75.4413489011897,
+              43.22787464165186
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2624,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44314836257378,
+              43.225294417079745
+            ],
+            [
+              -75.44188022437845,
+              43.22709212124094
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2626,
+        "FULL_STNAM": "RIVERVIEW PKY NORTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44238003984668,
+              43.22500589356631
+            ],
+            [
+              -75.44179001193743,
+              43.22576411894175
+            ],
+            [
+              -75.44175137076265,
+              43.22582716611957
+            ],
+            [
+              -75.44171508856762,
+              43.22585589619807
+            ],
+            [
+              -75.44166839424277,
+              43.225886572763024
+            ],
+            [
+              -75.44161643128595,
+              43.22590964535237
+            ],
+            [
+              -75.44156437321861,
+              43.225919375994
+            ],
+            [
+              -75.44148880284406,
+              43.22592157395817
+            ],
+            [
+              -75.44139744177366,
+              43.22590286621387
+            ],
+            [
+              -75.4412092750364,
+              43.22583306982611
+            ],
+            [
+              -75.44046088927371,
+              43.22557137166047
+            ],
+            [
+              -75.43833285977841,
+              43.22478870299206
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2627,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43640541219763,
+              43.23536398781009
+            ],
+            [
+              -75.43639018531178,
+              43.23539717240169
+            ],
+            [
+              -75.43623634944662,
+              43.23598840464638
+            ],
+            [
+              -75.43616064381754,
+              43.2364541481918
+            ],
+            [
+              -75.43608859963442,
+              43.237433481530466
+            ],
+            [
+              -75.43611787233124,
+              43.23784425441519
+            ],
+            [
+              -75.43616310413401,
+              43.23803026314283
+            ],
+            [
+              -75.43622594465158,
+              43.23822262505153
+            ],
+            [
+              -75.43629758982547,
+              43.23841816441496
+            ],
+            [
+              -75.43655574281553,
+              43.23890831383057
+            ],
+            [
+              -75.43688518146779,
+              43.2395426419536
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2647,
+        "FULL_STNAM": "RIVERVIEW PKY NORTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43833285977841,
+              43.22478870299206
+            ],
+            [
+              -75.43786973687861,
+              43.22461072972344
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2649,
+        "FULL_STNAM": "RIVERVIEW PKY NORTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43786973687861,
+              43.22461072972344
+            ],
+            [
+              -75.43659733743961,
+              43.224142817033574
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2718,
+        "FULL_STNAM": "PARKWAY ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4362838679875,
+              43.217678639916315
+            ],
+            [
+              -75.43621522097453,
+              43.217510548322394
+            ],
+            [
+              -75.43619377555106,
+              43.21742676632122
+            ],
+            [
+              -75.43618553638504,
+              43.21736771138443
+            ],
+            [
+              -75.43620313902129,
+              43.217278061589745
+            ],
+            [
+              -75.43628232190181,
+              43.21705285114178
+            ],
+            [
+              -75.4364237984914,
+              43.216677829886564
+            ],
+            [
+              -75.43679338938851,
+              43.21569810903609
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2723,
+        "FULL_STNAM": "PARKWAY ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43679338938851,
+              43.21569810903609
+            ],
+            [
+              -75.43687779208642,
+              43.215468084065385
+            ],
+            [
+              -75.43690239242551,
+              43.21529807256524
+            ],
+            [
+              -75.43686447068595,
+              43.21480734672224
+            ],
+            [
+              -75.43691257739441,
+              43.21449179192507
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2747,
+        "FULL_STNAM": "BROADWAY ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42548479962487,
+              43.224799048912814
+            ],
+            [
+              -75.42556821913479,
+              43.225485963605465
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2749,
+        "FULL_STNAM": "BROADWAY ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42536150379682,
+              43.224031769326125
+            ],
+            [
+              -75.42548479962487,
+              43.224799048912814
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2752,
+        "FULL_STNAM": "BROADWAY ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42516234310156,
+              43.222531540183084
+            ],
+            [
+              -75.42527808871853,
+              43.22334485428972
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2756,
+        "FULL_STNAM": "BROADWAY ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42507118937903,
+              43.221861905728325
+            ],
+            [
+              -75.42516234310156,
+              43.222531540183084
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2764,
+        "FULL_STNAM": "BROADWAY ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42486545712009,
+              43.22054572593923
+            ],
+            [
+              -75.42496442941093,
+              43.22120958125183
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2766,
+        "FULL_STNAM": "BROADWAY ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42482464241343,
+              43.22033022057271
+            ],
+            [
+              -75.42486545712009,
+              43.22054572593923
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2830,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46011513984381,
+              43.21116627217462
+            ],
+            [
+              -75.46088835415225,
+              43.21154669685517
+            ],
+            [
+              -75.46121382764423,
+              43.2117026619482
+            ],
+            [
+              -75.461698055036,
+              43.21193469870244
+            ],
+            [
+              -75.46227003062903,
+              43.2121953714178
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2853,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46011513984381,
+              43.21116627217462
+            ],
+            [
+              -75.45839407836979,
+              43.20982688498733
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2864,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.456275915166,
+              43.211892562998244
+            ],
+            [
+              -75.45578862759113,
+              43.212481544161136
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2888,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45481260198848,
+              43.209476515141255
+            ],
+            [
+              -75.4553604664691,
+              43.20942954258565
+            ],
+            [
+              -75.4558591877077,
+              43.20937018000851
+            ],
+            [
+              -75.45687520568062,
+              43.20927149254825
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2890,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.456102681344,
+              43.20922773688484
+            ],
+            [
+              -75.45553061287052,
+              43.20929585706056
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2891,
+        "FULL_STNAM": "ACE PL",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45553061287052,
+              43.20929585706056
+            ],
+            [
+              -75.45545736736383,
+              43.209082881240434
+            ],
+            [
+              -75.45543998112686,
+              43.20903438427152
+            ],
+            [
+              -75.45542093072353,
+              43.208990875348626
+            ],
+            [
+              -75.45540613803227,
+              43.2089600398592
+            ],
+            [
+              -75.45538468996759,
+              43.208925019340995
+            ],
+            [
+              -75.45536376375547,
+              43.20889444868683
+            ],
+            [
+              -75.45533316399654,
+              43.20886420558276
+            ],
+            [
+              -75.45526298738326,
+              43.20881342797004
+            ],
+            [
+              -75.45516807045313,
+              43.208765770741095
+            ],
+            [
+              -75.45497701416372,
+              43.20868778603525
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 2897,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45247613590213,
+              43.212041563273004
+            ],
+            [
+              -75.4517932720859,
+              43.212907260892365
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3023,
+        "FULL_STNAM": "STATE ROUTE 365 WEST RAMP",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42896953854,
+              43.204568845453885
+            ],
+            [
+              -75.42890266796721,
+              43.204065970890134
+            ],
+            [
+              -75.42877307364616,
+              43.20366767483162
+            ],
+            [
+              -75.42816107976812,
+              43.20284072617866
+            ],
+            [
+              -75.42804172742346,
+              43.20259623082737
+            ],
+            [
+              -75.42801333072306,
+              43.20241759536007
+            ],
+            [
+              -75.42799319692655,
+              43.20212638751937
+            ],
+            [
+              -75.42806223419744,
+              43.201646173870365
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 5555,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45378315473647,
+              43.21020517242277
+            ],
+            [
+              -75.45284022368456,
+              43.21157998138646
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 5696,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45700002808776,
+              43.21111653834832
+            ],
+            [
+              -75.456275915166,
+              43.211892562998244
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7431,
+        "FULL_STNAM": "WATER TREATMENT ACCESS RD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4235112401929,
+              43.20379440220999
+            ],
+            [
+              -75.4235069237216,
+              43.20375175906478
+            ],
+            [
+              -75.42347890476776,
+              43.203626081668084
+            ],
+            [
+              -75.42343761802664,
+              43.203561502005954
+            ],
+            [
+              -75.4233965690601,
+              43.20349729514552
+            ],
+            [
+              -75.42335159158054,
+              43.20344420386903
+            ],
+            [
+              -75.42327385286576,
+              43.20338790743219
+            ],
+            [
+              -75.4231874287018,
+              43.203352427845985
+            ],
+            [
+              -75.42309020610008,
+              43.203323067239666
+            ],
+            [
+              -75.42298018743635,
+              43.203308583792634
+            ],
+            [
+              -75.42287835236804,
+              43.20330002573591
+            ],
+            [
+              -75.42276035589678,
+              43.20330939634741
+            ],
+            [
+              -75.4226303108455,
+              43.20334263612878
+            ],
+            [
+              -75.4225180095437,
+              43.203388001770804
+            ],
+            [
+              -75.42223862327673,
+              43.20355453525012
+            ],
+            [
+              -75.42201339400532,
+              43.20370100739589
+            ],
+            [
+              -75.42168880465262,
+              43.203874326555386
+            ],
+            [
+              -75.42142265722735,
+              43.203971946273555
+            ],
+            [
+              -75.42125826079777,
+              43.20403224514518
+            ],
+            [
+              -75.42096208111244,
+              43.204126367965934
+            ],
+            [
+              -75.42075855003705,
+              43.20418299119474
+            ],
+            [
+              -75.42051511162343,
+              43.20424506005244
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7451,
+        "FULL_STNAM": "WATER TREATMENT ACCESS RD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42051511162343,
+              43.20424506005244
+            ],
+            [
+              -75.4202521970943,
+              43.20428765691908
+            ],
+            [
+              -75.41987543053098,
+              43.20432546723801
+            ],
+            [
+              -75.41955550019087,
+              43.20435266020047
+            ],
+            [
+              -75.41931374806127,
+              43.20436915806307
+            ],
+            [
+              -75.41886577410436,
+              43.2043968183281
+            ],
+            [
+              -75.41851724658567,
+              43.20440329769627
+            ],
+            [
+              -75.41792698399807,
+              43.2044288732464
+            ],
+            [
+              -75.41755715112865,
+              43.2044406313647
+            ],
+            [
+              -75.41690266995654,
+              43.20443781438824
+            ],
+            [
+              -75.41594211325504,
+              43.20440748526781
+            ],
+            [
+              -75.4154083515077,
+              43.20437299769319
+            ],
+            [
+              -75.4148034011883,
+              43.204330960441105
+            ],
+            [
+              -75.41404169197548,
+              43.204250457214584
+            ],
+            [
+              -75.41352198260903,
+              43.20418989074031
+            ],
+            [
+              -75.41292388679871,
+              43.20410878946177
+            ],
+            [
+              -75.41241129440621,
+              43.20404819225144
+            ],
+            [
+              -75.41202306958498,
+              43.20396533539059
+            ],
+            [
+              -75.41169044234803,
+              43.20390220557765
+            ],
+            [
+              -75.41157791504416,
+              43.20387759344545
+            ],
+            [
+              -75.41140178278314,
+              43.20383891579602
+            ],
+            [
+              -75.41126468543752,
+              43.20379294958342
+            ],
+            [
+              -75.41109315238067,
+              43.20371136977649
+            ],
+            [
+              -75.41099001155901,
+              43.203629543137566
+            ],
+            [
+              -75.41092101889136,
+              43.20354044668097
+            ],
+            [
+              -75.41089113290009,
+              43.20345478372199
+            ],
+            [
+              -75.41085604853644,
+              43.203322680283776
+            ],
+            [
+              -75.4108471386561,
+              43.20320816097551
+            ],
+            [
+              -75.41083969075038,
+              43.203069001201165
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7460,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45481260198848,
+              43.209476515141255
+            ],
+            [
+              -75.45459163017473,
+              43.2095460095495
+            ],
+            [
+              -75.45446432026912,
+              43.20959607115895
+            ],
+            [
+              -75.45438221794532,
+              43.209640936539145
+            ],
+            [
+              -75.45431507098388,
+              43.20967642346231
+            ],
+            [
+              -75.45426715718195,
+              43.20970831132183
+            ],
+            [
+              -75.45421687465429,
+              43.209745492548855
+            ],
+            [
+              -75.45416558556693,
+              43.20978539718178
+            ],
+            [
+              -75.45409958975223,
+              43.209837530077436
+            ],
+            [
+              -75.45403265140413,
+              43.20990119184528
+            ],
+            [
+              -75.45397388722805,
+              43.20996187028277
+            ],
+            [
+              -75.45378315473647,
+              43.21020517242277
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7464,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45553061287052,
+              43.20929585706056
+            ],
+            [
+              -75.45501006572405,
+              43.20939948948943
+            ],
+            [
+              -75.45481260198848,
+              43.209476515141255
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7465,
+        "FULL_STNAM": "ERIE BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45757770359579,
+              43.209365928049905
+            ],
+            [
+              -75.45777864952163,
+              43.209537252513776
+            ],
+            [
+              -75.45799397629345,
+              43.209724166589524
+            ],
+            [
+              -75.45824385137344,
+              43.20993273515133
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7504,
+        "FULL_STNAM": "STATE ROUTE 26 S RAMP",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45198329387554,
+              43.19702961615619
+            ],
+            [
+              -75.45213113005588,
+              43.19712202148985
+            ],
+            [
+              -75.45218576465692,
+              43.19714606079061
+            ],
+            [
+              -75.45224674016104,
+              43.19715773127104
+            ],
+            [
+              -75.45230218683658,
+              43.19716072857837
+            ],
+            [
+              -75.45235389448503,
+              43.197162415141655
+            ],
+            [
+              -75.45242362464175,
+              43.19715457541142
+            ],
+            [
+              -75.45248553149302,
+              43.19713870371626
+            ],
+            [
+              -75.45253968356013,
+              43.1971200774892
+            ],
+            [
+              -75.45258408511786,
+              43.19709611936884
+            ],
+            [
+              -75.45262158712804,
+              43.197068384015566
+            ],
+            [
+              -75.45265783316316,
+              43.197041577507946
+            ],
+            [
+              -75.45274630005758,
+              43.19695654125344
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7533,
+        "FULL_STNAM": "RIVERVIEW PKY NORTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43659733743961,
+              43.224142817033574
+            ],
+            [
+              -75.43546964218349,
+              43.223736081188996
+            ],
+            [
+              -75.43424763499054,
+              43.223272543750994
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7534,
+        "FULL_STNAM": "RIVERVIEW PKY NORTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43424763499054,
+              43.223272543750994
+            ],
+            [
+              -75.43372947599167,
+              43.22307990386402
+            ],
+            [
+              -75.43341233922159,
+              43.22295418872097
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7589,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44514231834069,
+              43.22767993416424
+            ],
+            [
+              -75.44426867840717,
+              43.22897177884512
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7594,
+        "FULL_STNAM": "BROADWAY ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42556821913479,
+              43.225485963605465
+            ],
+            [
+              -75.42559550263492,
+              43.22569975842736
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7595,
+        "FULL_STNAM": "BROADWAY ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42527808871853,
+              43.22334485428972
+            ],
+            [
+              -75.42536150379682,
+              43.224031769326125
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7596,
+        "FULL_STNAM": "BROADWAY ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42496442941093,
+              43.22120958125183
+            ],
+            [
+              -75.42507118937903,
+              43.221861905728325
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7606,
+        "FULL_STNAM": "DART CIR",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4116717470474,
+              43.209666564045975
+            ],
+            [
+              -75.41225713735865,
+              43.20969564940861
+            ],
+            [
+              -75.41247515719166,
+              43.20970352882525
+            ],
+            [
+              -75.41268130097397,
+              43.20971085185121
+            ],
+            [
+              -75.41278793263355,
+              43.20971079132576
+            ],
+            [
+              -75.41287797088074,
+              43.209710740160624
+            ],
+            [
+              -75.41296583041712,
+              43.20970342995916
+            ],
+            [
+              -75.41303161093488,
+              43.20969795623037
+            ],
+            [
+              -75.41313369915046,
+              43.209689021400074
+            ],
+            [
+              -75.41320775739366,
+              43.209685204266094
+            ],
+            [
+              -75.41329578116417,
+              43.20967597430668
+            ],
+            [
+              -75.41336921447478,
+              43.20964925845572
+            ],
+            [
+              -75.41341770722715,
+              43.20962229230808
+            ],
+            [
+              -75.4134599740177,
+              43.20958906242762
+            ],
+            [
+              -75.41349844041436,
+              43.20955436408633
+            ],
+            [
+              -75.41352450433637,
+              43.20952028236414
+            ],
+            [
+              -75.4135516799125,
+              43.209476913624385
+            ],
+            [
+              -75.4135726155587,
+              43.20942922084455
+            ],
+            [
+              -75.41358871986246,
+              43.209358110674046
+            ],
+            [
+              -75.41359956331067,
+              43.20928874392887
+            ],
+            [
+              -75.41360071948034,
+              43.20923393596045
+            ],
+            [
+              -75.4135949191236,
+              43.209202105340154
+            ],
+            [
+              -75.41358734811966,
+              43.20916055869543
+            ],
+            [
+              -75.41357977835116,
+              43.20911901114497
+            ],
+            [
+              -75.41357181742798,
+              43.20907532277846
+            ],
+            [
+              -75.41356556835733,
+              43.20904102827814
+            ],
+            [
+              -75.41355667671957,
+              43.208992228578104
+            ],
+            [
+              -75.41354732234358,
+              43.20894089571337
+            ],
+            [
+              -75.41353097513701,
+              43.20887654925034
+            ],
+            [
+              -75.4135015325257,
+              43.20879877631366
+            ],
+            [
+              -75.41344022737364,
+              43.20865016651197
+            ],
+            [
+              -75.41338693110826,
+              43.208581136008135
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7607,
+        "FULL_STNAM": "GEIGER RD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4186737584813,
+              43.2166442903913
+            ],
+            [
+              -75.41888645096566,
+              43.21638205933059
+            ],
+            [
+              -75.41904733828251,
+              43.216192496749656
+            ],
+            [
+              -75.41920414567159,
+              43.21593733047745
+            ],
+            [
+              -75.41933461207084,
+              43.21568956067376
+            ],
+            [
+              -75.41950122495298,
+              43.21532615171352
+            ],
+            [
+              -75.41959260566875,
+              43.21509835333805
+            ],
+            [
+              -75.41966205405234,
+              43.21480004179784
+            ],
+            [
+              -75.41975628545272,
+              43.214456027571615
+            ],
+            [
+              -75.41979856622115,
+              43.214161372465675
+            ],
+            [
+              -75.41980577777002,
+              43.213782051097034
+            ],
+            [
+              -75.41976810240973,
+              43.21358389688023
+            ],
+            [
+              -75.4196884230581,
+              43.21343254669877
+            ],
+            [
+              -75.41960892335292,
+              43.213307341060926
+            ],
+            [
+              -75.4195151618197,
+              43.213187416716615
+            ],
+            [
+              -75.41937150107735,
+              43.21308859143233
+            ],
+            [
+              -75.41919478662297,
+              43.21302163329819
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7612,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45211073346346,
+              43.216626602987446
+            ],
+            [
+              -75.45147093259678,
+              43.21797662464956
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7613,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45147093259678,
+              43.21797662464956
+            ],
+            [
+              -75.45136678741743,
+              43.218170836296956
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7615,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4488433462022,
+              43.217064844368025
+            ],
+            [
+              -75.4480958737744,
+              43.21813950053049
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7617,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44751242411954,
+              43.21911927923432
+            ],
+            [
+              -75.44693323376433,
+              43.219976735960415
+            ],
+            [
+              -75.44652186413744,
+              43.220585727366256
+            ],
+            [
+              -75.44652141308475,
+              43.22058634685102
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7618,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44652141308475,
+              43.22058634685102
+            ],
+            [
+              -75.4458525528445,
+              43.22150393563274
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8263,
+        "FULL_STNAM": "DART CIR",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.41338693110826,
+              43.208581136008135
+            ],
+            [
+              -75.41332460997626,
+              43.20858699905523
+            ],
+            [
+              -75.41327750342838,
+              43.208591431182
+            ],
+            [
+              -75.41322363428944,
+              43.208587037849874
+            ],
+            [
+              -75.41317642092605,
+              43.20857327532759
+            ],
+            [
+              -75.41314378906287,
+              43.2085512802159
+            ],
+            [
+              -75.41311705820243,
+              43.20852226259475
+            ],
+            [
+              -75.4131077414493,
+              43.20849267331854
+            ],
+            [
+              -75.4131044654571,
+              43.208474037215545
+            ],
+            [
+              -75.41310325834355,
+              43.20844328855919
+            ],
+            [
+              -75.41311251007603,
+              43.20840998170718
+            ],
+            [
+              -75.41312556187164,
+              43.208393254181104
+            ],
+            [
+              -75.41314638164036,
+              43.208373813385364
+            ],
+            [
+              -75.41316262534976,
+              43.20836253660812
+            ],
+            [
+              -75.41319760479583,
+              43.208345153577255
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8276,
+        "FULL_STNAM": "GEIGER RD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4186737584813,
+              43.2166442903913
+            ],
+            [
+              -75.4185660236068,
+              43.21682305039735
+            ],
+            [
+              -75.41841275453764,
+              43.217048296294244
+            ],
+            [
+              -75.41829974797616,
+              43.21720426902893
+            ],
+            [
+              -75.41826088727953,
+              43.217318840567955
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8380,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43996161401228,
+              43.23507211999376
+            ],
+            [
+              -75.4386148007473,
+              43.23705146028784
+            ],
+            [
+              -75.43841116508077,
+              43.237350914198636
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8381,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43841116508077,
+              43.237350914198636
+            ],
+            [
+              -75.43773715835616,
+              43.23834204382352
+            ],
+            [
+              -75.43757331314194,
+              43.238567271263165
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8868,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43954654303764,
+              43.23037883109254
+            ],
+            [
+              -75.43727331197896,
+              43.23364754287262
+            ],
+            [
+              -75.43719688437135,
+              43.23378443007754
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8869,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43719688437135,
+              43.23378443007754
+            ],
+            [
+              -75.4368224932655,
+              43.23445498287003
+            ],
+            [
+              -75.43640541219763,
+              43.23536398781009
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8876,
+        "FULL_STNAM": "PARK DRIVE MNR 2",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42348444998024,
+              43.216997105946376
+            ],
+            [
+              -75.42265429594066,
+              43.21761675524842
+            ],
+            [
+              -75.42245375914052,
+              43.21779519444734
+            ],
+            [
+              -75.42219951896575,
+              43.217661914763006
+            ],
+            [
+              -75.42193257240976,
+              43.2179237847333
+            ],
+            [
+              -75.42215210280732,
+              43.218029655720656
+            ],
+            [
+              -75.42130367417549,
+              43.21884455901544
+            ],
+            [
+              -75.42090645135775,
+              43.2186387430658
+            ],
+            [
+              -75.42069277688044,
+              43.21883251211631
+            ],
+            [
+              -75.42116842977222,
+              43.219073777161576
+            ],
+            [
+              -75.42144022205235,
+              43.21880474411682
+            ],
+            [
+              -75.4221522018412,
+              43.21920815766936
+            ],
+            [
+              -75.4222500533063,
+              43.219225665532214
+            ],
+            [
+              -75.42235276687703,
+              43.21923958138372
+            ],
+            [
+              -75.4224748040733,
+              43.219221261787645
+            ],
+            [
+              -75.42280127951285,
+              43.21908782660893
+            ],
+            [
+              -75.42306914281828,
+              43.218958181243366
+            ],
+            [
+              -75.42363729392194,
+              43.21867746876661
+            ],
+            [
+              -75.42391083316137,
+              43.21857214199368
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8877,
+        "FULL_STNAM": "PARK DRIVE MNR 2",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42593405703306,
+              43.219125359782936
+            ],
+            [
+              -75.4261018943179,
+              43.21903969139988
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8878,
+        "FULL_STNAM": "PARK DRIVE MNR 2",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4261018943179,
+              43.21903969139988
+            ],
+            [
+              -75.4261044551273,
+              43.218951435503655
+            ],
+            [
+              -75.42615496764505,
+              43.218909446491416
+            ],
+            [
+              -75.42629727010525,
+              43.21882531459308
+            ],
+            [
+              -75.42644284457067,
+              43.21875510424039
+            ],
+            [
+              -75.42649395556276,
+              43.21879903688781
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8879,
+        "FULL_STNAM": "PARK DRIVE MNR 2",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42649395556276,
+              43.21879903688781
+            ],
+            [
+              -75.42654509900426,
+              43.21884761403108
+            ],
+            [
+              -75.42623207826702,
+              43.21903920643875
+            ],
+            [
+              -75.4261018943179,
+              43.21903969139988
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8892,
+        "FULL_STNAM": "MEADOW BROOK APTS",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47330367896926,
+              43.226201088977106
+            ],
+            [
+              -75.4733505280104,
+              43.22623778385566
+            ],
+            [
+              -75.47338569320179,
+              43.226268852291824
+            ],
+            [
+              -75.4734014998882,
+              43.226305676499216
+            ],
+            [
+              -75.47341344854873,
+              43.22634535405555
+            ],
+            [
+              -75.47340983082083,
+              43.226379420356864
+            ],
+            [
+              -75.47339849822686,
+              43.22641919425519
+            ],
+            [
+              -75.47336765208547,
+              43.226444860168826
+            ],
+            [
+              -75.47326074355477,
+              43.226509822175245
+            ],
+            [
+              -75.4730936841613,
+              43.22664462758825
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8893,
+        "FULL_STNAM": "MEADOW BROOK APTS",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47210422730646,
+              43.22765862627277
+            ],
+            [
+              -75.47184297644127,
+              43.22749597321118
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8894,
+        "FULL_STNAM": "MEADOW BROOK APTS",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4730936841613,
+              43.22664462758825
+            ],
+            [
+              -75.47296641995452,
+              43.22674702415189
+            ],
+            [
+              -75.47292785851533,
+              43.22677839751482
+            ],
+            [
+              -75.47289313197058,
+              43.226804080241195
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8895,
+        "FULL_STNAM": "MEADOW BROOK APTS",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47212948670627,
+              43.225488943129825
+            ],
+            [
+              -75.47256721989967,
+              43.22575361412426
+            ],
+            [
+              -75.47299642631405,
+              43.226008473828976
+            ],
+            [
+              -75.47330367896926,
+              43.226201088977106
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8896,
+        "FULL_STNAM": "MEADOW BROOK APTS",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47289313197058,
+              43.226804080241195
+            ],
+            [
+              -75.47343108146592,
+              43.227119669426195
+            ],
+            [
+              -75.47345471562264,
+              43.22716497338297
+            ],
+            [
+              -75.47346276247315,
+              43.22720182969089
+            ],
+            [
+              -75.47345524270041,
+              43.22723307385214
+            ],
+            [
+              -75.47343612666965,
+              43.227270042575626
+            ],
+            [
+              -75.47341315127903,
+              43.22730986465208
+            ],
+            [
+              -75.472730707734,
+              43.227880211506985
+            ],
+            [
+              -75.472684360872,
+              43.22790877956865
+            ],
+            [
+              -75.47264180760429,
+              43.227925981497705
+            ],
+            [
+              -75.47259136256793,
+              43.227926189901986
+            ],
+            [
+              -75.47254856813197,
+              43.22791217795587
+            ],
+            [
+              -75.47245497682519,
+              43.22785297492945
+            ],
+            [
+              -75.47210422730646,
+              43.22765862627277
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8897,
+        "FULL_STNAM": "MEADOW BROOK APTS",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47066639620154,
+              43.2267435379682
+            ],
+            [
+              -75.47184297644127,
+              43.22749597321118
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8922,
+        "FULL_STNAM": "THE BEECHES",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45662848839562,
+              43.24421384762864
+            ],
+            [
+              -75.45637197833824,
+              43.24436341618894
+            ],
+            [
+              -75.45616109407773,
+              43.24449401936374
+            ],
+            [
+              -75.45590997244588,
+              43.24460385382097
+            ],
+            [
+              -75.45563572753413,
+              43.2446844785738
+            ],
+            [
+              -75.4553212155843,
+              43.24474014797428
+            ],
+            [
+              -75.45521365852665,
+              43.24474471548361
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8923,
+        "FULL_STNAM": "THE BEECHES",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45432984531092,
+              43.244644428404754
+            ],
+            [
+              -75.454501090136,
+              43.24456341553932
+            ],
+            [
+              -75.45465546740375,
+              43.24453350082562
+            ],
+            [
+              -75.45478140359353,
+              43.244528813951284
+            ],
+            [
+              -75.45485596256408,
+              43.24454526173246
+            ],
+            [
+              -75.45495358126131,
+              43.244582546453664
+            ],
+            [
+              -75.45505126238885,
+              43.244628202501296
+            ],
+            [
+              -75.45521365852665,
+              43.24474471548361
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8924,
+        "FULL_STNAM": "THE BEECHES",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45432984531092,
+              43.244644428404754
+            ],
+            [
+              -75.45416358049128,
+              43.24460661518992
+            ],
+            [
+              -75.45395714138488,
+              43.24456557540235
+            ],
+            [
+              -75.4538367449018,
+              43.24454512351566
+            ],
+            [
+              -75.45373365041029,
+              43.24454134709489
+            ],
+            [
+              -75.45364801187993,
+              43.244575173372006
+            ],
+            [
+              -75.4535796751487,
+              43.24462567520141
+            ],
+            [
+              -75.45350001112323,
+              43.244692965212174
+            ],
+            [
+              -75.45344891393597,
+              43.24475177027622
+            ],
+            [
+              -75.45339221450865,
+              43.2448273417378
+            ],
+            [
+              -75.45336414534002,
+              43.24490279880741
+            ],
+            [
+              -75.45335318933084,
+              43.244969816392036
+            ],
+            [
+              -75.45335353077434,
+              43.24501585960794
+            ],
+            [
+              -75.45335962960476,
+              43.24506606628556
+            ],
+            [
+              -75.45340599545057,
+              43.24514122924416
+            ],
+            [
+              -75.45345217388385,
+              43.245191276151935
+            ],
+            [
+              -75.45350410981246,
+              43.24524548739538
+            ],
+            [
+              -75.45361924832041,
+              43.245328748360464
+            ],
+            [
+              -75.45377480861066,
+              43.24545789433829
+            ],
+            [
+              -75.45384410941807,
+              43.2455371515126
+            ],
+            [
+              -75.4539191367994,
+              43.2456163859208
+            ],
+            [
+              -75.45400617425992,
+              43.24577091842594
+            ],
+            [
+              -75.45413973504063,
+              43.246021541575296
+            ],
+            [
+              -75.45420950347224,
+              43.246163585435916
+            ],
+            [
+              -75.45430233112769,
+              43.24632646636567
+            ],
+            [
+              -75.45442911116591,
+              43.24643479613275
+            ],
+            [
+              -75.45455010292659,
+              43.24653477710147
+            ],
+            [
+              -75.45469396743692,
+              43.24663048075017
+            ],
+            [
+              -75.45487197089109,
+              43.24669674722897
+            ],
+            [
+              -75.45508467281081,
+              43.24680892085177
+            ],
+            [
+              -75.45517234126302,
+              43.2468492146982
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8925,
+        "FULL_STNAM": "THE BEECHES",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45521365852665,
+              43.24474471548361
+            ],
+            [
+              -75.4549949388876,
+              43.244754003211774
+            ],
+            [
+              -75.4547943184641,
+              43.24472549973086
+            ],
+            [
+              -75.45459939217848,
+              43.24469278789086
+            ],
+            [
+              -75.4543987410201,
+              43.24466009755839
+            ],
+            [
+              -75.45432984531092,
+              43.244644428404754
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8926,
+        "FULL_STNAM": "THE BEECHES",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45517234126302,
+              43.2468492146982
+            ],
+            [
+              -75.45530799924065,
+              43.24680970616568
+            ],
+            [
+              -75.45542258060868,
+              43.24681762171122
+            ],
+            [
+              -75.45548587789185,
+              43.24685922887305
+            ],
+            [
+              -75.45551497583371,
+              43.246921901773064
+            ],
+            [
+              -75.4555156308376,
+              43.247009802892286
+            ],
+            [
+              -75.45544196059859,
+              43.247113069286556
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8927,
+        "FULL_STNAM": "THE BEECHES",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45517234126302,
+              43.2468492146982
+            ],
+            [
+              -75.4552110811978,
+              43.2468670203895
+            ],
+            [
+              -75.45529765608339,
+              43.24695876495382
+            ],
+            [
+              -75.45538420128331,
+              43.247046324192006
+            ],
+            [
+              -75.45544196059859,
+              43.247113069286556
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8928,
+        "FULL_STNAM": "THE BEECHES",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45544196059859,
+              43.247113069286556
+            ],
+            [
+              -75.4554538802279,
+              43.247175809690184
+            ],
+            [
+              -75.45543720081196,
+              43.247242850234095
+            ],
+            [
+              -75.45540318825903,
+              43.24728903109341
+            ],
+            [
+              -75.45533509939786,
+              43.24737301957913
+            ],
+            [
+              -75.45527261221892,
+              43.247440242421014
+            ],
+            [
+              -75.45523305989343,
+              43.247511560238145
+            ],
+            [
+              -75.45525291198705,
+              43.24762387499038
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8992,
+        "FULL_STNAM": "DART CIR",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.41338693110826,
+              43.208581136008135
+            ],
+            [
+              -75.41341214184253,
+              43.20854800558875
+            ],
+            [
+              -75.41344295330555,
+              43.2085075160539
+            ],
+            [
+              -75.41345319984958,
+              43.20846295504764
+            ],
+            [
+              -75.41345195250808,
+              43.20843648289517
+            ],
+            [
+              -75.41344614674,
+              43.20841075389959
+            ],
+            [
+              -75.41343128678069,
+              43.208386310184395
+            ],
+            [
+              -75.41340787326716,
+              43.20836455017526
+            ],
+            [
+              -75.4133747053258,
+              43.208343741190184
+            ],
+            [
+              -75.4133242473288,
+              43.208330193058835
+            ],
+            [
+              -75.4132676620306,
+              43.20832915662507
+            ],
+            [
+              -75.41322383487446,
+              43.208336100914366
+            ],
+            [
+              -75.41319760479583,
+              43.208345153577255
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8996,
+        "FULL_STNAM": "FORT STANWIX PK NORTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45292659621441,
+              43.21704322773714
+            ],
+            [
+              -75.45384767049399,
+              43.217470021554426
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9092,
+        "FULL_STNAM": "REVERE PK",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43437005375385,
+              43.208937892643405
+            ],
+            [
+              -75.43492160705769,
+              43.20848853863581
+            ],
+            [
+              -75.43505234998014,
+              43.208588750604164
+            ],
+            [
+              -75.43450470174774,
+              43.20902164683715
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9175,
+        "FULL_STNAM": "GIGLIOTTI AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45915305899652,
+              43.21235424721266
+            ],
+            [
+              -75.46019743077379,
+              43.21286205305611
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9220,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45824385137344,
+              43.20993273515133
+            ],
+            [
+              -75.45945320119006,
+              43.21077955762379
+            ],
+            [
+              -75.4598409362986,
+              43.211031360763656
+            ],
+            [
+              -75.46011513984381,
+              43.21116627217462
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9301,
+        "FULL_STNAM": "GIGLIOTTI AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46135647357349,
+              43.21323160545237
+            ],
+            [
+              -75.46038062917111,
+              43.212793768734095
+            ],
+            [
+              -75.46031085199886,
+              43.21278416501152
+            ],
+            [
+              -75.46027020350107,
+              43.21279326305879
+            ],
+            [
+              -75.46024586341719,
+              43.212805273349915
+            ],
+            [
+              -75.46019743077379,
+              43.21286205305611
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9410,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45258957941199,
+              43.216049477381546
+            ],
+            [
+              -75.45254046429733,
+              43.21610867428989
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9566,
+        "FULL_STNAM": "BOMBER DR",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.3980964134559,
+              43.21543091616916
+            ],
+            [
+              -75.39771586017935,
+              43.215779067166096
+            ],
+            [
+              -75.39641288254357,
+              43.216804639320884
+            ],
+            [
+              -75.3936407830563,
+              43.218885483955056
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9666,
+        "FULL_STNAM": "KING PIN LN",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4113936953521,
+              43.206516643320775
+            ],
+            [
+              -75.4115000812418,
+              43.20650831762024
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9670,
+        "FULL_STNAM": "BOARDMAN LN",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46019743077379,
+              43.21286205305611
+            ],
+            [
+              -75.4596423404543,
+              43.21350533005098
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9671,
+        "FULL_STNAM": "EILENBERG LN",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45700002808776,
+              43.21111653834832
+            ],
+            [
+              -75.45806665468507,
+              43.21160311013277
+            ],
+            [
+              -75.45809531102528,
+              43.21162384226201
+            ],
+            [
+              -75.45809956169276,
+              43.21164764998099
+            ],
+            [
+              -75.45809170797084,
+              43.21168639730645
+            ],
+            [
+              -75.45807971624265,
+              43.21171622669778
+            ],
+            [
+              -75.45803130471934,
+              43.211775983281015
+            ],
+            [
+              -75.45745421649497,
+              43.21242359349729
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9704,
+        "FULL_STNAM": "PARK DRIVE MNR 2",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42341371997213,
+              43.21868687346748
+            ],
+            [
+              -75.42254104123623,
+              43.2190951256253
+            ],
+            [
+              -75.42243148773922,
+              43.21915211503502
+            ],
+            [
+              -75.42232974845949,
+              43.219161425160365
+            ],
+            [
+              -75.42220343420863,
+              43.2191499790416
+            ],
+            [
+              -75.42164343432765,
+              43.218842318561705
+            ],
+            [
+              -75.42156172774935,
+              43.21880390383376
+            ],
+            [
+              -75.42155331779308,
+              43.218765218982305
+            ],
+            [
+              -75.42157742045238,
+              43.218717479828804
+            ],
+            [
+              -75.42271428262109,
+              43.21764711278514
+            ],
+            [
+              -75.42278741318673,
+              43.217623017821744
+            ],
+            [
+              -75.422864902114,
+              43.21764060041562
+            ],
+            [
+              -75.42290576530604,
+              43.21766129622158
+            ],
+            [
+              -75.42322070310378,
+              43.217862644397236
+            ],
+            [
+              -75.42366813115031,
+              43.218379183602266
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9711,
+        "FULL_STNAM": "GEIGER RD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.41806604470696,
+              43.217094584794566
+            ],
+            [
+              -75.4181396062317,
+              43.21708383714085
+            ],
+            [
+              -75.41819803927136,
+              43.217061292712465
+            ],
+            [
+              -75.41826053622292,
+              43.21702429880751
+            ],
+            [
+              -75.41831524159528,
+              43.21698868406887
+            ],
+            [
+              -75.41851765171971,
+              43.216817421114506
+            ],
+            [
+              -75.4186737584813,
+              43.2166442903913
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9716,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44363959716148,
+              43.22463029884257
+            ],
+            [
+              -75.44354797101443,
+              43.22475454377137
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9718,
+        "FULL_STNAM": "RIVERVIEW PKY NORTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.44291835068219,
+              43.22437006476229
+            ],
+            [
+              -75.44283052944142,
+              43.22448000029789
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9995,
+        "FULL_STNAM": "MOHAWK ACRS NORTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.437944518224,
+              43.22940668978512
+            ],
+            [
+              -75.43673397601215,
+              43.23062832519603
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10031,
+        "FULL_STNAM": "MOHAWK ACRS SOUTH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43733617006565,
+              43.228787897128505
+            ],
+            [
+              -75.43719500915157,
+              43.228708071413166
+            ],
+            [
+              -75.43715022661279,
+              43.228668113039205
+            ],
+            [
+              -75.43711436676698,
+              43.228631373957754
+            ],
+            [
+              -75.43706468579518,
+              43.22852852733044
+            ],
+            [
+              -75.43700095800666,
+              43.22832812142899
+            ],
+            [
+              -75.43694076676731,
+              43.22799972065926
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10184,
+        "FULL_STNAM": "AIR CITY BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42154053867581,
+              43.22430866321456
+            ],
+            [
+              -75.42153774402752,
+              43.22425780763605
+            ],
+            [
+              -75.42151170290143,
+              43.224166415607435
+            ],
+            [
+              -75.42148795078845,
+              43.22412361722849
+            ],
+            [
+              -75.421428600208,
+              43.22402091189911
+            ],
+            [
+              -75.42134755046328,
+              43.223889696463644
+            ],
+            [
+              -75.42128027323085,
+              43.223771295299066
+            ],
+            [
+              -75.42125058903896,
+              43.22371851356443
+            ],
+            [
+              -75.42118325190808,
+              43.22359153556042
+            ],
+            [
+              -75.42112573960311,
+              43.22347166929717
+            ],
+            [
+              -75.42108198848166,
+              43.22336318745024
+            ],
+            [
+              -75.42101620409737,
+              43.22317759457606
+            ],
+            [
+              -75.42096620635353,
+              43.223013385617755
+            ],
+            [
+              -75.42092792589754,
+              43.22284770447059
+            ],
+            [
+              -75.42089957697713,
+              43.22270485786725
+            ],
+            [
+              -75.42088552979466,
+              43.222652018495175
+            ],
+            [
+              -75.42084610201297,
+              43.22260356054178
+            ],
+            [
+              -75.42079830505692,
+              43.22254991692161
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10185,
+        "FULL_STNAM": "AIR CITY BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42079830505692,
+              43.22254991692161
+            ],
+            [
+              -75.42077401570695,
+              43.22263813370669
+            ],
+            [
+              -75.42077633350972,
+              43.2226910162351
+            ],
+            [
+              -75.42080056630918,
+              43.222803858058384
+            ],
+            [
+              -75.4208329718961,
+              43.22296813181131
+            ],
+            [
+              -75.42087502388189,
+              43.22311378611174
+            ],
+            [
+              -75.42090714464132,
+              43.22323660493357
+            ],
+            [
+              -75.4209530080388,
+              43.22336795107639
+            ],
+            [
+              -75.42099871301343,
+              43.22347642488195
+            ],
+            [
+              -75.42106027344515,
+              43.22361628930772
+            ],
+            [
+              -75.4211275894385,
+              43.22374040846182
+            ],
+            [
+              -75.42118503311991,
+              43.22385026892271
+            ],
+            [
+              -75.42123647568752,
+              43.22394013845272
+            ],
+            [
+              -75.42129381270293,
+              43.22403427430018
+            ],
+            [
+              -75.42136293729077,
+              43.22413694369975
+            ],
+            [
+              -75.42141037245209,
+              43.22421253290993
+            ],
+            [
+              -75.42147331751103,
+              43.224269481012506
+            ],
+            [
+              -75.42154053867581,
+              43.22430866321456
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10186,
+        "FULL_STNAM": "AIR CITY BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42154053867581,
+              43.22430866321456
+            ],
+            [
+              -75.42157776702386,
+              43.224398660598766
+            ],
+            [
+              -75.42161255225612,
+              43.22449827591231
+            ],
+            [
+              -75.42165757857899,
+              43.22456140865587
+            ],
+            [
+              -75.42187421676857,
+              43.22478695084739
+            ],
+            [
+              -75.42199022130987,
+              43.22487283865554
+            ],
+            [
+              -75.42211401501638,
+              43.22494718957041
+            ],
+            [
+              -75.42220620242378,
+              43.225002476044686
+            ],
+            [
+              -75.42230873411522,
+              43.225036623495264
+            ],
+            [
+              -75.42243229013455,
+              43.22507644813846
+            ],
+            [
+              -75.42255310432694,
+              43.2250990198245
+            ],
+            [
+              -75.4227184826118,
+              43.2251175907115
+            ],
+            [
+              -75.4229256684001,
+              43.22511298803994
+            ],
+            [
+              -75.4231405234195,
+              43.2250795856423
+            ],
+            [
+              -75.42332124016248,
+              43.2250405542531
+            ],
+            [
+              -75.42361947098102,
+              43.224926279864775
+            ],
+            [
+              -75.42392547709423,
+              43.224798548944825
+            ],
+            [
+              -75.42401431075045,
+              43.224748347974455
+            ],
+            [
+              -75.42408989639256,
+              43.224679015089464
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10187,
+        "FULL_STNAM": "AIR CITY BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42408989639256,
+              43.224679015089464
+            ],
+            [
+              -75.42396664583747,
+              43.22468330793483
+            ],
+            [
+              -75.42380177451497,
+              43.22473762659203
+            ],
+            [
+              -75.4236291529905,
+              43.22480923756303
+            ],
+            [
+              -75.42348005731044,
+              43.224869251353425
+            ],
+            [
+              -75.42327602720951,
+              43.2249505689815
+            ],
+            [
+              -75.42317134878145,
+              43.22498548214318
+            ],
+            [
+              -75.42307969113283,
+              43.2250069210162
+            ],
+            [
+              -75.42294602840629,
+              43.22502276020263
+            ],
+            [
+              -75.42283061880597,
+              43.22502318682396
+            ],
+            [
+              -75.42273093367935,
+              43.22502163721911
+            ],
+            [
+              -75.42260231758094,
+              43.22500868547029
+            ],
+            [
+              -75.42246307685836,
+              43.224976591855835
+            ],
+            [
+              -75.42228429401912,
+              43.224915871254225
+            ],
+            [
+              -75.42208423722403,
+              43.224813030039215
+            ],
+            [
+              -75.42197345167556,
+              43.224723286163
+            ],
+            [
+              -75.42186775442869,
+              43.22461050554402
+            ],
+            [
+              -75.4217197873681,
+              43.2244537638196
+            ],
+            [
+              -75.42154053867581,
+              43.22430866321456
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10192,
+        "FULL_STNAM": "KING PIN LN",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.41552517922356,
+              43.204939259689034
+            ],
+            [
+              -75.41550748460045,
+              43.205407807032636
+            ],
+            [
+              -75.41549504196588,
+              43.20558501622416
+            ],
+            [
+              -75.41544154912842,
+              43.20574490706566
+            ],
+            [
+              -75.41534709046688,
+              43.2058999570794
+            ],
+            [
+              -75.415238647663,
+              43.20600515163419
+            ],
+            [
+              -75.4150620512069,
+              43.206120575135195
+            ],
+            [
+              -75.41482388588969,
+              43.20621126855728
+            ],
+            [
+              -75.41447633020704,
+              43.20626742391379
+            ],
+            [
+              -75.41404678808783,
+              43.206306408449315
+            ],
+            [
+              -75.41307855009606,
+              43.20638476685473
+            ],
+            [
+              -75.4115000812418,
+              43.20650831762024
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10197,
+        "FULL_STNAM": "LIAM LN",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46215524764524,
+              43.23869697625658
+            ],
+            [
+              -75.46256428730696,
+              43.2383677033359
+            ],
+            [
+              -75.46309131848291,
+              43.23792094521008
+            ],
+            [
+              -75.46337303157685,
+              43.23768579036092
+            ],
+            [
+              -75.46349570026258,
+              43.23758165834254
+            ],
+            [
+              -75.46354540241747,
+              43.23755778270304
+            ],
+            [
+              -75.46358686782283,
+              43.23754451553902
+            ],
+            [
+              -75.4636416346996,
+              43.23753092160835
+            ],
+            [
+              -75.46371484265246,
+              43.23753731086628
+            ],
+            [
+              -75.4638201584243,
+              43.23755694187781
+            ],
+            [
+              -75.46436975253815,
+              43.23767506272245
+            ],
+            [
+              -75.4644796670268,
+              43.2376980179028
+            ],
+            [
+              -75.46452559281488,
+              43.23772457537593
+            ],
+            [
+              -75.46481047575499,
+              43.2379072860327
+            ],
+            [
+              -75.46485650473265,
+              43.23794721582903
+            ],
+            [
+              -75.46487514965833,
+              43.237993942879
+            ],
+            [
+              -75.46488010377995,
+              43.238044069006776
+            ],
+            [
+              -75.46487141665364,
+              43.238104279100035
+            ],
+            [
+              -75.46482612448759,
+              43.238161295391336
+            ],
+            [
+              -75.4644353369498,
+              43.2384838154164
+            ],
+            [
+              -75.46405821220846,
+              43.23879959267996
+            ],
+            [
+              -75.46376290573518,
+              43.23905151969791
+            ],
+            [
+              -75.46356298514608,
+              43.23921948237182
+            ],
+            [
+              -75.46344483687339,
+              43.23931691013473
+            ],
+            [
+              -75.46336273413654,
+              43.23934398666834
+            ],
+            [
+              -75.4632942237023,
+              43.23935429358018
+            ],
+            [
+              -75.46322101361406,
+              43.2393479040649
+            ],
+            [
+              -75.46314315457367,
+              43.23933150389461
+            ],
+            [
+              -75.46289954841644,
+              43.23916533753126
+            ],
+            [
+              -75.46215524764524,
+              43.23869697625658
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10198,
+        "FULL_STNAM": "LIAM LN",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46215524764524,
+              43.23869697625658
+            ],
+            [
+              -75.4610127072261,
+              43.2379805307186
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10199,
+        "FULL_STNAM": "LIAM LN",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4610127072261,
+              43.2379805307186
+            ],
+            [
+              -75.4608045766784,
+              43.237856004980564
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10241,
+        "FULL_STNAM": "BATEAUX PLACE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.49360392868611,
+              43.22951349280941
+            ],
+            [
+              -75.49297719876157,
+              43.23017878062783
+            ],
+            [
+              -75.49294289283297,
+              43.230255541409235
+            ],
+            [
+              -75.49304029710946,
+              43.23042430929379
+            ],
+            [
+              -75.49327203770345,
+              43.23062067995487
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11891,
+        "FULL_STNAM": "AVENUE A",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46050050141542,
+              43.20709482623281
+            ],
+            [
+              -75.46144380492038,
+              43.20621089505418
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11893,
+        "FULL_STNAM": "AVENUE A",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45903289675115,
+              43.208443365128616
+            ],
+            [
+              -75.45969718085495,
+              43.2078319581585
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11894,
+        "FULL_STNAM": "AVENUE A",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45969718085495,
+              43.2078319581585
+            ],
+            [
+              -75.46050050141542,
+              43.20709482623281
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11903,
+        "FULL_STNAM": "AVENUE A",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46144380492038,
+              43.20621089505418
+            ],
+            [
+              -75.46213116432291,
+              43.20557218992463
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11906,
+        "FULL_STNAM": "AVENUE B",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45983141448717,
+              43.205472956552484
+            ],
+            [
+              -75.46187149780202,
+              43.205012655990664
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11908,
+        "FULL_STNAM": "AVENUE B",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45883608164046,
+              43.20570299453723
+            ],
+            [
+              -75.45983141448717,
+              43.205472956552484
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11911,
+        "FULL_STNAM": "AVENUE B",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45804635581258,
+              43.20588096472133
+            ],
+            [
+              -75.45883608164046,
+              43.20570299453723
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11914,
+        "FULL_STNAM": "AVENUE B",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.457305976429,
+              43.20604667665218
+            ],
+            [
+              -75.45804635581258,
+              43.20588096472133
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11967,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47169520295725,
+              43.21536079314887
+            ],
+            [
+              -75.4726019343529,
+              43.21580604491578
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11971,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4647131769233,
+              43.212887828339376
+            ],
+            [
+              -75.46507349437059,
+              43.212988991113065
+            ],
+            [
+              -75.4657942548594,
+              43.21320734927214
+            ],
+            [
+              -75.46643572942422,
+              43.213377919265994
+            ],
+            [
+              -75.46718273446484,
+              43.21358654009046
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11979,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4692221051822,
+              43.21421640614666
+            ],
+            [
+              -75.47012013083305,
+              43.21460881058881
+            ],
+            [
+              -75.47048875313291,
+              43.2147730777365
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11981,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.46718273446484,
+              43.21358654009046
+            ],
+            [
+              -75.46809682703491,
+              43.213855406622116
+            ],
+            [
+              -75.46879994592358,
+              43.21405778234987
+            ],
+            [
+              -75.4692221051822,
+              43.21421640614666
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11988,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47887840901622,
+              43.21881385967903
+            ],
+            [
+              -75.4794072738923,
+              43.21915159736865
+            ],
+            [
+              -75.47996285819244,
+              43.21954053392015
+            ],
+            [
+              -75.4805544124073,
+              43.22004156504578
+            ],
+            [
+              -75.48099111042445,
+              43.22046232060346
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11994,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4759644491541,
+              43.217402068494216
+            ],
+            [
+              -75.47718800833155,
+              43.21798066324422
+            ],
+            [
+              -75.4781210776028,
+              43.218419347086474
+            ],
+            [
+              -75.47887840901622,
+              43.21881385967903
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11995,
+        "FULL_STNAM": "SOUTH DOXTATOR AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47462041086085,
+              43.21892653483785
+            ],
+            [
+              -75.47528645345652,
+              43.21818421230571
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11996,
+        "FULL_STNAM": "SOUTH DOXTATOR AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.47528645345652,
+              43.21818421230571
+            ],
+            [
+              -75.4759644491541,
+              43.217402068494216
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11998,
+        "FULL_STNAM": "SOUTH DOXTATOR AVE",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4759644491541,
+              43.217402068494216
+            ],
+            [
+              -75.47657324274904,
+              43.216745285471944
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11999,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4726019343529,
+              43.21580604491578
+            ],
+            [
+              -75.47389581091336,
+              43.216413248330596
+            ],
+            [
+              -75.4759644491541,
+              43.217402068494216
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 12000,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.48099111042445,
+              43.22046232060346
+            ],
+            [
+              -75.4812519800568,
+              43.22071814446156
+            ],
+            [
+              -75.48167509525169,
+              43.22116999016861
+            ],
+            [
+              -75.48303651712607,
+              43.222536292975356
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 12002,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.49100837828905,
+              43.22800568423305
+            ],
+            [
+              -75.49198572977556,
+              43.228554251040144
+            ],
+            [
+              -75.49360392868611,
+              43.22951349280941
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 12003,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.48810861587597,
+              43.22612499493639
+            ],
+            [
+              -75.48946569485368,
+              43.22702517973321
+            ],
+            [
+              -75.49100837828905,
+              43.22800568423305
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 12005,
+        "FULL_STNAM": "ERIE BLVD WEST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.48303651712607,
+              43.222536292975356
+            ],
+            [
+              -75.48384659162161,
+              43.22324298998482
+            ],
+            [
+              -75.48451953348346,
+              43.22379230488127
+            ],
+            [
+              -75.48569714722267,
+              43.22462282115196
+            ],
+            [
+              -75.4861573527456,
+              43.22490955037226
+            ],
+            [
+              -75.48730930847621,
+              43.22560103964935
+            ],
+            [
+              -75.48810861587597,
+              43.22612499493639
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 12070,
+        "FULL_STNAM": "RCH",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4528294945034,
+              43.23804216523461
+            ],
+            [
+              -75.45276575746662,
+              43.23817422198617
+            ],
+            [
+              -75.45278138303448,
+              43.23825121154264
+            ],
+            [
+              -75.45281190071373,
+              43.23830612746414
+            ],
+            [
+              -75.4528799746673,
+              43.23834988736005
+            ],
+            [
+              -75.45295549472905,
+              43.23838260948909
+            ],
+            [
+              -75.45303097287237,
+              43.23840982896316
+            ],
+            [
+              -75.45310649309504,
+              43.2384425518919
+            ],
+            [
+              -75.4531893778065,
+              43.23845323091074
+            ],
+            [
+              -75.45327214015897,
+              43.2384473993405
+            ],
+            [
+              -75.45331714107698,
+              43.23842520633956
+            ],
+            [
+              -75.45343076283008,
+              43.238328620980454
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 12074,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.43688518146779,
+              43.2395426419536
+            ],
+            [
+              -75.4371434599526,
+              43.24004883943369
+            ],
+            [
+              -75.43726791096248,
+              43.24026022539454
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 14505,
+        "FULL_STNAM": "ERIE BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45687520568062,
+              43.20927149254825
+            ],
+            [
+              -75.45708168305381,
+              43.20926627166768
+            ],
+            [
+              -75.45719909463519,
+              43.20927616156268
+            ],
+            [
+              -75.45736327571933,
+              43.20929897707774
+            ],
+            [
+              -75.45757770359579,
+              43.209365928049905
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 14508,
+        "FULL_STNAM": "NORTH JAMES ST",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45739235945895,
+              43.21068613767836
+            ],
+            [
+              -75.45700002808776,
+              43.21111653834832
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 14514,
+        "FULL_STNAM": "BLACK RIVER BLVD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.45284022368456,
+              43.21157998138646
+            ],
+            [
+              -75.45247613590213,
+              43.212041563273004
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 14523,
+        "FULL_STNAM": "WATER TREATMENT ACCESS RD",
+        "CITY_LEFT": "ROME INSIDE",
+        "CITY_RIGHT": "ROME INSIDE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42360309618105,
+              43.20457229168564
+            ],
+            [
+              -75.42352634985006,
+              43.20394366941559
+            ],
+            [
+              -75.4235112401929,
+              43.20379440220999
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

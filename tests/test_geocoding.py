@@ -118,6 +118,55 @@ class GeocodingRegressionTests(unittest.TestCase):
         self.assertEqual(norm_cad("6 ST"), "6 ST")
         self.assertEqual(norm_cad("6TH ST"), "6TH ST")
 
+    def test_rome_county_names_are_scoped_and_clipped(self):
+        for name in ["DART CIR", "AIR CITY BLVD", "GEIGER RD", "N DOXTATOR AVE", "S DOXTATOR AVE",
+                     "BROADWAY ST", "BOMBER DR", "BATEAUX PL"]:
+            hit = self.gc.county_street(name, "ROME INSIDE")
+            self.assertIsNotNone(hit, name)
+            self.assertEqual(hit["precision"], "street")
+            self.assertEqual(hit["method"], "county_roads")
+            self.assertLessEqual(hit["geom"].difference(self.gc.poly("ROME INSIDE").buffer(self.gc.BUF)).length, .01)
+            self.assertIsNone(self.gc.county_street(name, "WHITESTOWN"))
+        self.assertIsNone(self.gc.county_street("DART CIR", "ROME OUTSIDE"))
+        self.assertIsNone(self.gc.county_street("ERIE BLVD W", "ROME INSIDE"))
+        existing = self.locations[(self.locations.street == "ERIE BLVD W") & (self.locations.city == "ROME INSIDE")].iloc[0]
+        self.assertEqual(existing.match_method, "exact")
+
+    def test_rome_facility_locations_do_not_claim_incident_accuracy(self):
+        for name in ["PARK DRIVE MNR 2", "REVERE PK", "MOHAWK ACRS NORTH", "FORT STANWIX PK SOUTH", "RCH"]:
+            r = self.locations[(self.locations.street == name) & (self.locations.city == "ROME INSIDE")].iloc[0]
+            self.assertEqual(r.precision, "landmark", name)
+            self.assertEqual(r.match_method, "county_roads", name)
+            self.assertEqual(r.expected_error_m, "", name)
+
+    def test_rome_reviewed_corrections_preserve_directions(self):
+        for reported, matched in [("BLACK RVER BLVD", "BLACK RIVER BLVD"),
+                                  ("ERIE BLVD BLVD W", "ERIE BLVD WEST"), ("NORTH JAMES", "NORTH JAMES ST")]:
+            hit = self.gc.county_street(reported, "ROME INSIDE")
+            self.assertEqual(hit["matched"], matched)
+            self.assertEqual(hit["method"], "county_roads_alias")
+            self.assertIsNone(self.gc.county_street(reported, "ROME OUTSIDE"))
+
+    def test_rome_ambiguous_names_are_not_forced_to_a_candidate(self):
+        for name, city in [("ERIE BLVD", "ROME INSIDE"), ("FOX ST", "ROME INSIDE"),
+                           ("BLACK RIVER RD", "ROME INSIDE"), ("W DOMINICK RD", "ROME INSIDE"),
+                           ("U TURN", "ROME OUTSIDE")]:
+            self.assertIsNone(self.gc.county_street(name, city))
+            r = self.locations[(self.locations.street == name) & (self.locations.city == city)].iloc[0]
+            self.assertEqual(r.precision, "municipality", name)
+
+    def test_county_house_numbers_and_ramp_names_do_not_erase_qualifiers(self):
+        self.assertEqual(county_name_key("112B NORTH DOXTATOR AVE"), county_name_key("N DOXTATOR AVE"))
+        self.assertEqual(county_name_key("BATEAUX PLACE"), county_name_key("BATEAUX PL"))
+        self.assertEqual(county_name_key("STATE ROUTE 49 EAST RAMP"), county_name_key("ROUTE 49 E RAMP"))
+        self.assertNotEqual(county_name_key("ROUTE 49 EAST RAMP"), county_name_key("ROUTE 49 WEST RAMP"))
+        self.assertNotEqual(county_name_key("ROUTE 49 EAST RAMP"), county_name_key("ROUTE 49"))
+        self.assertEqual(county_name_key("ROUTE 26 / ROUTE 365 RAMP"), county_name_key("ROUTE 26 ROUTE 365 RAMP"))
+        a = self.gc.county_street("105 N DOXTATOR AVE", "ROME INSIDE")
+        b = self.gc.county_street("N DOXTATOR AVE", "ROME INSIDE")
+        self.assertTrue(a["geom"].equals(b["geom"]))
+        self.assertIsNotNone(self.gc.county_street("ROUTE 26 ROUTE 365 RAMP", "ROME OUTSIDE"))
+
     def test_outside_whole_road_fallback_is_rejected(self):
         for name, city in [("OLD STATE RD", "TRENTON"), ("ROUTE 49", "WHITESTOWN"),
                            ("ROME NEW LONDON RD", "ROME OUTSIDE")]:

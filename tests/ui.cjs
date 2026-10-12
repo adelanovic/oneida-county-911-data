@@ -295,6 +295,25 @@ async function main() {
     await navigate(pageUrl);
     console.log('PASS: Marcy streets disclose county references and ambiguous turnarounds remain approximate');
 
+    for(const [street,city] of [['PARK DRIVE MNR 2','ROME INSIDE'],['ERIE BLVD BLVD W','ROME INSIDE'],
+                                ['ROUTE 26 ROUTE 365 RAMP','ROME OUTSIDE'],['ERIE BLVD','ROME INSIDE']]) {
+      await navigate(pageUrl+'?place=T%3AROME');
+      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]===${JSON.stringify(city)}});option.click()})()`);
+      await delay(1100);
+      const detail=await evaluate(`document.querySelector('#chart-help-body').textContent`);
+      assert(detail.includes(street),detail);
+      if(street==='ERIE BLVD') assert(detail.includes('direction not specified') && detail.includes('not an incident site'),detail);
+      else {
+        assert(detail.includes('Oneida County CAD'),detail);
+        assert(!detail.includes('Unmatched street'),detail);
+        if(street.includes('MNR')) assert(detail.includes('not independently verified'),detail);
+        if(street.includes('BLVD BLVD')) assert(detail.includes('reviewed name correction') && detail.includes('ERIE BLVD WEST'),detail);
+      }
+      await screenshot('rome-'+street.toLowerCase().replaceAll(' ','-'));
+    }
+    await navigate(pageUrl);
+    console.log('PASS: Rome facilities, corrections and connector ramps disclose estimates; unspecified Erie direction stays approximate');
+
     const overlap = await evaluate(`(()=>{const a=document.querySelector('#cmp-a'),b=document.querySelector('#cmp-b');
       a.value='T:WHITESTOWN';a.dispatchEvent(new Event('change'));b.value='V:WHITESTOWN|WHITESBORO';b.dispatchEvent(new Event('change'));
       const first=[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent);

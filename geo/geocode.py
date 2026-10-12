@@ -3,7 +3,7 @@
 The reports name a street (no house number) and a city/town/village. Each pair is resolved to the stretch of
 that street inside the municipality, then reduced to one point:
 
-Reviewed Utica, Whitesboro and Marcy gaps first try exact names in the saved county CAD road subset, preserving direction and ramp
+Reviewed Utica, Whitesboro, Marcy and Rome gaps first try exact names in the saved county CAD road subset, preserving direction and ramp
 qualifiers and clipping to the same municipality tolerance. These use road-length medoids; facility/access
 features are approximate landmarks without an incident-accuracy estimate. Other locations use the steps below.
 
@@ -44,7 +44,11 @@ from shapely.ops import unary_union, linemerge
 ROOT = Path(__file__).resolve().parent.parent
 TIGER = ROOT / "geo" / "tiger"
 COUNTY_REFERENCES = {"UTICA": "utica_roads.json", "WHITESBORO VILLAGE": "whitesboro_roads.json",
-                     "MARCY": "marcy_roads.json"}
+                     "MARCY": "marcy_roads.json", "ROME INSIDE": "rome_inside_roads.json",
+                     "ROME OUTSIDE": "rome_outside_roads.json"}
+COUNTY_NAME_ALIASES = {"ROME INSIDE": {"BLACK RVER BLVD": "BLACK RIVER BLVD",
+                                      "ERIE BLVD BLVD W": "ERIE BLVD WEST",
+                                      "NORTH JAMES": "NORTH JAMES ST"}}
 
 # Local equirectangular projection (meters) — error well under 1% across one county.
 LAT0 = 43.2
@@ -75,12 +79,17 @@ def norm_tiger(name):
     return re.sub(r"\s+", " ", n).strip()
 
 
-def norm_cad(street):
+def strip_house_number(street):
     s = street.upper().strip()
     # A few rows carry a house number ("114 CHURCH ST"); keep "6 ST" (6th Street) intact.
     m = re.match(r"^\d+[A-Z]?\s+(.+)$", s)
     if m and m.group(1) not in SUFFIXES and not re.match(r"^(ST|ND|RD|TH)\b", m.group(1)):
         s = m.group(1)
+    return s
+
+
+def norm_cad(street):
+    s = strip_house_number(street)
     s = re.sub(r"\s+(EB|WB|NB|SB|RAMP|EXIT \d+\w* RAMP|EXIT \d+\w*|ACCESS RD)$", "", s)
     return re.sub(r"\s+(EB|WB|NB|SB|RAMP)$", "", s)
 
@@ -100,8 +109,14 @@ def match_key(name):
 
 def county_name_key(name):
     """Exact spelling/abbreviation key for county street names; never a fuzzy match."""
-    words = {**DIR_WORDS, "ROAD": "RD", "SAINT": "ST"}
-    return match_key(" ".join(words.get(t, t) for t in name.upper().split()))
+    words = {**DIR_WORDS, "ROAD": "RD", "SAINT": "ST", "PLACE": "PL", "DRIVE": "DR",
+             "AVENUE": "AVE", "STREET": "ST", "BOULEVARD": "BLVD", "CIRCLE": "CIR", "LANE": "LN"}
+    name = re.sub(r"^STATE (?:ROUTE|RTE)\b", "ROUTE", strip_house_number(name))
+    # CAD sometimes separates the two roads in a named connector ramp with a slash.
+    # Preserve separators for ordinary intersections and preserve the RAMP qualifier.
+    if name.startswith("ROUTE ") and name.endswith(" RAMP"):
+        name = name.replace(" / ", " ")
+    return match_key(" ".join(words.get(t, t) for t in name.split()))
 
 
 def suffix_of(name):
@@ -284,8 +299,10 @@ class Geocoder:
         # Restrict each snapshot to its reviewed municipality and exact names,
         # preserving ramp/direction qualifiers.
         self.county_roads = defaultdict(list)
+        self.county_requested = {}
         for city, filename in COUNTY_REFERENCES.items():
             reference = json.loads((ROOT / "geo/reference" / filename).read_text(encoding="utf-8"))
+            self.county_requested[city] = set(reference["requested_names"])
             for feature in reference["features"]:
                 attrs = feature["attributes"]
                 geom = to_m(MultiLineString(feature["geometry"]["paths"]))
@@ -293,7 +310,15 @@ class Geocoder:
 
     def county_street(self, name, city):
         """An exact county CAD name match, clipped to the reported municipality."""
-        matches = self.county_roads.get((city, county_name_key(name)), [])
+        # Reference geometry can share a canonical name with already-mapped roads.
+        # Apply this gap-fill only to the explicitly reviewed dispatch names.
+        if name not in self.county_requested.get(city, set()):
+            return None
+        # A small, explicit correction list; no global suffix or direction guessing.
+        target = COUNTY_NAME_ALIASES.get(city, {}).get(name, name)
+        if city in {"ROME INSIDE", "ROME OUTSIDE"} and county_name_key(name) == "ERIEBLVD":
+            return None  # A short CAD segment cannot resolve an unqualified east/west report.
+        matches = self.county_roads.get((city, county_name_key(target)), [])
         if not matches:
             return None
         area = self.poly(city).buffer(self.BUF)
@@ -306,9 +331,11 @@ class Geocoder:
             return None
         # CAD includes named access drives inside complexes. Their road extent does
         # not establish the building, entrance, or incident's positional accuracy.
-        facility = bool({"APTS", "SCHOOL"} & set(name.upper().split()))
+        facility = bool({"APTS", "SCHOOL", "MNR", "ACRS", "PK"} & set(name.upper().split()))
+        facility = facility or name.upper() in {"THE BEECHES", "RCH", "U TURN"}
         return dict(geom=geom, matched=" / ".join(sorted({n for n, _ in matches})),
-                    method="county_roads", precision="landmark" if facility else "street", area=area)
+                    method="county_roads_alias" if target != name else "county_roads",
+                    precision="landmark" if facility else "street", area=area)
 
     def poly(self, city):
         if city not in self._poly_cache:
@@ -481,7 +508,7 @@ def main():
                 for raw, part in zip(raw_parts, parts):
                     hit = gc.county_street(raw, r.city) or gc.street(part, r.city)
                     if hit:
-                        p, err, mx = gc.place_on(hit, "uniform" if hit["method"] == "county_roads" else "address")
+                        p, err, mx = gc.place_on(hit, "uniform" if hit["method"].startswith("county_roads") else "address")
                         lat, lon = to_deg(Point(p))
                         row.update(latitude=lat, longitude=lon, precision=hit["precision"], match_method=hit["method"],
                                    matched_name=hit["matched"], street_length_m=round(hit["geom"].length),
