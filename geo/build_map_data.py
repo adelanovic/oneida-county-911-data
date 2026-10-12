@@ -110,7 +110,7 @@ def place_population(df):
         return {}
     est = pd.read_csv(path, dtype=str, encoding="latin-1")
     est = est[(est.STATE == "36") & (est.COUNTY == "065")]
-    col = [c for c in est.columns if c.startswith("POPESTIMATE")][-1]
+    col = "POPESTIMATE2024"  # Keep the displayed vintage fixed if the input gains newer columns.
     est[col] = est[col].astype(int)
     strip = lambda n: re.sub(r" (town|city|village)( \(pt\.\))?$", "", n).upper()
     cousub = {r.COUSUB: (strip(r.NAME), r[col]) for _, r in est[est.SUMLEV == "061"].iterrows()}
