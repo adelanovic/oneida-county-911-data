@@ -167,6 +167,44 @@ class GeocodingRegressionTests(unittest.TestCase):
         self.assertTrue(a["geom"].equals(b["geom"]))
         self.assertIsNotNone(self.gc.county_street("ROUTE 26 ROUTE 365 RAMP", "ROME OUTSIDE"))
 
+    def test_verona_named_roads_use_local_county_geometry(self):
+        for name in ["MERRY ST", "KELLY AVE", "MAPLE AVE", "VOLUNTEER RD", "LAKE SHORE RD SOUTH",
+                     "COUNTY HWY 50", "COUNTY ROUTE 50"]:
+            hit = self.gc.county_street(name, "VERONA")
+            self.assertIsNotNone(hit, name)
+            self.assertEqual(hit["precision"], "street")
+            self.assertLessEqual(hit["geom"].difference(self.gc.poly("VERONA").buffer(self.gc.BUF)).length, .01)
+            self.assertIsNone(self.gc.county_street(name, "WESTMORELAND"))
+            r = self.locations[(self.locations.street == name) & (self.locations.city == "VERONA")].iloc[0]
+            self.assertEqual(r.precision, "street", name)
+        self.assertEqual(self.gc.county_street("COUNTY HWY 50", "VERONA")["matched"], "COUNTY ROUTE 50")
+
+    def test_verona_thruway_aliases_preserve_direction_and_exit(self):
+        for reported, matched in [("NY STATE THRUWAY WB", "INTERSTATE 90 WB"),
+                                  ("NY STATE THRUWAY EB", "INTERSTATE 90 EB"),
+                                  ("NYS THRUWAY EXIT 33", "INTERSTATE 90 EXIT 33"),
+                                  ("NY STATE THRUWAY EXIT 33 RAMP", "INTERSTATE 90 EXIT 33 RAMP")]:
+            hit = self.gc.county_street(reported, "VERONA")
+            self.assertEqual(hit["matched"], matched)
+            self.assertEqual(hit["precision"], "street")
+        east = self.gc.county_street("NY STATE THRUWAY EB", "VERONA")
+        west = self.gc.county_street("NY STATE THRUWAY WB", "VERONA")
+        self.assertGreater(east["geom"].length, 10000)
+        self.assertGreater(west["geom"].length, 10000)
+        self.assertFalse(east["geom"].equals(west["geom"]))
+        for name in ["U TURN", "NY STATE THRUWAY RAMP"]:
+            self.assertIsNone(self.gc.county_street(name, "VERONA"))
+            r = self.locations[(self.locations.street == name) & (self.locations.city == "VERONA")].iloc[0]
+            self.assertEqual(r.precision, "municipality")
+
+    def test_verona_facilities_and_parking_do_not_claim_incident_accuracy(self):
+        for name in ["MARION MANOR", "MARION MNR", "TURNING STONE CASINO RESORT",
+                     "VILLAGES AT STONEY CREEK", "NYS THRUWAY WB PARKING", "NYS THRUWAY EB PARKING"]:
+            r = self.locations[(self.locations.street == name) & (self.locations.city == "VERONA")].iloc[0]
+            self.assertEqual(r.precision, "landmark", name)
+            self.assertTrue(r.match_method.startswith("county_roads"), name)
+            self.assertEqual(r.expected_error_m, "", name)
+
     def test_outside_whole_road_fallback_is_rejected(self):
         for name, city in [("OLD STATE RD", "TRENTON"), ("ROUTE 49", "WHITESTOWN"),
                            ("ROME NEW LONDON RD", "ROME OUTSIDE")]:

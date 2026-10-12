@@ -317,6 +317,26 @@ async function main() {
     await navigate(pageUrl);
     console.log('PASS: Rome facilities, corrections and connector ramps disclose estimates; unspecified Erie direction stays approximate');
 
+    await send('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
+    for(const street of ['NY STATE THRUWAY WB','MARION MANOR','NY STATE THRUWAY RAMP']) {
+      await navigate(pageUrl+'?place=T%3AVERONA');
+      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]==='VERONA'});option.click()})()`);
+      await delay(1100);
+      const detail=await evaluate(`(()=>{const p=document.querySelector('#chart-help-dialog'),r=p.getBoundingClientRect();return {open:p.open,left:r.left,right:r.right,body:document.querySelector('#chart-help-body').textContent}})()`);
+      assert(detail.open && detail.left>=0 && detail.right<=320,JSON.stringify(detail));
+      assert(detail.body.includes(street),detail.body);
+      if(street.endsWith('RAMP')) assert(detail.body.includes('no exit number or direction') && detail.body.includes('Ambiguous U TURN label'),detail.body);
+      else {
+        assert(detail.body.includes('Oneida County CAD') && !detail.body.includes('Unmatched street'),detail.body);
+        if(street==='MARION MANOR') assert(detail.body.includes('not independently verified'),detail.body);
+        else assert(detail.body.includes('INTERSTATE 90 WB') && detail.body.includes('not a verified incident site'),detail.body);
+      }
+      await screenshot('verona-'+street.toLowerCase().replaceAll(' ','-'));
+    }
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate(pageUrl);
+    console.log('PASS: Verona highway aliases and facilities disclose estimates on mobile; generic ramps and turnarounds remain approximate');
+
     const overlap = await evaluate(`(()=>{const a=document.querySelector('#cmp-a'),b=document.querySelector('#cmp-b');
       a.value='T:WHITESTOWN';a.dispatchEvent(new Event('change'));b.value='V:WHITESTOWN|WHITESBORO';b.dispatchEvent(new Event('change'));
       const first=[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent);
