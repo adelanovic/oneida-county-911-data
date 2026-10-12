@@ -82,6 +82,19 @@ class DatasetRegressionTests(unittest.TestCase):
         self.assertEqual(loc[4], "street")
         self.assertGreater(loc[8], 1)
 
+    def test_weather_annotations_keep_source_context_separate_from_dispatches(self):
+        events = json.loads((ROOT / "sources/weather_events.json").read_text(encoding="utf-8"))
+        self.assertEqual(self.data["weatherEvents"], events)
+        dates = [date for event in events for date in event["dates"]]
+        self.assertEqual(set(dates), {"2024-02-28", "2024-02-29", "2024-07-16", "2025-06-22"})
+        self.assertEqual(len(dates), len(set(dates)))
+        for event in events:
+            self.assertTrue(event["source_url"].startswith("https://www.weather.gov/bgm/"))
+            self.assertEqual(set(event["replay_start"]), set(event["dates"]))
+            for date in event["dates"]:
+                self.assertIn(date, self.data["dates"])
+                self.assertTrue(0 <= event["replay_start"][date] < 86400)
+
     def test_absent_locations_stay_unmapped(self):
         missing = self.df.location_missing
         self.assertTrue(self.df.loc[missing, "geo_precision"].eq("none").all())

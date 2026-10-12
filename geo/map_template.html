@@ -220,6 +220,14 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   .cal .wlab.compact { display: flex; }
 }
 .cal .day.has { cursor: pointer; }
+.cal .day.weather-event { position: relative; }
+.cal .day.weather-event::after { content: ""; position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--panel); outline: 1px solid var(--ink); left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.weather-events { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 10px; }
+.weather-events .weather-label { font-size: .78rem; color: var(--muted); }
+.weather-events button { min-height: 44px; max-width: 100%; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink-2); font: inherit; font-size: .78rem; text-align: left; cursor: pointer; }
+.weather-events button:hover { border-color: var(--focus); }
+.weather-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.trend-box .weather-dot { fill: var(--panel); stroke: var(--focus); stroke-width: 2; }
 .cal .day.none { border: 1px dashed var(--line); box-sizing: border-box; }
 .cal .day.dimyear { opacity: .35; }
 
@@ -559,6 +567,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
       <div class="scroll-x"><div class="cal-wrap" id="cal"></div></div>
       <div class="ramp" id="cal-ramp"></div>
       <label class="chart-picker">Filter by report date <select id="report-date" aria-label="Filter by report date"></select></label>
+      <div class="weather-events" id="coverage-weather" aria-label="Documented weather events"></div>
     </div>
     <div class="chart card wide" id="flows-section">
       <div class="chart-head">
@@ -719,6 +728,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
 <script>
 (() => {
   const D = JSON.parse(document.getElementById("data").textContent);
+  const weatherByDate = new Map((D.weatherEvents || []).flatMap(event => event.dates.map(date => [date, event])));
   const LABEL = {
     MEDICAL: "Medical", TRAFFIC: "Traffic", WELFARE_ASSIST: "Welfare & assist", DOMESTIC_DISPUTE: "Domestic & dispute",
     ADMIN_PROACTIVE: "Admin & proactive", PROPERTY_CRIME: "Property crime", PUBLIC_ORDER: "Public order", ALARM: "Alarm",
@@ -1184,7 +1194,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
     }
     if (kind === "hour") return `<b>${hourLabel(+a)}–${hourLabel((+a + 1) % 24)}</b><br>${fmt1(heatVals.hour[+a] / Math.max(1, heatVals.days))} per day <span>· ${fmt(heatVals.hour[+a])} dispatches</span>`;
     if (kind === "dow") return `<b>${DOW_LONG[a]}s</b><br>${fmt1(dowDays[+a] ? heatVals.dow[+a] / dowDays[+a] : 0)} per day <span>· ${fmt(heatVals.dow[+a])} dispatches over ${dowDays[+a]} days</span>`;
-    if (kind === "date") return `<b>${dateLabel(D.dates[+a])}</b><br>${fmt(calN[+a])} dispatches`;
+    if (kind === "date") { const event = weatherByDate.get(D.dates[+a]); return `<b>${dateLabel(D.dates[+a])}</b><br>${fmt(calN[+a])} dispatches${event ? `<br><span>Documented weather: ${esc(event.label)}. Details below the calendar.</span>` : ""}`; }
     return "";
   }
   function onChartMove(e) {
@@ -1273,11 +1283,22 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
       if (d < 0) { el.classList.toggle("dimyear", (st.year >= 0 && yi !== st.year) || outMonth); continue; }
       el.style.background = qColor(bucket(dateN[d], calMin, calMax));
       el.classList.toggle("on", st.date === d);
+      const event = weatherByDate.get(iso);
+      el.classList.toggle("weather-event", !!event);
       el.classList.toggle("dimyear", (st.year >= 0 && yi !== st.year) || outMonth);
-      el.setAttribute("aria-label", `${dateLabel(D.dates[d])}: ${fmt(dateN[d])} dispatches`);
+      el.setAttribute("aria-label", `${dateLabel(D.dates[d])}: ${fmt(dateN[d])} dispatches${event ? `; documented weather: ${event.label}. Details below the calendar` : ""}`);
       el.setAttribute("aria-pressed", st.date === d);
     }
     $("cal-ramp").innerHTML = rampHtml(fmt(calMin), fmt(calMax), "dispatches per day", true);
+    $("coverage-weather").innerHTML = weatherButtons(D.dates.map((_, d) => d).filter(d => yearOK(d) && monthOK(d) && dowOK(d)));
+  }
+
+  function weatherButtons(ids) {
+    const buttons = ids.filter(d => weatherByDate.has(D.dates[d])).map(d => {
+      const date = D.dates[d], event = weatherByDate.get(date);
+      return `<button type="button" data-weather-date="${date}" aria-haspopup="dialog" aria-controls="chart-help-dialog">${esc(dateLabel(date))} · ${esc(event.label)}</button>`;
+    });
+    return buttons.length ? '<span class="weather-label">● Documented weather</span>' + buttons.join("") : "";
   }
 
 
@@ -1440,13 +1461,14 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
         if (W >= 600) svg += `<text x="${xx + (xx > W / 2 ? -8 : 8)}" y="${Math.max(12, yy - 9)}" text-anchor="${xx > W / 2 ? 'end' : 'start'}">${MON[+D.dates[d].slice(5, 7) - 1]} ${+D.dates[d].slice(8)} · ${fmt(v)}</text>`;
       });
       const selectedIndex = ids.indexOf(st.date);
+      ids.forEach((d, j) => { if (weatherByDate.has(D.dates[d])) svg += `<circle class="weather-dot" cx="${x(j)}" cy="${y(vals[j])}" r="4"/>`; });
       if (selectedIndex >= 0) svg += `<circle class="sel" cx="${x(selectedIndex)}" cy="${y(vals[selectedIndex])}" r="5"/>`;
       svg += `<line class="hair" x1="0" x2="0" y1="${pad.t}" y2="${pad.t + ih}" visibility="hidden"/>`;
       const previousIndex = trendCursor.get(year) ?? 0;
       const cursor = Math.min(previousIndex, ids.length - 1);
       trendCursor.set(year, cursor);
       trendCharts.set(year, { ids, vals, avg, x, W });
-      html += `<div class="trend-year"><h3>${year} · ${ids.length} matching report days</h3><svg data-year="${year}" viewBox="0 0 ${W} ${H}" tabindex="0" role="group" aria-label="${year} dispatch trend. Arrow keys explore report dates; Enter filters by date." aria-describedby="trend-detail-${year}">${svg}</svg><div class="trend-detail" id="trend-detail-${year}">${trendDescription(year, cursor)}</div></div>`;
+      html += `<div class="trend-year"><h3>${year} · ${ids.length} matching report days</h3><svg data-year="${year}" viewBox="0 0 ${W} ${H}" tabindex="0" role="group" aria-label="${year} dispatch trend. Arrow keys explore report dates; Enter filters by date." aria-describedby="trend-detail-${year}">${svg}</svg><div class="trend-detail" id="trend-detail-${year}">${trendDescription(year, cursor)}</div><div class="weather-events" aria-label="${year} documented weather events">${weatherButtons(ids)}</div></div>`;
     });
     box.innerHTML = html || '<p class="so-note">No report days match these filters.</p>';
     if (focusedYear) box.querySelector(`[data-year="${focusedYear}"]`)?.focus({ preventScroll: true });
@@ -1456,7 +1478,8 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
   const trendCursor = new Map();
   function trendDescription(year, j) {
     const chart = trendCharts.get(year); if (!chart) return "";
-    return `${dateLabel(D.dates[chart.ids[j]])}: ${fmt(chart.vals[j])} dispatches · 7-day average ${fmt1(chart.avg[j])}`;
+    const event = weatherByDate.get(D.dates[chart.ids[j]]);
+    return `${dateLabel(D.dates[chart.ids[j]])}: ${fmt(chart.vals[j])} dispatches · 7-day average ${fmt1(chart.avg[j])}${event ? `; documented weather: ${event.label}` : ""}`;
   }
   function exploreTrend(svg, j) {
     const year = +svg.dataset.year, chart = trendCharts.get(year); if (!chart) return;
@@ -2460,6 +2483,44 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
     const content = document.createElement("div"); content.innerHTML = pointDetailsHtml(li);
     showExplanation(pointLabel(li), [...content.children], trigger);
   }
+  function showWeatherDetails(date, trigger) {
+    const event = weatherByDate.get(date); if (!event) return;
+    let actionTaken = false;
+    const content = document.createElement("div");
+    content.innerHTML = `<p>${esc(event.summary)}</p><p><a href="${esc(event.source_url)}" target="_blank" rel="noopener noreferrer">${esc(event.source_title)}</a></p><p>Dispatch counts describe activity recorded on these dates. They do not establish that every dispatch was caused by the weather. Place, responder, call-type, weekday and hour filters remain applied.</p>`;
+    for (const iso of event.dates) {
+      const d = D.dates.indexOf(iso), available = d >= 0 && yearOK(d) && monthOK(d) && dowOK(d);
+      const count = available ? lastDateN?.[d] || 0 : 0;
+      const p = document.createElement("p"); p.textContent = `${dateLabel(iso)}: ${available ? fmt(count) + " matching dispatches" : "not available under the current year, month or weekday filters"}`;
+      content.append(p);
+      const actions = document.createElement("div"); actions.className = "weather-actions";
+      for (const replay of [false, true]) {
+        const button = document.createElement("button"); button.type = "button"; button.className = "btn";
+        button.dataset[replay ? "weatherReplay" : "weatherFilter"] = iso;
+        button.textContent = replay ? `Replay from ${replayClock(event.replay_start[iso])}` : "Filter to this date";
+        button.disabled = !available || (replay && !count);
+        button.onclick = () => {
+          actionTaken = true; helpDialog.close(); st.date = d; update();
+          if (replay) {
+            chooseReplayDay(d); seekReplay(event.replay_start[iso]);
+            $("replay-section").scrollIntoView({ block: "start" });
+            $("replay-play").focus({ preventScroll: true });
+          } else $("report-date").focus({ preventScroll: true });
+        };
+        actions.append(button);
+      }
+      content.append(actions);
+    }
+    const origin = trigger.closest("#trend") ? "#trend" : "#coverage-weather";
+    helpDialog.addEventListener("close", () => {
+      if (!actionTaken) document.querySelector(`${origin} [data-weather-date="${date}"]`)?.focus({ preventScroll: true });
+    }, { once: true });
+    showExplanation(event.title, [content], trigger);
+  }
+  document.addEventListener("click", e => {
+    const trigger = e.target.closest("button[data-weather-date]");
+    if (trigger) showWeatherDetails(trigger.dataset.weatherDate, trigger);
+  });
   // Replay uses dispatch rows, including records without a drawable location.
   const replayMap = L.map("replay-map", {zoomSnap:0.1, attributionControl:false, scrollWheelZoom:false, maxZoom:15, maxBoundsViscosity:1});
   const replayBase = L.layerGroup().addTo(replayMap), replayDots = L.layerGroup().addTo(replayMap);

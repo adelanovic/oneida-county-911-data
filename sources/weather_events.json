@@ -1,0 +1,35 @@
+[
+  {
+    "id": "february-2024-wind-snow",
+    "label": "Wind and snowfall",
+    "title": "February 28–29, 2024: strong winds and snowfall",
+    "dates": ["2024-02-28", "2024-02-29"],
+    "summary": "NWS observations include 55 mph gusts at Griffiss and 51 mph at Westmoreland on February 28, followed by snowfall totals reported on February 29 of 15 inches in Sauquoit and Sherrill and 12.5 inches in Clinton. The 17-inch Oneida city report was in Madison County, not Oneida County.",
+    "replay_start": {"2024-02-28": 57600, "2024-02-29": 21600},
+    "source_title": "NWS Binghamton: February 28–29 snowfall and wind observations",
+    "source_url": "https://www.weather.gov/bgm/pastWinterFebruary282024",
+    "verified_on": "2026-10-12"
+  },
+  {
+    "id": "rome-july-2024-tornado",
+    "label": "Rome tornado",
+    "title": "July 16, 2024: Rome EF2 tornado",
+    "dates": ["2024-07-16"],
+    "summary": "The NWS surveyed an EF2 tornado through Rome with estimated peak winds of 135 mph. Its reported track ran from approximately 3:25 to 3:35 p.m. EDT. Severe thunderstorms also caused damage elsewhere in the region.",
+    "replay_start": {"2024-07-16": 54000},
+    "source_title": "NWS Binghamton: July 2024 severe storms and Rome tornado survey",
+    "source_url": "https://www.weather.gov/bgm/pastSevereJuly2024",
+    "verified_on": "2026-10-12"
+  },
+  {
+    "id": "june-2025-tornadoes",
+    "label": "Pre-dawn tornadoes",
+    "title": "June 22, 2025: Clark Mills and Clinton-area tornadoes",
+    "dates": ["2025-06-22"],
+    "summary": "The NWS confirmed two EF1 tornadoes during pre-dawn thunderstorms: Clark Mills toward Clinton, approximately 3:58–4:03 a.m. EDT, and south of Westmoreland toward Clinton, approximately 3:59–4:10 a.m. EDT. The Clark Mills tornado caused three fatalities. Damaging thunderstorm winds also affected areas outside the tornado tracks.",
+    "replay_start": {"2025-06-22": 12600},
+    "source_title": "NWS Binghamton: June 22, 2025 storm and tornado surveys",
+    "source_url": "https://www.weather.gov/bgm/pastSevereJune222025",
+    "verified_on": "2026-10-12"
+  }
+]

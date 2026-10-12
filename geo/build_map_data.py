@@ -226,6 +226,7 @@ def main():
     basemap["labels"] = label_anchors
 
     data = {
+        "weatherEvents": json.loads((ROOT / "sources/weather_events.json").read_text(encoding="utf-8")),
         "types": [[r.response_type, r.category] for r in types.itertuples()],
         "years": years,
         "yearDays": [int(days[y]) for y in years],

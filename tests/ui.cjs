@@ -326,6 +326,47 @@ async function main() {
     await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
     await navigate();
 
+    assert.equal(await evaluate(`document.querySelectorAll('#coverage-weather button[data-weather-date]').length`),4);
+    assert.equal(await evaluate(`document.querySelectorAll('#trend .weather-dot').length`),4);
+    for(const date of ['2024-02-28','2024-02-29','2024-07-16','2025-06-22']) {
+      for(const origin of ['#coverage-weather','#trend']) {
+        await evaluate(`document.querySelector('${origin} [data-weather-date="${date}"]').click()`);
+        const info=await evaluate(`(()=>{const d=document.querySelector('#chart-help-dialog');return {open:d.open,body:document.querySelector('#chart-help-body').textContent,source:document.querySelector('#chart-help-body a').href}})()`);
+        assert(info.open && info.body.includes(expected.comparison.dates[date].n.toLocaleString('en-US')+' matching dispatches'));
+        assert(info.source.startsWith('https://www.weather.gov/bgm/'));
+        assert(info.body.includes('do not establish that every dispatch was caused by the weather'));
+        await evaluate(`document.querySelector('#chart-help-close').click()`);
+        await delay(50);
+        assert(await evaluate(`document.activeElement.matches('${origin} [data-weather-date="${date}"]')`),'Weather details restore focus to '+origin);
+      }
+    }
+    await evaluate(`document.querySelector('#coverage-weather [data-weather-date="2024-07-16"]').click();document.querySelector('[data-weather-filter="2024-07-16"]').click()`);
+    assert.equal(await evaluate(`new URL(location.href).searchParams.get('date')`),'2024-07-16');
+    assert.equal(await evaluate(`+document.querySelector('#replay-status').dataset.total`),expected.comparison.dates['2024-07-16'].n);
+    await navigate(pageUrl+'?hour=4');
+    await evaluate(`document.querySelector('#coverage-weather [data-weather-date="2025-06-22"]').click()`);
+    assert((await evaluate(`document.querySelector('#chart-help-body').textContent`)).includes(expected.comparison.dates['2025-06-22'].hours[4].toLocaleString('en-US')+' matching dispatches'));
+    await evaluate(`document.querySelector('[data-weather-replay="2025-06-22"]').click()`);
+    assert.equal(await evaluate(`+document.querySelector('#replay-seek').value`),12600);
+    assert.equal(await evaluate(`document.querySelector('#replay-play').getAttribute('aria-pressed')`),'false');
+    assert.equal(await evaluate(`new URL(location.href).searchParams.get('hour')`),'4');
+    await navigate(pageUrl+'?year=2026');
+    assert.equal(await evaluate(`document.querySelectorAll('[data-weather-date],#trend .weather-dot').length`),0);
+    await navigate(pageUrl);
+    for(const width of [390,320]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:1,mobile:true});
+      for(const theme of ['light','dark']) {
+        await evaluate(`document.querySelector('#theme [data-theme="${theme}"]').click();document.querySelector('#coverage-weather [data-weather-date="2025-06-22"]').click()`);
+        assert(await evaluate(`(()=>{const d=document.querySelector('#chart-help-dialog'),r=d.getBoundingClientRect();return r.left>=0 && r.right<=innerWidth && r.top>=0 && r.bottom<=innerHeight && d.scrollWidth<=d.clientWidth && document.documentElement.scrollWidth<=innerWidth})()`),'Weather annotations fit mobile '+width+' '+theme);
+        await screenshot('weather-'+width+'-'+theme);
+        await evaluate(`document.querySelector('#chart-help-close').click()`);
+      }
+    }
+    assert.deepEqual(errors,[]);
+    console.log('PASS: sourced weather annotations match CSV counts, respect filters, restore focus, start replay paused and fit mobile themes');
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate(pageUrl);
+
     const helperSections=await evaluate(`[...document.querySelectorAll('button[data-chart-help]')].map(b=>b.dataset.chartHelp)`);
     assert(helperSections.includes('population-section') && helperSections.includes('compare-section') && helperSections.includes('flows-section') && helperSections.includes('about'));
     for(const id of helperSections) {
