@@ -209,7 +209,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .heat .hlab { font-size: .68rem; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
 .heat .corner { font-size: .68rem; color: var(--muted); display: flex; align-items: flex-end; }
 
-#coverage-section { gap: 10px; }
+#coverage-section { gap: 6px; }
 .cal-wrap { display: grid; gap: 10px; min-width: 0; width: 100%; }
 .cal-year { display: grid; gap: 4px; }
 .cal-year h3 { margin: 0; font: 600 .9rem/1.2 var(--f-body); display: flex; gap: 8px; align-items: baseline; }
@@ -233,6 +233,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .weather-events .weather-label { font-size: .78rem; color: var(--muted); }
 .weather-events button { min-height: 44px; max-width: 100%; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink-2); font: inherit; font-size: .78rem; text-align: left; cursor: pointer; }
 .weather-events button:hover { border-color: var(--focus); }
+#coverage-weather { flex-wrap: nowrap; overflow-x: auto; margin-top: 0; }
+#coverage-weather > * { flex: 0 0 auto; }
+#coverage-weather button { max-width: none; }
 .weather-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 .trend-box .weather-dot { fill: var(--panel); stroke: var(--focus); stroke-width: 2; }
 .cal .day.none { border: 1px dashed var(--line); box-sizing: border-box; }
