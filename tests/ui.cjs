@@ -32,8 +32,17 @@ function datasetCounts() {
   const hourColumn=header.indexOf('hour');
   let total = 0, whitestown = 0, whitesboro = 0;
   const fireUnknownBy = new Map(), hasHome = new Set();
+  const outsideBy = new Map();
   for (const line of lines.slice(1)) {
     const f = split(line); total++;
+    if (['FIRE', 'EMS'].includes(f[kind]) && !/nurse navigation/i.test(f[agency])) {
+      let a = outsideBy.get(f[agency]);
+      if (!a) outsideBy.set(f[agency], a = { known: 0, unknown: 0, towns: new Map(), dests: new Map() });
+      const dest = f[county] && f[county] !== 'ONEIDA' ? 'C:' + f[county] : f[town] ? 'T:' + f[town] : '';
+      if (!dest) a.unknown++;
+      else { a.known++; a.dests.set(dest, (a.dests.get(dest) || 0) + 1);
+        if (dest.startsWith('T:')) a.towns.set(dest, (a.towns.get(dest) || 0) + 1); }
+    }
     const iso = f[reportDate], y = iso.slice(0, 4), m = +iso.slice(5, 7);
     if(y==='2026' && f[agency]==='Utica Police Department') {
       const hour=+f[hourColumn], hours=policeMonths[m] ||= Array.from({length:24},()=>({n:0,initiated:0})); hours[hour].n++;
@@ -54,7 +63,11 @@ function datasetCounts() {
   let fireUnknown = 0;
   fireUnknownBy.forEach((n, a) => { if (hasHome.has(a)) fireUnknown += n; });
   const plain = stats => Object.fromEntries(Object.entries(stats).map(([y, months]) => [y, months.map(v => ({n:v.n, days:v.dates.size}))]));
-  return { total, whitestown, whitesboro, fireUnknown, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates };
+  const outside = Object.fromEntries([...outsideBy].filter(([, a]) => a.towns.size).map(([name, a]) => {
+    const home = [...a.towns].sort((a, b) => b[1] - a[1])[0][0];
+    return [name, { known: a.known, unknown: a.unknown, out: a.known - a.dests.get(home) }];
+  }));
+  return { total, whitestown, whitesboro, fireUnknown, outside, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates };
 }
 
 async function main() {
@@ -279,6 +292,63 @@ async function main() {
     assert(outside.unknown.includes(fmt(expected.fireUnknown) + ' dispatches with unknown destinations excluded'), outside.unknown + ' / expected ' + expected.fireUnknown);
     assert(outside.out.includes(fmt(expected.fireUnknown) + ' dispatches with unknown destinations excluded'), outside.out.slice(-120) + ' / expected ' + expected.fireUnknown);
     console.log('PASS: outside-town ranking applies place/responders and discloses unknown destinations');
+
+    await navigate(pageUrl);
+    const outsideAll = await evaluate(`(()=>{
+      document.querySelector('#out-expand').click();
+      const d=JSON.parse(document.querySelector('#data').textContent);
+      return [...document.querySelectorAll('#out-list [data-u]')].map(r=>({name:d.agencies[+r.dataset.u],text:r.innerText,value:r.querySelector('.v').innerText}));
+    })()`);
+    assert.equal(outsideAll.length, Object.values(expected.outside).filter(a => a.known >= 40).length);
+    for (const row of outsideAll) {
+      const a=expected.outside[row.name];
+      assert(row.value.startsWith((100*a.out/a.known).toFixed(0)+'%'), row.name);
+      assert(row.value.includes(`${fmt(a.out)} of ${fmt(a.known)} known`), row.name);
+      assert(row.text.includes(`${fmt(a.unknown)} of ${fmt(a.known+a.unknown)} destinations unknown`), row.name);
+      assert.equal(row.text.includes('Limited location coverage.'), a.unknown/(a.known+a.unknown)>=.2, row.name);
+    }
+    const townOutside = await evaluate(`(()=>{
+      const c=document.querySelector('#city');c.value='T:WHITESTOWN';c.dispatchEvent(new Event('change'));
+      const d=JSON.parse(document.querySelector('#data').textContent);
+      return [...document.querySelectorAll('#out-list [data-u]')].map(r=>({name:d.agencies[+r.dataset.u],value:r.querySelector('.v').innerText}));
+    })()`);
+    for (const name of ['COCVAC Ambulance','New York Mills Fire Department']) {
+      const row=townOutside.find(r=>r.name===name), a=expected.outside[name];
+      assert(row, name);
+      assert(row.value.startsWith((100*a.out/a.known).toFixed(0)+'%'), name+' must retain its all-destination percentage');
+    }
+    await navigate(pageUrl);
+    const retained = await evaluate(`(()=>{
+      const button=document.querySelector('#out-expand');button.click();
+      const rows=[...document.querySelectorAll('#out-list [data-u]')],last=rows.at(-1),u=last.dataset.u;
+      last.click();button.click();
+      const selected=document.querySelector('#out-list [data-u="'+u+'"]');
+      return {name:JSON.parse(document.querySelector('#data').textContent).agencies[+u],selected:!!selected?.classList.contains('on'),expanded:button.getAttribute('aria-expanded'),count:document.querySelectorAll('#out-list [data-u]').length,text:document.querySelector('#out-list').innerText};
+    })()`);
+    assert(retained.selected);
+    assert.equal(retained.expanded,'false');
+    assert.equal(retained.count,13);
+    assert(retained.text.includes('Selected agency also shown.'));
+    await navigate(pageUrl+'?date=2024-01-01&agency='+encodeURIComponent(retained.name));
+    const sparseOutside=await evaluate(`(()=>{const r=document.querySelector('#out-list .on');return {text:r?.innerText,value:r?.querySelector('.v').innerText}})()`);
+    assert(sparseOutside.text.includes('Fewer than 40 known destinations; percentage withheld.'));
+    assert(!sparseOutside.value.includes('%'));
+    await navigate(pageUrl);
+    for (const width of [1440,320]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width===320});
+      for (const theme of ['light','dark']) {
+        const layout=await evaluate(`(()=>{
+          document.documentElement.dataset.theme='${theme}';
+          const panel=document.querySelector('#outside-section');panel.scrollIntoView({behavior:'instant',block:'start'});
+          const box=panel.getBoundingClientRect();
+          return {fits:panel.scrollWidth<=panel.clientWidth,rows:[...panel.querySelectorAll('.rank-row')].every(r=>r.scrollWidth<=r.clientWidth),left:box.left,right:box.right,width:innerWidth};
+        })()`);
+        assert(layout.fits && layout.rows && layout.left>=0 && layout.right<=layout.width, JSON.stringify(layout));
+        await screenshot('agency-coverage-'+width+'-'+theme);
+      }
+    }
+    await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+    console.log('PASS: agency coverage percentages retain all destinations, disclose missing locations, expand fully and retain sparse selections');
 
     await navigate(pageUrl + '?place=C%3AHERKIMER');
     const countyRoute = await evaluate(`(()=>{const row=document.querySelector('#flow-list [data-dest="C:HERKIMER"]');

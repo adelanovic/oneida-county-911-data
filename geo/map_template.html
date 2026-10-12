@@ -266,6 +266,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .rank-row .nm small { color: var(--muted); font-size: .76rem; margin-left: 6px; }
 .rank-row .v { font-variant-numeric: tabular-nums; font-weight: 600; }
 #out-list .v { text-align: right; }
+#out-list .nm small { display: block; margin-left: 0; }
+#out-list .coverage-warning { color: var(--ink); font-weight: 600; }
 .rank-row .v small { display: block; font-weight: 400; color: var(--muted); font-size: .72rem; white-space: normal; max-width: 9rem; }
 .rank-row .bar { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--dot-soft); position: relative; overflow: visible; }
 .rank-row .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--q4); }
@@ -574,7 +576,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
         <p>Share of each fire department's and ambulance service's dispatches in other towns than its most-served town. This does not measure responses outside its service territory or identify mutual aid: agencies can routinely serve several towns. Click an agency to filter.</p>
       </div>
       <div class="rank" id="out-list"></div>
-      <p class="note-sm">Most-served town uses the largest dispatch count across all available reports, before filters; it is not a verified station location or service boundary. Percentages use dispatches with known destinations. All filters apply except the individual-agency filter, so departments remain available for comparison. Nurse Navigation is excluded because it is a phone-triage service.</p>
+      <button type="button" class="btn" id="out-expand" aria-controls="out-list" aria-expanded="false" hidden>Show all agencies</button>
+      <p class="note-sm">Most-served town uses the largest dispatch count across all available reports, before filters; it is not a verified station location or service boundary. Percentages use dispatches with known destinations. A selected place limits which agencies appear, but percentages include all their destinations under the other filters. The individual-agency filter is ignored for comparison. Agencies missing destinations for 20% or more of matching dispatches are flagged; their percentages may not represent all their dispatches. Nurse Navigation is excluded because it is a phone-triage service.</p>
     </div>
     <div class="card about wide" id="about">
       <div class="chart-head">
@@ -2062,27 +2065,42 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     // agencies by share beyond the most-served town (both fire and EMS, independent of the toggle)
     renderOutside();
   }
+  let outsideShowAll = false;
   function renderOutside() {
     const agg = new Map(); let unknown = 0;
     for (let i = 0; i < N; i++) {
       const u = R.u[i];
       if (!flowAgency(u)) continue;
       const d = R.d[i];
-      if (!(typeOK(R.t[i]) && yearOK(d) && dateOK(d) && dowOK(d) && hourOK(R.h[i]) && agOK(R.a[i]) && cityOK[R.c[i]])) continue;
-      const dest = townOfCity[R.c[i]]; if (!dest) { unknown++; continue; }
-      let a = agg.get(u); if (!a) agg.set(u, a = [0, 0, new Map()]); a[0]++;
-      if (dest !== mostServedTown[u]) { a[1]++; a[2].set(dest, (a[2].get(dest) || 0) + 1); }
+      if (!(typeOK(R.t[i]) && yearOK(d) && dateOK(d) && dowOK(d) && hourOK(R.h[i]) && agOK(R.a[i]))) continue;
+      let a = agg.get(u); if (!a) agg.set(u, a = { n: 0, out: 0, unknown: 0, serves: false, dests: new Map() });
+      if (cityOK[R.c[i]]) a.serves = true;
+      const dest = townOfCity[R.c[i]]; if (!dest) { a.unknown++; continue; }
+      a.n++;
+      if (dest !== mostServedTown[u]) { a.out++; a.dests.set(dest, (a.dests.get(dest) || 0) + 1); }
     }
-    const rows = [...agg.entries()].filter(([, a]) => a[0] >= 40).map(([u, a]) => [u, a[0], a[1], a[1] / a[0], a[2]]).sort((x, y) => y[3] - x[3]).slice(0, 12);
-    $("out-list").innerHTML = rows.length ? rows.map(([u, n, out, sh, dests]) => {
+    const candidates = [...agg.entries()].filter(([, a]) => !st.place || a.serves);
+    unknown = candidates.reduce((s, [, a]) => s + a.unknown, 0);
+    const eligible = candidates.filter(([, a]) => a.n >= 40).sort(([, a], [, b]) => b.out / b.n - a.out / a.n);
+    const rows = outsideShowAll ? eligible.slice() : eligible.slice(0, 12);
+    const extraSelected = flowAgency(st.unit) && !rows.some(([u]) => u === st.unit);
+    if (extraSelected) rows.push([st.unit, agg.get(st.unit) || { n: 0, out: 0, unknown: 0, serves: false, dests: new Map() }]);
+    $("out-list").innerHTML = rows.length ? rows.map(([u, a]) => {
+      const { n, out, dests } = a, sh = n ? out / n : 0, total = n + a.unknown;
       const top = [...dests.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => townLabelOf(k)).join(", ");
-      return `<div class="rank-row${st.unit === u ? " on" : ""}" data-u="${u}" tabindex="0" role="button">
+      const limited = total > 0 && a.unknown / total >= .2;
+      return `<div class="rank-row${st.unit === u ? " on" : ""}" data-u="${u}" tabindex="0" role="button" aria-pressed="${st.unit === u}">
         <span class="nm">${esc(D.agencies[u])}<small>most-served: ${esc(townLabelOf(mostServedTown[u]))}${top ? " · other response towns: " + esc(top) : ""}</small></span>
-        <span class="v">${(100 * sh).toFixed(0)}%<small>${fmt(out)} of ${fmt(n)}</small></span>
-        <span class="bar"><i style="width:${(100 * sh).toFixed(1)}%"></i></span></div>`;
-    }).join("") + `<p class="note-sm">Agencies with at least 40 matching dispatches with known destinations.</p>` : `<p class="so-note">Not enough fire or ambulance dispatches match these filters.</p>`;
-    $("out-list").innerHTML += `<p class="note-sm">${fmt(unknown)} dispatches with unknown destinations excluded.</p>`;
+        <span class="v">${n >= 40 ? (100 * sh).toFixed(0) + "%" : "—"}<small>${fmt(out)} of ${fmt(n)} known</small></span>
+        <span class="note-sm${limited ? " coverage-warning" : ""}" style="grid-column:1 / -1">${fmt(a.unknown)} of ${fmt(total)} destinations unknown${total ? ` (${(100 * a.unknown / total).toFixed(0)}%)` : ""}.${limited ? " Limited location coverage." : ""}${n < 40 ? " Fewer than 40 known destinations; percentage withheld." : ""}${st.place && !a.serves ? " No matching dispatches in the selected place." : ""}</span>
+        <span class="bar"><i style="width:${n >= 40 ? (100 * sh).toFixed(1) : 0}%"></i></span></div>`;
+    }).join("") : `<p class="so-note">Not enough fire or ambulance dispatches match these filters.</p>`;
+    $("out-list").innerHTML += `<p class="note-sm">Showing ${fmt(outsideShowAll ? eligible.length : Math.min(12, eligible.length))} of ${fmt(eligible.length)} agencies with at least 40 matching dispatches with known destinations.${extraSelected ? " Selected agency also shown." : ""} ${st.place ? "Percentages and missing-location counts include all destinations for agencies serving the selected place." : ""}</p><p class="note-sm">${fmt(unknown)} dispatches with unknown destinations excluded across these agencies, including agencies below the 40-dispatch minimum.</p>`;
+    $("out-expand").hidden = eligible.length <= 12;
+    $("out-expand").textContent = outsideShowAll ? "Show fewer agencies" : `Show all ${fmt(eligible.length)} agencies`;
+    $("out-expand").setAttribute("aria-expanded", outsideShowAll);
   }
+  $("out-expand").addEventListener("click", () => { outsideShowAll = !outsideShowAll; renderOutside(); });
   $("out-list").addEventListener("click", e => { const r = e.target.closest("[data-u]"); if (r) toggleUnit(+r.dataset.u); });
   $("out-list").addEventListener("keydown", e => { const r = e.target.closest("[data-u]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleUnit(+r.dataset.u); } });
   $("flow-list").addEventListener("click", e => { const r = e.target.closest("[data-dest]"); if (r) pickRoute(r.dataset.dest); });
