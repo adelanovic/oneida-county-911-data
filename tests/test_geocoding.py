@@ -58,7 +58,13 @@ class GeocodingRegressionTests(unittest.TestCase):
             self.assertEqual(hit["matched"], name)
             self.assertEqual(hit["precision"], "street")
             self.assertLessEqual(hit["geom"].difference(self.gc.poly("WHITESBORO VILLAGE").buffer(self.gc.BUF)).length, .01)
-            self.assertIsNone(self.gc.county_street(name, "WHITESTOWN"))
+            if name != "COMMERCIAL DRIVE RAMP":
+                self.assertIsNone(self.gc.county_street(name, "WHITESTOWN"))
+            else:
+                # Whitestown now has its own reviewed ramp subset, independent of Whitesboro's.
+                town_hit = self.gc.county_street(name, "WHITESTOWN")
+                self.assertIsNotNone(town_hit)
+                self.assertFalse(hit["geom"].equals(town_hit["geom"]))
             stored = self.locations[(self.locations.street == name) & (self.locations.city == "WHITESBORO VILLAGE")].iloc[0]
             self.assertEqual(stored.match_method, "county_roads")
         self.assertNotEqual(self.gc.county_street("DEXTER ST", "WHITESBORO VILLAGE")["matched"],
