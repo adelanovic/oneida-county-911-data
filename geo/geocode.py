@@ -3,7 +3,7 @@
 The reports name a street (no house number) and a city/town/village. Each pair is resolved to the stretch of
 that street inside the municipality, then reduced to one point:
 
-Reviewed Utica and Whitesboro gaps first try exact names in the saved county CAD road subset, preserving direction and ramp
+Reviewed Utica, Whitesboro and Marcy gaps first try exact names in the saved county CAD road subset, preserving direction and ramp
 qualifiers and clipping to the same municipality tolerance. These use road-length medoids; facility/access
 features are approximate landmarks without an incident-accuracy estimate. Other locations use the steps below.
 
@@ -43,6 +43,8 @@ from shapely.ops import unary_union, linemerge
 
 ROOT = Path(__file__).resolve().parent.parent
 TIGER = ROOT / "geo" / "tiger"
+COUNTY_REFERENCES = {"UTICA": "utica_roads.json", "WHITESBORO VILLAGE": "whitesboro_roads.json",
+                     "MARCY": "marcy_roads.json"}
 
 # Local equirectangular projection (meters) — error well under 1% across one county.
 LAT0 = 43.2
@@ -282,7 +284,7 @@ class Geocoder:
         # Restrict each snapshot to its reviewed municipality and exact names,
         # preserving ramp/direction qualifiers.
         self.county_roads = defaultdict(list)
-        for city, filename in [("UTICA", "utica_roads.json"), ("WHITESBORO VILLAGE", "whitesboro_roads.json")]:
+        for city, filename in COUNTY_REFERENCES.items():
             reference = json.loads((ROOT / "geo/reference" / filename).read_text(encoding="utf-8"))
             for feature in reference["features"]:
                 attrs = feature["attributes"]
@@ -297,6 +299,10 @@ class Geocoder:
         area = self.poly(city).buffer(self.BUF)
         geom = unary_union([g for _, g in matches]).intersection(area)
         if geom.is_empty or geom.length <= 0:
+            return None
+        # Marcy's CAD uses this generic label for separate turnarounds kilometers
+        # apart. A name-only report cannot identify which one was involved.
+        if county_name_key(name) == "UTURN" and n_pieces(geom) > 1:
             return None
         # CAD includes named access drives inside complexes. Their road extent does
         # not establish the building, entrance, or incident's positional accuracy.

@@ -84,6 +84,24 @@ class GeocodingRegressionTests(unittest.TestCase):
             stored = self.locations[(self.locations.street == name) & (self.locations.city == "WHITESBORO VILLAGE")].iloc[0]
             self.assertEqual(stored.precision, "municipality")
 
+    def test_marcy_reference_resolves_named_streets_in_marcy(self):
+        for name in ["OLD RIVER RD", "RESIDENTIAL DR", "SEYMOUR RD", "HILLTOP DR", "WILDCAT DR",
+                     "TECHNOLOGY DR", "MARCY-SUNY PKWY"]:
+            hit = self.gc.county_street(name, "MARCY")
+            self.assertIsNotNone(hit, name)
+            self.assertEqual(hit["matched"], name)
+            self.assertEqual(hit["precision"], "street")
+            self.assertLessEqual(hit["geom"].difference(self.gc.poly("MARCY").buffer(self.gc.BUF)).length, .01)
+            self.assertIsNone(self.gc.county_street(name, "WHITESTOWN"))
+            stored = self.locations[(self.locations.street == name) & (self.locations.city == "MARCY")].iloc[0]
+            self.assertEqual(stored.match_method, "county_roads")
+
+    def test_marcy_generic_turnaround_does_not_choose_between_distinct_sites(self):
+        self.assertEqual(len(self.gc.county_roads["MARCY", county_name_key("U TURN")]), 2)
+        self.assertIsNone(self.gc.county_street("U TURN", "MARCY"))
+        stored = self.locations[(self.locations.street == "U TURN") & (self.locations.city == "MARCY")].iloc[0]
+        self.assertEqual(stored.precision, "municipality")
+
     def test_kennedy_complex_estimates_do_not_claim_incident_accuracy(self):
         points = set()
         for suffix in ["HI RISE", "E", "W", "ENTRANCE"]:

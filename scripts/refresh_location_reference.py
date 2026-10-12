@@ -14,10 +14,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "geo"))
-from geocode import county_name_key  # noqa: E402
+from geocode import county_name_key, COUNTY_REFERENCES  # noqa: E402
 
 SERVICE = "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0"
-TARGETS = {"UTICA": "utica_roads.json", "WHITESBORO VILLAGE": "whitesboro_roads.json"}
 
 
 def query(params):
@@ -32,9 +31,9 @@ def query(params):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--city", choices=TARGETS, default="UTICA")
+    parser.add_argument("--city", choices=COUNTY_REFERENCES, default="UTICA")
     city = parser.parse_args().city
-    target = ROOT / "geo/reference" / TARGETS[city]
+    target = ROOT / "geo/reference" / COUNTY_REFERENCES[city]
     if target.exists():
         names = json.loads(target.read_text(encoding="utf-8"))["requested_names"]
     else:

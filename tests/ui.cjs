@@ -282,6 +282,19 @@ async function main() {
     await navigate(pageUrl);
     console.log('PASS: Whitesboro school and reviewed Main Street alias retain original labels and usable mobile details');
 
+    for(const street of ['OLD RIVER RD','U TURN']) {
+      await navigate(pageUrl+'?place=T%3AMARCY');
+      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>d.locations[+e.dataset.i][3]==='MARCY');option.click()})()`);
+      await delay(1100);
+      const detail=await evaluate(`document.querySelector('#chart-help-body').textContent`);
+      assert(detail.includes(street),detail);
+      if(street==='U TURN') assert(detail.includes('Ambiguous U TURN label') && detail.includes('not an incident site'),detail);
+      else assert(detail.includes('Oneida County CAD') && !detail.includes('Unmatched street'),detail);
+      await screenshot(street==='U TURN' ? 'marcy-ambiguous-turnaround' : 'marcy-old-river');
+    }
+    await navigate(pageUrl);
+    console.log('PASS: Marcy streets disclose county references and ambiguous turnarounds remain approximate');
+
     const overlap = await evaluate(`(()=>{const a=document.querySelector('#cmp-a'),b=document.querySelector('#cmp-b');
       a.value='T:WHITESTOWN';a.dispatchEvent(new Event('change'));b.value='V:WHITESTOWN|WHITESBORO';b.dispatchEvent(new Event('change'));
       const first=[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent);
