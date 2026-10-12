@@ -418,11 +418,15 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   /* size to content, wrap only past a comfortable width (absolute positioning would otherwise shrink it near edges) */
   width: max-content; max-width: min(24rem, 80vw); white-space: normal; overflow-wrap: normal; }
 .leaflet-tooltip-top:before { border-top-color: var(--line); }
+body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
 .tip b { font-weight: 600; } .tip .c { color: var(--ink-2); } .tip ol { margin: 6px 0 0; padding-left: 18px; }
 .tip li { font-variant-numeric: tabular-nums; } .tip li + li { margin-top: 1px; } .tip em { display: block; color: var(--muted); font-style: normal; font-size: .76rem; margin: 2px 0 4px; }
 .point-details { overflow-wrap: anywhere; line-height: 1.45; }
 .point-details ol { padding-left: 20px; }
 .point-details li + li { margin-top: 10px; }
+.point-calltypes { margin: 14px 0; }
+.point-calltypes ul { padding-left: 20px; margin: 6px 0; }
+.point-calltypes li + li { margin-top: 4px; }
 .leaflet-bar a { background: var(--panel); color: var(--ink); border-bottom-color: var(--line); }
 .leaflet-bar a:hover { background: var(--dot-soft); color: var(--ink); }
 .map-home { display: block; min-height: 36px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); color: var(--ink); font: inherit; cursor: pointer; box-shadow: 0 1px 5px rgba(0,0,0,.25); }
@@ -1074,14 +1078,19 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   }
   function pointDetailsHtml(li) {
     const g = pointGroup(li);
-    return `<div class="point-details"><p>${fmt(g.n)} dispatches at this map point. Reported locations are preserved below; this is not a count of unique emergencies.</p><ol>` +
+    const types = pointCallTypes(li), top = types.slice(0, 6), other = types.slice(6).reduce((n,[,c])=>n+c,0);
+    const summary = `<section class="point-calltypes"><h3>Dispatch types at this point</h3><ul>${top.map(([t,c])=>`<li data-count="${c}">${esc(D.types[t][0])}: ${fmt(c)}</li>`).join("")}${other ? `<li data-count="${other}">Other dispatch types: ${fmt(other)}</li>` : ""}</ul></section>`;
+    return `<div class="point-details"><p>${fmt(g.n)} dispatches at this map point. Reported locations are preserved below; this is not a count of unique emergencies.</p>${summary}<h3>Reported locations</h3><ol>` +
       g.members.map(([i, n]) => { const l = D.locations[i]; return `<li><b>${esc(l[2] || "No street given")}: ${fmt(n)}</b><br>${esc(placeLabel(l[3]))}<br><small>${esc(locationNote(i))}</small></li>`; }).join("") + "</ol></div>";
   }
-  function tooltipHtml(li, n) {
+  function pointCallTypes(li) {
     const g = pointGroup(li);
     const byType = {};
     for (const [member] of g.members) for (let k = locStart[member]; k < locStart[member + 1]; k++) { const i = locRecs[k]; if (fullMatch(i)) byType[R.t[i]] = (byType[R.t[i]] || 0) + 1; }
-    const top = Object.entries(byType).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    return Object.entries(byType).sort((a, b) => b[1] - a[1]);
+  }
+  function tooltipHtml(li, n) {
+    const g = pointGroup(li), top = pointCallTypes(li).slice(0, 4);
     const note = g.members.length > 1 ? `${g.members.length} reported locations share this point. Select it for the breakdown.` : locationNote(li);
     return `<div class="tip"><b>${esc(pointLabel(li))}</b><br><span class="c">${esc(pointPlaces(li))}</span>` +
       `<em>${esc(note)}</em><b>${fmt(n)}</b> ${n === 1 ? "dispatch" : "dispatches"}` +
@@ -1562,7 +1571,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       const loc = D.locations[li], g = pointGroup(li), approx = g.members.some(([i]) => ["municipality", "street_nearby"].includes(D.locations[i][4]));
       const m = L.circleMarker([loc[0], loc[1]], { renderer, radius: r(n), color: approx ? dot : panel,
         weight: approx ? 1.5 : 1, dashArray: approx ? "3 3" : null, fillColor: dot, fillOpacity: approx ? 0.12 : 0.5 });
-      m.bindTooltip(() => tooltipHtml(li, n), { direction: "top", sticky: true, opacity: 1 });
+      if (matchMedia("(hover: hover) and (pointer: fine)").matches)
+        m.bindTooltip(() => tooltipHtml(li, n), { direction: "top", sticky: true, opacity: 1 });
       m.on("click", () => { select(li); showPointDetails(li, $("map")); });
       g.members.forEach(([i]) => markers.set(i, m));
       dots.addLayer(m);
@@ -2433,8 +2443,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   // Keep detailed explanations in their original live nodes; copy current content only when opened.
   const chartHelp = new Map();
   const helpDialog = $("chart-help-dialog");
+  map.on("tooltipopen", e => { if (helpDialog.open) e.tooltip.close(); });
   let helpTrigger = null;
   function showExplanation(title, content, trigger) {
+    new Set(markers.values()).forEach(marker => marker.closeTooltip());
+    tipf.hidden = true;
     helpTrigger = trigger;
     $("chart-help-title").textContent = title;
     $("chart-help-body").replaceChildren(...content);

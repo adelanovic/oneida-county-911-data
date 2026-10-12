@@ -375,6 +375,48 @@ async function main() {
     await navigate(pageUrl);
     console.log('PASS: chart explanations use compact accessible dialogs with current data, focus return, Escape, mobile taps and both themes');
 
+    const bubbleTarget=await evaluate(`(()=>{const d=JSON.parse(document.querySelector('#data').textContent),l=d.locations.find(l=>l[2]==='HOSPITAL DR'&&l[3]==='UTICA');return {street:l[2]+'|'+l[3],point:l[0]+','+l[1]}})()`);
+    for(const width of [1440,390,320]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:1,mobile:width!==1440});
+      await send('Emulation.setTouchEmulationEnabled',{enabled:width!==1440,maxTouchPoints:1});
+      for(const theme of ['light','dark']) {
+        await navigate(pageUrl+'?street='+encodeURIComponent(bubbleTarget.street)+'&point='+encodeURIComponent(bubbleTarget.point));
+        await evaluate(`document.querySelector('#theme [data-theme="${theme}"]').click();document.querySelector('#map').scrollIntoView({block:'center',behavior:'instant'})`);
+        await delay(350);
+        const bubble=await evaluate(`(()=>{const r=document.querySelector('#map').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()`);
+        if(width===1440) {
+          await send('Input.dispatchMouseEvent',{type:'mouseMoved',...bubble});
+          assert(await evaluate(`!!document.querySelector('#map .leaflet-tooltip')`),'Desktop hover preview remains available');
+          await send('Input.dispatchMouseEvent',{type:'mousePressed',...bubble,button:'left',buttons:1,clickCount:1});
+          await send('Input.dispatchMouseEvent',{type:'mouseReleased',...bubble,button:'left',clickCount:1});
+        } else {
+          await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[bubble]});
+          await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+        }
+        assert.equal(await evaluate(`[...document.querySelectorAll('#map .leaflet-tooltip')].filter(e=>e.getBoundingClientRect().width>0&&getComputedStyle(e).opacity!=='0').length`),0,'Opening details immediately hides hover previews');
+        await delay(250); // Leaflet removes closed tooltip nodes after its fade timer.
+        const detail=await evaluate(`(()=>{const d=document.querySelector('#chart-help-dialog'),r=d.getBoundingClientRect(),p=d.querySelector('.point-details');return {open:d.open,types:p?.querySelectorAll('.point-calltypes li').length,locations:p?.querySelectorAll('ol li').length,total:p?Number(p.querySelector('p').textContent.split(' dispatches')[0].replaceAll(',','')):0,typeSum:[...d.querySelectorAll('.point-calltypes [data-count]')].reduce((n,e)=>n+Number(e.dataset.count),0),tooltips:document.querySelectorAll('#map .leaflet-tooltip').length,left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:innerWidth,height:innerHeight}})()`);
+        assert(detail.open&&detail.types>0&&detail.locations>0,'A bubble opens one dialog with dispatch types and locations: '+JSON.stringify(detail));
+        assert.equal(detail.typeSum,detail.total,'Dispatch-type summary accounts for every dispatch at the point');
+        assert.equal(detail.tooltips,0,'The hover tooltip must close when details open');
+        assert(detail.left>=0&&detail.right<=detail.width&&detail.top>=0&&detail.bottom<=detail.height,'Bubble details fit the viewport');
+        await screenshot('bubble-details-'+width+'-'+theme);
+        await evaluate(`document.querySelector('#chart-help-close').click()`);
+        assert.equal(await evaluate(`document.querySelectorAll('#map .leaflet-tooltip').length`),0,'Closing details must not leave a stale tooltip');
+      }
+    }
+    await send('Emulation.setTouchEmulationEnabled',{enabled:false});
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate();
+    await navigate(pageUrl+'?street='+encodeURIComponent(bubbleTarget.street)+'&point='+encodeURIComponent(bubbleTarget.point));
+    await evaluate(`document.querySelector('#list .row').click()`);
+    await delay(650);
+    assert(await evaluate(`document.querySelector('#chart-help-dialog').open`));
+    assert.equal(await evaluate(`document.querySelectorAll('#map .leaflet-tooltip').length`),0,'A delayed shared-link preview cannot reopen behind a dialog');
+    assert.deepEqual(errors,[]);
+    await navigate();
+    console.log('PASS: real bubble taps/clicks show dispatch types and location details in one dialog without lingering tooltips on mobile or desktop');
+
     const pointAuditExpression = `(()=>{
       const d=JSON.parse(document.querySelector('#data').textContent),decode=(s,T)=>new T(Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer);
       const locations=decode(d.records.l,Uint16Array),cities=decode(d.records.c,Uint8Array),dates=decode(d.records.d,Uint16Array),groups=new Map(),q=new URLSearchParams(location.search);
