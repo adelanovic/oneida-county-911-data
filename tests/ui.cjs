@@ -103,7 +103,7 @@ async function main() {
   let spawnError;
   browser.on('error', error => { spawnError = error; });
   let ws, send;
-  const watchdog = setTimeout(() => { console.error('Browser regression check timed out'); browser.kill(); process.exitCode = 1; ws?.close(); }, 180000);
+  const watchdog = setTimeout(() => { console.error('Browser regression check timed out'); browser.kill(); process.exitCode = 1; ws?.close(); }, 240000);
   try {
     let target;
     for (let attempt = 0; attempt < 80; attempt++) {
@@ -162,6 +162,75 @@ async function main() {
     }
     await screenshot('desktop');
     console.log('PASS: initial page works with external fonts and CDN blocked');
+
+    const replayDay = await evaluate(`(()=>{const s=document.querySelector('#replay-date'),d=JSON.parse(document.querySelector('#data').textContent);return d.dates[+s.value]})()`);
+    const replayExpected = expected.comparison.dates[replayDay];
+    assert(replayExpected, 'Replay date must exist in the independent CSV');
+    assert.equal(await evaluate(`+document.querySelector('#replay-status').dataset.total`), replayExpected.n);
+    const hourCounts = await evaluate(`[...document.querySelectorAll('#replay-hours button')].map(b=>Number(b.title.split(': ').at(-1).replaceAll(',','').split(' ')[0]))`);
+    assert.deepEqual(hourCounts, replayExpected.hours, 'Replay hourly counts must match CSV');
+    await evaluate(`document.querySelector('#replay-section').scrollIntoView({block:'start'});document.querySelector('#replay-seek').value=86400;document.querySelector('#replay-seek').dispatchEvent(new Event('input'))`);
+    assert.equal(await evaluate(`+document.querySelector('#replay-status').dataset.elapsed`), replayExpected.n, 'End of day includes all dispatches');
+    assert.equal(await evaluate(`document.querySelector('#replay-clock').textContent`), '24:00');
+    const feed = await evaluate(`(()=>{const d=JSON.parse(document.querySelector('#data').textContent),read=(key,Type)=>new Type(Uint8Array.from(atob(d.records[key]),c=>c.charCodeAt(0)).buffer),z=read('z',Uint32Array),p=read('p',Uint8Array);return [...document.querySelectorAll('#replay-feed li[data-record]')].map(e=>({seconds:z[+e.dataset.record],precise:p[+e.dataset.record],text:e.querySelector('time').textContent}))})()`);
+    assert(feed.length > 0 && feed.length <= 12);
+    assert(feed.every((f,i)=>i===0 || f.seconds<=feed[i-1].seconds),'Feed must show newest first');
+    assert(feed.every(f=>f.precise ? /:\d\d:\d\d/.test(f.text) : f.text.includes('minute precision')),'Replay must preserve timestamp precision');
+    await evaluate(`document.querySelector('#replay-restart').click();document.querySelector('#replay-hours [data-replay-hour="12"]').click()`);
+    assert.equal(await evaluate(`document.querySelector('#replay-clock').textContent`), '12:00');
+    assert.equal(await evaluate(`document.querySelector('#replay-play').getAttribute('aria-pressed')`), 'false');
+    await delay(150);
+    await evaluate(`document.querySelector('#replay-play').click()`);
+    await delay(650);
+    assert.equal(await evaluate(`document.querySelector('#replay-play').textContent`), 'Pause');
+    assert.notEqual(await evaluate(`document.querySelector('#replay-clock').textContent`), '12:00','Playback advances simulated time');
+    await evaluate(`document.querySelector('#replay-play').click()`);
+    const pausedClock = await evaluate(`document.querySelector('#replay-clock').textContent`);
+    await delay(350);
+    assert.equal(await evaluate(`document.querySelector('#replay-clock').textContent`),pausedClock,'Pause stops playback');
+    await evaluate(`document.querySelector('#replay-play').click();document.querySelector('#flows-section').scrollIntoView({block:'start'})`);
+    await delay(250);
+    assert.equal(await evaluate(`document.querySelector('#replay-play').getAttribute('aria-pressed')`),'false','Playback pauses offscreen');
+    await evaluate(`document.querySelector('#replay-section').scrollIntoView({block:'start'})`);
+    await delay(150);
+    await evaluate(`document.querySelector('#replay-seek').value=86400;document.querySelector('#replay-seek').dispatchEvent(new Event('input'));document.querySelector('#replay-feed [data-replay-record]')?.click()`);
+    assert((await evaluate(`document.querySelector('#replay-map').innerText`)).includes('not a verified incident site') || (await evaluate(`document.querySelector('#replay-map').innerText`)).includes('estimated') || (await evaluate(`document.querySelector('#replay-map .leaflet-popup')?.textContent || ''`)).length>0,'Feed opens location details');
+    await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+    for (const width of [1440,320]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width===320});
+      for (const theme of ['light','dark']) {
+        await evaluate(`document.querySelector('#theme [data-theme="${theme}"]').click();document.querySelector('#replay-section').scrollIntoView({block:'start'})`);
+        await delay(120);
+        const layout = await evaluate(`(()=>{const c=document.querySelector('#replay-section').getBoundingClientRect(),m=document.querySelector('#replay-map').getBoundingClientRect(),s=document.querySelector('#replay-date').getBoundingClientRect();return {scroll:document.documentElement.scrollWidth,width:innerWidth,card:c.width,map:m.width,selectRight:s.right,cardRight:c.right}})()`);
+        assert(layout.scroll<=layout.width+1,'Replay must fit mobile viewport: '+JSON.stringify(layout));
+        assert(layout.selectRight<layout.cardRight,'Replay date selector must stay inside its card');
+        assert(layout.map>200 && layout.map<=layout.card,'Replay map remains usable');
+        await evaluate(`document.querySelector('#replay-feed [data-replay-record]')?.click()`);
+        await delay(300);
+        const popupFit=await evaluate(`(()=>{const m=document.querySelector('#replay-map').getBoundingClientRect(),p=document.querySelector('#replay-map .leaflet-popup')?.getBoundingClientRect();return p && p.left>=m.left && p.right<=m.right})()`);
+        assert(popupFit,'Replay location popup must fit its map at '+width+'px');
+        await evaluate(`document.querySelector('#replay-section').scrollIntoView({block:'start'})`);
+        await screenshot('replay-'+width+'-'+theme);
+      }
+    }
+    await send('Emulation.setEmulatedMedia',{features:[]});
+    await navigate(pageUrl+'?date='+replayDay+'&hour=7');
+    assert.equal(await evaluate(`+document.querySelector('#replay-status').dataset.total`),replayExpected.hours[7], 'Date/hour filters apply to replay');
+    assert.equal(await evaluate(`document.querySelector('#replay-date').options.length`),replayExpected.hours[7] ? 1 : 0);
+    await evaluate(`document.querySelector('#replay-section').scrollIntoView({block:'start'})`);
+    await delay(150);
+    await evaluate(`document.querySelector('#replay-play').click();const s=document.querySelector('[data-hour-picker]');s.value='8';s.dispatchEvent(new Event('change'))`);
+    assert.equal(await evaluate(`document.querySelector('#replay-play').getAttribute('aria-pressed')`),'false','Filter changes pause playback');
+    assert.equal(await evaluate(`+document.querySelector('#replay-status').dataset.total`),replayExpected.hours[8]);
+    const emptyReplay = Object.entries(expected.comparison.dates).find(([,v])=>v.hours.includes(0));
+    assert(emptyReplay,'Need a covered day with an empty hour to verify the empty replay');
+    await navigate(pageUrl+'?date='+emptyReplay[0]+'&hour='+emptyReplay[1].hours.indexOf(0));
+    assert.equal(await evaluate(`document.querySelector('#replay-play').disabled`),true,'Empty filters disable playback');
+    assert.equal(await evaluate(`+document.querySelector('#replay-status').dataset.total`),0);
+    assert.deepEqual(errors,[]);
+    console.log('PASS: replay dates and hourly counts match CSV; seeking, precision, playback, pause, filters, empty state, location details and mobile themes work');
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate();
 
     const helperSections=await evaluate(`[...document.querySelectorAll('button[data-chart-help]')].map(b=>b.dataset.chartHelp)`);
     assert(helperSections.includes('population-section') && helperSections.includes('compare-section') && helperSections.includes('flows-section') && helperSections.includes('about'));
