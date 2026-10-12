@@ -150,15 +150,23 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .heat .hlab { font-size: .68rem; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
 .heat .corner { font-size: .68rem; color: var(--muted); display: flex; align-items: flex-end; }
 
-.cal-wrap { display: grid; gap: 14px; min-width: 34rem; }
+#coverage-section { gap: 10px; }
+.cal-wrap { display: grid; gap: 10px; min-width: 0; width: 100%; }
 .cal-year { display: grid; gap: 4px; }
 .cal-year h3 { margin: 0; font: 600 .9rem/1.2 var(--f-body); display: flex; gap: 8px; align-items: baseline; }
 .cal-year h3 small { font-weight: 400; color: var(--muted); font-size: .78rem; }
-.cal { display: grid; grid-template-columns: 1.9rem repeat(53, minmax(7px, 1fr)); grid-template-rows: auto repeat(7, auto); gap: 2px; }
-.cal .mlab { font-size: .68rem; color: var(--muted); grid-row: 1; white-space: nowrap; }
+.cal { display: grid; grid-template-columns: 1.9rem repeat(53, minmax(0, 1fr)); grid-template-rows: auto repeat(7, auto); gap: 1px; }
+.cal .mlab { font-size: .68rem; color: var(--muted); grid-column: var(--col); grid-row: 1; white-space: nowrap; }
 .cal .wlab { font-size: .66rem; line-height: 1; color: var(--muted); grid-column: 1; height: 0; align-self: center;
   display: flex; align-items: center; overflow: visible; }
-.cal .day { aspect-ratio: 1; border-radius: 2px; }
+.cal .day { grid-column: var(--col); grid-row: var(--row); height: clamp(7px, .9vw, 16px); border-radius: 2px; }
+.cal .wlab.compact { display: none; }
+@media (max-width: 600px) {
+  .cal { grid-template-columns: 1.9rem repeat(var(--compact-weeks), minmax(0, 1fr)); grid-template-rows: auto repeat(7, auto) 4px auto repeat(7, auto); }
+  .cal .day, .cal .mlab { grid-column: var(--compact-col); grid-row: var(--compact-row); }
+  .cal .day { height: clamp(6px, 1.5vw, 10px); }
+  .cal .wlab.compact { display: flex; }
+}
 .cal .day.has { cursor: pointer; }
 .cal .day.none { border: 1px dashed var(--line); box-sizing: border-box; }
 .cal .day.dimyear { opacity: .35; }
@@ -401,9 +409,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <button type="button" class="btn push" id="copy" title="Copy a link to this exact view">Copy link</button>
     </div>
     <nav class="section-nav" aria-label="Jump to a section">
-      <a class="btn" href="#flows-section">Response flows</a>
       <a class="btn" href="#time-patterns-section">Time patterns</a>
       <a class="btn" href="#coverage-section">Report coverage</a>
+      <a class="btn" href="#flows-section">Response connections</a>
       <a class="btn" href="#trend-section">Daily trend</a>
       <!-- Seasons temporarily disabled: <a class="btn" href="#seasons-section">Seasons</a> -->
       <a class="btn" href="#standouts-section">What stands out</a>
@@ -413,7 +421,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <a class="btn" href="#population-section">Population rates</a>
       <a class="btn" href="#compare-section">Compare</a>
       <a class="btn" href="#police-section">Police dispatch types</a>
-      <a class="btn" href="#outside-section">Outside home town</a>
+      <a class="btn" href="#outside-section">Agency coverage</a>
       <a class="btn" href="#about">About the data</a>
     </nav>
 
@@ -440,21 +448,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     </div>
   </div>
 
-  <section class="patterns" id="patterns" aria-label="Response flows, time patterns and coverage">
-    <div class="chart card wide" id="flows-section">
-      <div class="chart-head">
-        <h2>Response flows between towns</h2>
-        <p>Arrows run from an agency's home town to the town it responded in; thicker arrows mean more dispatches. Hover an arrow for the agencies involved; click a route to filter the map to that town.</p>
-      </div>
-      <div class="seg" id="flow-kind" role="group" aria-label="Agency type" style="width:max-content"><button type="button" data-k="FIRE" aria-pressed="true">Fire departments</button><button type="button" data-k="EMS" aria-pressed="false">Ambulance services</button></div>
-      <div class="flow-wrap">
-        <div id="flowmap" aria-label="Map of response flows between towns"></div>
-        <div><h3 class="eyebrow" style="margin:0 0 6px">Busiest routes</h3><div class="rank" id="flow-list"></div></div>
-      </div>
-      <div class="insight" id="flow-insight"></div>
-      <p class="note-sm">Home town is estimated from all available reports. The agency-type toggle replaces the responder filter; routes shown touch the selected town (villages and Rome districts roll up to their town). The percentage covers all destinations under the other filters. Arrows show up to 70 routes with at least 3 dispatches and known map centers; neighboring-county routes appear only in the list.</p>
-    </div>
-    <div class="chart card" id="time-patterns-section">
+  <section class="patterns" id="patterns" aria-label="Response connections, time patterns and coverage">
+    <div class="chart card wide" id="time-patterns-section">
       <div class="chart-head">
         <h2>When dispatches happen</h2>
         <p>Average dispatches per report day, by hour and weekday, for the current filters. Click a square, an hour or a day to filter the map.</p>
@@ -464,14 +459,29 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="insight" id="heat-insight"></div>
       <label class="chart-picker">Filter by hour <select data-hour-picker aria-label="Filter dispatches by hour"></select></label>
     </div>
-    <div class="chart card" id="coverage-section">
+    <div class="chart card wide" id="coverage-section">
       <div class="chart-head">
         <h2>Report coverage</h2>
-        <p>Each square is a day. Colored days have a county report; darker colors mean more dispatches for the current filters. Outlined days have no report in this collection. Click a day to filter the map.</p>
+        <p>Each cell is a day; darker means more matching dispatches. Outlined dates have no records in this dataset. Select a day or use the date picker.</p>
       </div>
       <div class="scroll-x"><div class="cal-wrap" id="cal"></div></div>
       <div class="ramp" id="cal-ramp"></div>
       <label class="chart-picker">Filter by report date <select id="report-date" aria-label="Filter by report date"></select></label>
+    </div>
+    <div class="chart card wide" id="flows-section">
+      <div class="chart-head">
+        <h2>Response connections between towns</h2>
+        <p>Lines connect an agency's most-served town to other towns where it had dispatches; thicker lines mean more dispatches. These are response patterns, not vehicle journeys or confirmed mutual aid. Hover a line for the agencies involved; click a connection to filter the main map to the response town.</p>
+      </div>
+      <div class="seg" id="flow-kind" role="group" aria-label="Agency type" style="width:max-content"><button type="button" data-k="FIRE" aria-pressed="true">Fire departments</button><button type="button" data-k="EMS" aria-pressed="false">Ambulance services</button></div>
+      <div class="flow-wrap">
+        <div id="flowmap" aria-label="Map of agency response connections, not vehicle journeys"></div>
+        <div><h3 class="eyebrow" style="margin:0 0 6px">Largest response connections</h3><div class="rank" id="flow-list"></div></div>
+      </div>
+      <div class="insight" id="flow-insight"></div>
+      <p class="note-sm">Most-served town is the town with the agency's largest dispatch count across all available reports, before filters. It is not a verified station location or service boundary, and it can change as reports are added. Lines connect town centers, not actual departure or incident locations. A dot marks a most-served town.</p>
+      <p class="note-sm">For example, <a href="https://www.townofnewhartfordny.gov/new-york-mills-fire-department" target="_blank" rel="noopener">New York Mills FD serves parts of both New Hartford and Whitestown</a>; a connection between these towns can represent regular coverage.</p>
+      <p class="note-sm">The agency-type toggle replaces the responder filter; connections shown touch the selected town (villages and Rome districts roll up to their town). The percentage covers all destinations under the other filters. Lines show up to 70 connections with at least 3 dispatches and known map centers; neighboring-county connections appear only in the list.</p>
     </div>
     <div class="chart card wide" id="trend-section">
       <div class="chart-head">
@@ -567,11 +577,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     </div>
     <div class="chart card" id="outside-section">
       <div class="chart-head">
-        <h2>Agencies working outside their home town</h2>
-        <p>Share of each fire department's and ambulance service's dispatches that went outside its home town (the town where it responds most). Fire districts and ambulance territories often cross town lines, so this includes routine coverage as well as mutual aid. Click an agency to filter.</p>
+        <h2>Dispatches beyond each agency's most-served town</h2>
+        <p>Share of each fire department's and ambulance service's dispatches in other towns than its most-served town. This does not measure responses outside its service territory or identify mutual aid: agencies can routinely serve several towns. Click an agency to filter.</p>
       </div>
       <div class="rank" id="out-list"></div>
-      <p class="note-sm">Home town is estimated from all available reports. Percentages use dispatches with known destinations. All filters apply except the individual-agency filter, so departments remain available for comparison. Nurse Navigation is excluded because it is a phone-triage service.</p>
+      <p class="note-sm">Most-served town uses the largest dispatch count across all available reports, before filters; it is not a verified station location or service boundary. Percentages use dispatches with known destinations. All filters apply except the individual-agency filter, so departments remain available for comparison. Nurse Navigation is excluded because it is a phone-triage service.</p>
     </div>
     <div class="card about wide" id="about">
       <div class="chart-head">
@@ -982,19 +992,28 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     box.innerHTML = `<h3>${Y} <small>${D.yearDays[yi]} report days</small></h3>`;
     const grid = document.createElement("div"); grid.className = "cal";
     const jan1 = Date.UTC(Y, 0, 1), off = (new Date(jan1).getUTCDay() + 6) % 7;
+    const jul1 = Date.UTC(Y, 6, 1), julOffset = (new Date(jul1).getUTCDay() + 6) % 7;
+    grid.style.setProperty("--compact-weeks", Math.max(Math.ceil(((jul1 - jan1) / 864e5 + off) / 7), Math.ceil(((Date.UTC(Y + 1, 0, 1) - jul1) / 864e5 + julOffset) / 7)));
     ["Mon", "", "Wed", "", "Fri", "", ""].forEach((t, r) => {
       const w = document.createElement("div"); w.className = "wlab"; w.style.gridRow = r + 2; w.textContent = t; grid.append(w);
+      const second = w.cloneNode(true); second.classList.add("compact"); second.style.gridRow = r + 11; grid.append(second);
     });
     for (let m = 0; m < 12; m++) {
       const doy = Math.round((Date.UTC(Y, m, 1) - jan1) / 864e5);
       const lab = document.createElement("div"); lab.className = "mlab"; lab.textContent = MON[m];
-      lab.style.gridColumn = 2 + Math.floor((doy + off) / 7); grid.append(lab);
+      lab.style.setProperty("--col", 2 + Math.floor((doy + off) / 7));
+      const halfStart = m < 6 ? jan1 : jul1, halfOffset = m < 6 ? off : julOffset;
+      lab.style.setProperty("--compact-col", 2 + Math.floor(((Date.UTC(Y, m, 1) - halfStart) / 864e5 + halfOffset) / 7));
+      lab.style.setProperty("--compact-row", m < 6 ? 1 : 10); grid.append(lab);
     }
     const days = Math.round((Date.UTC(Y + 1, 0, 1) - jan1) / 864e5);
     for (let k = 0; k < days; k++) {
       const dt = new Date(jan1 + k * 864e5), iso = dt.toISOString().slice(0, 10);
       const el = document.createElement("div"); el.className = "day";
-      el.style.gridColumn = 2 + Math.floor((k + off) / 7); el.style.gridRow = 2 + (k + off) % 7;
+      el.style.setProperty("--col", 2 + Math.floor((k + off) / 7)); el.style.setProperty("--row", 2 + (k + off) % 7);
+      const secondHalf = dt.getUTCMonth() >= 6, halfDay = Math.round((dt.getTime() - (secondHalf ? jul1 : jan1)) / 864e5), halfOffset = secondHalf ? julOffset : off;
+      el.style.setProperty("--compact-col", 2 + Math.floor((halfDay + halfOffset) / 7));
+      el.style.setProperty("--compact-row", (secondHalf ? 11 : 2) + (halfDay + halfOffset) % 7);
       const d = dateIdx.has(iso) ? dateIdx.get(iso) : -1;
       if (d >= 0) { el.classList.add("has"); el.dataset.k = `date:${d}`; el.tabIndex = calDays.some(v => v.d >= 0) ? -1 : 0; el.setAttribute("role", "button"); } else { el.classList.add("none"); el.dataset.iso = iso; }
       grid.append(el); calDays.push({ el, d, iso, yi });
@@ -1952,9 +1971,9 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   $("pol-list").addEventListener("click", e => { const r = e.target.closest("[data-u]"); if (r) toggleUnit(+r.dataset.u, true); });
   $("pol-list").addEventListener("keydown", e => { const r = e.target.closest("[data-u]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleUnit(+r.dataset.u, true); } });
 
-  // ---------- responses outside home town + flow map
+  // ---------- responses beyond the most-served town + connection map
   const townOfCity = D.cities.map(c => { const [town, , county] = info(c); return county && county !== "ONEIDA" ? "C:" + county : town ? "T:" + town : ""; });
-  const homeTown = (() => {
+  const mostServedTown = (() => {
     const counts = D.agencies.map(() => new Map());
     for (let i = 0; i < N; i++) { const k = townOfCity[R.c[i]]; if (k.startsWith("T:")) { const m = counts[R.u[i]]; m.set(k, (m.get(k) || 0) + 1); } }
     return counts.map(m => { let best = "", n = -1; m.forEach((v, k) => { if (v > n) { n = v; best = k; } }); return best; });
@@ -1977,7 +1996,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   addCountyControl(fmap, "reset-flow-map", () => { fmap.stop(); fmap.fitBounds(fBounds, { padding: [8, 8], animate: false }); fMoved = false; });
   fmap.getContainer().addEventListener("pointerdown", () => fMoved = true);
   // Nurse Navigation is a phone triage line, not a responding unit.
-  const flowAgency = u => (D.agencyKind[u] === "FIRE" || D.agencyKind[u] === "EMS") && !/nurse navigation/i.test(D.agencies[u]) && homeTown[u];
+  const flowAgency = u => (D.agencyKind[u] === "FIRE" || D.agencyKind[u] === "EMS") && !/nurse navigation/i.test(D.agencies[u]) && mostServedTown[u];
   function drawFlowBase() {
     const theme = css("--land") + css("--town");
     if (theme === fTheme) return;
@@ -1999,12 +2018,6 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     for (let s = 0; s <= 20; s++) { const t = s / 20, u = 1 - t; pts.push([u * u * a[0] + 2 * u * t * mx + t * t * b[0], u * u * a[1] + 2 * u * t * my + t * t * b[1]]); }
     return pts;
   }
-  function arrowHead(pts, size) {
-    const [p1, p2] = [pts[pts.length - 3], pts[pts.length - 1]], k = Math.cos(p2[0] * Math.PI / 180);
-    const dx = (p2[1] - p1[1]) * k, dy = p2[0] - p1[0], len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len;
-    const back = [p2[0] - uy * size, p2[1] - ux * size / k];
-    return [p2, [back[0] + ux * size * 0.55, back[1] - uy * size * 0.55 / k], [back[0] - ux * size * 0.55, back[1] + uy * size * 0.55 / k]];
-  }
   const pickRoute = dest => { if (placeCities[dest]) {
     if (st.agency >= 0 && D.agencyTypes[st.agency] !== flowKind) st.agency = -1;
     setPlace(dest); update(); zoomToPlace(); $("map").scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });
@@ -2020,7 +2033,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       if (D.agencyKind[u] !== flowKind || !flowAgency(u)) continue;
       const d = R.d[i];
       if (!(typeOK(R.t[i]) && yearOK(d) && dateOK(d) && dowOK(d) && hourOK(R.h[i]) && unitOK(u))) continue;
-      const dest = townOfCity[R.c[i]], home = homeTown[u];
+      const dest = townOfCity[R.c[i]], home = mostServedTown[u];
       if (!dest) { unknown++; continue; }
       let a = agOut.get(u); if (!a) agOut.set(u, a = [0, 0]); a[0]++;
       if (dest === home) continue;
@@ -2033,28 +2046,27 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const drawn = routes.filter(r => r.n >= 3 && townCenter[r.home] && townCenter[r.dest]).slice(0, 70);
     const mx = drawn.length ? drawn[0].n : 1, color = css("--dot");
     fFlows.clearLayers();
-    // thin first so thick routes sit on top
+    // Thin first so thick connections sit on top.
     [...drawn].reverse().forEach(r => {
       const pts = curve(townCenter[r.home], townCenter[r.dest]), w = 1.2 + 7 * Math.sqrt(r.n / mx);
-      const tip = `<div class="tip"><b>${esc(townLabelOf(r.home))} → ${esc(townLabelOf(r.dest))}</b><br>${fmt(r.n)} dispatches<ol>` +
+      const tip = `<div class="tip"><b>Response town: ${esc(townLabelOf(r.dest))}</b><br>Most-served town: ${esc(townLabelOf(r.home))}<br>${fmt(r.n)} dispatches<ol>` +
         [...r.by.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([u, n]) => `<li>${esc(D.agencies[u])} · ${fmt(n)}</li>`).join("") + "</ol></div>";
       const line = L.polyline(pts, { color, weight: w, opacity: .55, lineCap: "round" }).bindTooltip(tip, { sticky: true, opacity: 1 });
       line.on("click", () => pickRoute(r.dest));
       fFlows.addLayer(line);
-      fFlows.addLayer(L.polygon(arrowHead(pts, 0.006 + 0.012 * Math.sqrt(r.n / mx)), { color, weight: 0, fillColor: color, fillOpacity: .8, interactive: false }));
     });
-    // home markers
+    // Markers identify town centers, not agency stations.
     const homes = new Set(drawn.map(r => r.home));
     homes.forEach(h => fFlows.addLayer(L.circleMarker(townCenter[h], { radius: 3.5, color: css("--panel"), weight: 1.5, fillColor: css("--ink"), fillOpacity: 1, interactive: false })));
     $("flow-list").innerHTML = routes.length ? routes.slice(0, 10).map(r => {
       const top = [...r.by.entries()].sort((a, b) => b[1] - a[1])[0];
-      return `<div class="rank-row" data-dest="${r.dest}" tabindex="0" role="button"><span class="nm">${esc(townLabelOf(r.home))} → ${esc(townLabelOf(r.dest))}<small>mostly ${esc(D.agencies[top[0]])}</small></span><span class="v">${fmt(r.n)}</span></div>`;
-    }).join("") : `<p class="so-note">No ${flowKind === "FIRE" ? "fire department" : "ambulance"} dispatches outside a home town match these filters.</p>`;
+      return `<div class="rank-row" data-dest="${r.dest}" tabindex="0" role="button"><span class="nm">Responses in ${esc(townLabelOf(r.dest))}<small>Most-served: ${esc(townLabelOf(r.home))}</small><small>Mostly ${esc(D.agencies[top[0]])}</small></span><span class="v">${fmt(r.n)}</span></div>`;
+    }).join("") : `<p class="so-note">No ${flowKind === "FIRE" ? "fire department" : "ambulance"} dispatches beyond a most-served town match these filters.</p>`;
     const outAll = [...agOut.values()].reduce((s, a) => s + a[1], 0), all = [...agOut.values()].reduce((s, a) => s + a[0], 0);
-    $("flow-insight").innerHTML = (all ? `<span><b>${(100 * outAll / all).toFixed(0)}%</b> of ${fmt(all)} ${flowKind === "FIRE" ? "fire department" : "ambulance"} dispatches with known destinations went outside the agency's home town${placeTown ? `; routes shown touch ${esc(townLabelOf(placeTown))}` : ""}.` +
-      ` The map shows ${drawn.length} of ${routes.length} routes.</span>` : "<span>No dispatches with known destinations match these filters.</span>") + `<span>${fmt(unknown)} dispatches with unknown destinations excluded.</span>`;
+    $("flow-insight").innerHTML = (all ? `<span><b>${(100 * outAll / all).toFixed(0)}%</b> of ${fmt(all)} ${flowKind === "FIRE" ? "fire department" : "ambulance"} dispatches with known destinations were in a different town from the agency's most-served town${placeTown ? `; connections shown touch ${esc(townLabelOf(placeTown))}` : ""}.` +
+      ` The map shows ${drawn.length} of ${routes.length} connections.</span>` : "<span>No dispatches with known destinations match these filters.</span>") + `<span>${fmt(unknown)} dispatches with unknown destinations excluded.</span>`;
 
-    // agencies by share outside home town (both fire and EMS, independent of the toggle)
+    // agencies by share beyond the most-served town (both fire and EMS, independent of the toggle)
     renderOutside();
   }
   function renderOutside() {
@@ -2066,13 +2078,13 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       if (!(typeOK(R.t[i]) && yearOK(d) && dateOK(d) && dowOK(d) && hourOK(R.h[i]) && agOK(R.a[i]) && cityOK[R.c[i]])) continue;
       const dest = townOfCity[R.c[i]]; if (!dest) { unknown++; continue; }
       let a = agg.get(u); if (!a) agg.set(u, a = [0, 0, new Map()]); a[0]++;
-      if (dest !== homeTown[u]) { a[1]++; a[2].set(dest, (a[2].get(dest) || 0) + 1); }
+      if (dest !== mostServedTown[u]) { a[1]++; a[2].set(dest, (a[2].get(dest) || 0) + 1); }
     }
     const rows = [...agg.entries()].filter(([, a]) => a[0] >= 40).map(([u, a]) => [u, a[0], a[1], a[1] / a[0], a[2]]).sort((x, y) => y[3] - x[3]).slice(0, 12);
     $("out-list").innerHTML = rows.length ? rows.map(([u, n, out, sh, dests]) => {
       const top = [...dests.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => townLabelOf(k)).join(", ");
       return `<div class="rank-row${st.unit === u ? " on" : ""}" data-u="${u}" tabindex="0" role="button">
-        <span class="nm">${esc(D.agencies[u])}<small>home: ${esc(townLabelOf(homeTown[u]))}${top ? " · mostly to " + esc(top) : ""}</small></span>
+        <span class="nm">${esc(D.agencies[u])}<small>most-served: ${esc(townLabelOf(mostServedTown[u]))}${top ? " · other response towns: " + esc(top) : ""}</small></span>
         <span class="v">${(100 * sh).toFixed(0)}%<small>${fmt(out)} of ${fmt(n)}</small></span>
         <span class="bar"><i style="width:${(100 * sh).toFixed(1)}%"></i></span></div>`;
     }).join("") + `<p class="note-sm">Agencies with at least 40 matching dispatches with known destinations.</p>` : `<p class="so-note">Not enough fire or ambulance dispatches match these filters.</p>`;

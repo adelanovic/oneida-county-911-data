@@ -540,6 +540,43 @@ async function main() {
       console.log('PASS: Seasons panel and navigation are disabled; saved month filters still work');
     }
 
+    await navigate(pageUrl);
+    for (const [width,height,mobile] of [[1440,900,false],[800,600,false],[390,844,true],[320,844,true]]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile});
+      for(const theme of ['light','dark']) {
+        await evaluate(`document.querySelector('#theme [data-theme="${theme}"]').click();document.querySelector('#coverage-section').scrollIntoView({behavior:'instant',block:'start'})`);
+        const layout=await evaluate(`(()=>{const card=document.querySelector('#coverage-section'),c=card.getBoundingClientRect(),p=document.querySelector('#patterns').getBoundingClientRect(),
+          t=document.querySelector('#time-patterns-section').getBoundingClientRect(),f=document.querySelector('#flows-section').getBoundingClientRect(),
+          year=document.querySelector('#cal .cal'),labels=year.querySelectorAll('.mlab');
+          return {width:innerWidth,scroll:document.documentElement.scrollWidth,cardWidth:c.width,available:p.width,height:c.height,
+            ordered:t.bottom<=c.top+1&&c.bottom<=f.top+1,grids:[...document.querySelectorAll('#cal .cal')].map(g=>({width:g.clientWidth,scroll:g.scrollWidth})),
+            months:[...labels].map(e=>({left:e.getBoundingClientRect().left,right:e.getBoundingClientRect().right,top:e.getBoundingClientRect().top})),
+            left:c.left,right:c.right,days:document.querySelectorAll('#cal .day').length,picker:document.querySelector('#report-date').getBoundingClientRect().height}})()`);
+        assert(layout.ordered,JSON.stringify(layout));
+        assert(Math.abs(layout.cardWidth-layout.available)<2,JSON.stringify(layout));
+        assert(layout.scroll<=width && layout.height<=height-24,JSON.stringify(layout));
+        assert(layout.grids.every(g=>g.scroll<=g.width+1),JSON.stringify(layout));
+        assert(layout.months.every(m=>m.left>=layout.left && m.right<=layout.right),JSON.stringify(layout));
+        assert.equal(layout.days,Object.keys(expected.seasonal).reduce((n,y)=>n+(Date.UTC(+y+1,0,1)-Date.UTC(+y,0,1))/864e5,0));
+        assert(layout.picker>=44);
+        assert.equal(layout.months[6].top>layout.months[0].top,width<=600);
+        await screenshot('coverage-'+width+'-'+theme);
+        if(width===1440 || width===390) {
+          await evaluate(`document.querySelector('#flows-section').scrollIntoView({behavior:'instant',block:'start'})`);
+          await screenshot('connections-'+width+'-'+theme);
+        }
+      }
+    }
+    await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+    const coverageTap=await evaluate(`(()=>{const e=document.querySelector('#cal .day.has[aria-label*="Jul 1, 2024"]');e.scrollIntoView({behavior:'instant',block:'center'});const r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()`);
+    await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[coverageTap]});
+    await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    assert.equal(new URL(await evaluate('location.href')).searchParams.get('date'),'2024-07-01');
+    await send('Emulation.setTouchEmulationEnabled',{enabled:false});
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    assert.deepEqual(errors,[]);
+    console.log('PASS: coverage fills the screen without horizontal scrolling in both themes; connections follow both time panels and calendar taps work');
+
     const injected = await send('Page.addScriptToEvaluateOnNewDocument', { source: `const originalParse=JSON.parse;JSON.parse=function(...args){const d=originalParse.apply(this,args);if(d&&d.records&&d.population)d.population={};return d}` });
     await navigate(pageUrl + '?test=missing-population');
     assert((await evaluate(`document.querySelector('#pc-list').innerText`)).includes('unavailable'));
