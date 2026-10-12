@@ -77,6 +77,11 @@ class DatasetRegressionTests(unittest.TestCase):
             self.assertTrue(rows.county.eq(county).all(), city)
             self.assertTrue(rows.outside_county.all(), city)
 
+    def test_separate_matching_stretches_are_exposed_to_the_map(self):
+        loc = next(row for row in self.data["locations"] if row[2:4] == ["ERIE BLVD W", "ROME INSIDE"])
+        self.assertEqual(loc[4], "street")
+        self.assertGreater(loc[8], 1)
+
     def test_absent_locations_stay_unmapped(self):
         missing = self.df.location_missing
         self.assertTrue(self.df.loc[missing, "geo_precision"].eq("none").all())

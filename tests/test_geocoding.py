@@ -155,6 +155,18 @@ class GeocodingRegressionTests(unittest.TestCase):
         self.assertIsNone(self.gc.street("DOVER RD", "RUSSIA HERKIMER COUNTY"))
         self.assertIsNone(self.gc.street("NEY AVE", "UNRECOGNIZED PLACE"))
 
+    def test_similarly_scored_different_roads_remain_unresolved(self):
+        from collections import defaultdict
+        gc = Geocoder.__new__(Geocoder)
+        gc.geom = {"LONG ALFA RD": LineString([(0, 0), (10, 0)]),
+                   "LONG ALFO RD": LineString([(0, 100), (10, 100)])}
+        gc.by_key = defaultdict(list)
+        gc.is_primary = dict.fromkeys(gc.geom, True)
+        gc.county_area = box(-1000, -1000, 1000, 1000)
+        gc.poly = lambda city: gc.county_area
+        gc.candidates = lambda city: list(gc.geom)
+        self.assertEqual(gc.resolve("LONG ALFE RD", "TEST"), (None, None))
+
     def test_rome_county_names_are_scoped_and_clipped(self):
         for name in ["DART CIR", "AIR CITY BLVD", "GEIGER RD", "N DOXTATOR AVE", "S DOXTATOR AVE",
                      "BROADWAY ST", "BOMBER DR", "BATEAUX PL"]:
