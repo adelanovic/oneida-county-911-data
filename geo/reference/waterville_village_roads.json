@@ -1,0 +1,422 @@
+{
+  "city": "WATERVILLE VILLAGE",
+  "source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0",
+  "retrieved_utc": "2026-10-12T13:42:20.790371+00:00",
+  "requested_names": [
+    "BABBOTT AVE NORTH",
+    "E BACON ST",
+    "E MAIN ST",
+    "ELMWOOD AVE N",
+    "ELMWOOD AVE NORTH",
+    "ELMWOOD AVE SOUTH",
+    "STAFFORD AVE NORTH",
+    "W BACON ST"
+  ],
+  "reviewed_aliases": {},
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 1245,
+        "FULL_STNAM": "EAST MAIN ST",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37762523427315,
+              42.93112685591114
+            ],
+            [
+              -75.37665212032655,
+              42.931087721253746
+            ],
+            [
+              -75.37615050930476,
+              42.93102326440695
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1246,
+        "FULL_STNAM": "EAST MAIN ST",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.38003068136476,
+              42.931053011008984
+            ],
+            [
+              -75.37962368259755,
+              42.93108730330008
+            ],
+            [
+              -75.37888413039468,
+              42.93111171527321
+            ],
+            [
+              -75.37762523427315,
+              42.93112685591114
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1272,
+        "FULL_STNAM": "ELMWOOD AVE SOUTH",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37199523346297,
+              42.92996076865619
+            ],
+            [
+              -75.37291964676434,
+              42.929349202899274
+            ],
+            [
+              -75.3732964773022,
+              42.92911126067857
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1282,
+        "FULL_STNAM": "ELMWOOD AVE SOUTH",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37156692963079,
+              42.930309564523874
+            ],
+            [
+              -75.37199523346297,
+              42.92996076865619
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1470,
+        "FULL_STNAM": "WEST BACON ST",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37791699468109,
+              42.935140714538484
+            ],
+            [
+              -75.37886246404291,
+              42.93524920762815
+            ],
+            [
+              -75.38006953765743,
+              42.93541216867387
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1541,
+        "FULL_STNAM": "WEST BACON ST",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37412129020296,
+              42.93454129846784
+            ],
+            [
+              -75.37467879904628,
+              42.93472142026039
+            ],
+            [
+              -75.37492984814078,
+              42.93480622045233
+            ],
+            [
+              -75.37791699468109,
+              42.935140714538484
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1542,
+        "FULL_STNAM": "STAFFORD AVE NORTH",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37412129020296,
+              42.93454129846784
+            ],
+            [
+              -75.37377074114853,
+              42.93515385485524
+            ],
+            [
+              -75.37347475126072,
+              42.93568453172585
+            ],
+            [
+              -75.37304284026615,
+              42.936358024478636
+            ],
+            [
+              -75.37274081111256,
+              42.9368342836264
+            ],
+            [
+              -75.3725347520445,
+              42.937159480290624
+            ],
+            [
+              -75.37218960648315,
+              42.93757515992349
+            ],
+            [
+              -75.3715072319903,
+              42.93835544625465
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 6798,
+        "FULL_STNAM": "EAST BACON ST",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.36989259919032,
+              42.93454484749259
+            ],
+            [
+              -75.36813171003209,
+              42.93458718388683
+            ],
+            [
+              -75.36650609785546,
+              42.93462001175826
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7346,
+        "FULL_STNAM": "EAST BACON ST",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37412129020296,
+              42.93454129846784
+            ],
+            [
+              -75.37394882837985,
+              42.934474432074104
+            ],
+            [
+              -75.37366427430999,
+              42.93448092646589
+            ],
+            [
+              -75.37348303657107,
+              42.934487627030336
+            ],
+            [
+              -75.37169865216572,
+              42.93451624587661
+            ],
+            [
+              -75.36989259919032,
+              42.93454484749259
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7735,
+        "FULL_STNAM": "BABBOTT AVE NORTH",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37762523427315,
+              42.93112685591114
+            ],
+            [
+              -75.37760550098561,
+              42.931382176615124
+            ],
+            [
+              -75.37765830060258,
+              42.93222259328307
+            ],
+            [
+              -75.37774937780789,
+              42.9331979783598
+            ],
+            [
+              -75.3778568301744,
+              42.93437581857135
+            ],
+            [
+              -75.37791699468109,
+              42.935140714538484
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7736,
+        "FULL_STNAM": "STAFFORD AVE NORTH",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37615050930476,
+              42.93102326440695
+            ],
+            [
+              -75.37596126002305,
+              42.931412606684816
+            ],
+            [
+              -75.37535840911873,
+              42.93249534412834
+            ],
+            [
+              -75.37477508683759,
+              42.9334329128554
+            ],
+            [
+              -75.37416183767212,
+              42.934469570248616
+            ],
+            [
+              -75.37412129020296,
+              42.93454129846784
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7739,
+        "FULL_STNAM": "ELMWOOD AVE NORTH",
+        "CITY_LEFT": "WATERVILLE VILLAGE",
+        "CITY_RIGHT": "WATERVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37156692963079,
+              42.930309564523874
+            ],
+            [
+              -75.37078073751286,
+              42.93092515173981
+            ],
+            [
+              -75.3702063083016,
+              42.93133570226703
+            ],
+            [
+              -75.36954644268997,
+              42.931807395378314
+            ],
+            [
+              -75.36850057077986,
+              42.93254119458768
+            ],
+            [
+              -75.36773757301376,
+              42.93308712097934
+            ],
+            [
+              -75.36689213779785,
+              42.93370287152492
+            ],
+            [
+              -75.36646241645238,
+              42.93405206507451
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "street_names": [
+    "BABBOTT AVE NORTH",
+    "EAST BACON ST",
+    "EAST MAIN ST",
+    "ELMWOOD AVE NORTH",
+    "ELMWOOD AVE SOUTH",
+    "STAFFORD AVE NORTH",
+    "WEST BACON ST"
+  ],
+  "audit_source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27WATERVILLE+VILLAGE%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27WATERVILLE+VILLAGE%27%29%29&outFields=FULL_STNAM&returnGeometry=false&returnDistinctValues=true&orderByFields=FULL_STNAM",
+  "reviewed_utc": "2026-10-12T16:30:45+00:00",
+  "selection": "Exact county names with geometry inside municipality + 200 m; fallbacks, fuzzy/qualified matches and audited source disagreements. Ambiguous generic labels remain guarded in code."
+}

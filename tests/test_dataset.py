@@ -58,6 +58,25 @@ class DatasetRegressionTests(unittest.TestCase):
             self.assertAlmostEqual(point[0], float(df.latitude.iat[i]), places=4)
             self.assertAlmostEqual(point[1], float(df.longitude.iat[i]), places=4)
 
+    def test_corrected_locations_keep_source_labels_and_coordinates(self):
+        df = self.df
+        corrected = df[df.city_raw == "NEW YORK MILLS WHITE"]
+        self.assertGreater(len(corrected), 0)
+        self.assertTrue(corrected.city.eq("NEW YORK MILLS WHITESTOWN").all())
+        for row in corrected.itertuples():
+            self.assertEqual(self.data["reportedCities"][str(row.Index)], row.city_raw)
+        wrapped = df[df.location_raw.eq("43.162768771618 77, -75.925981216262 12")]
+        self.assertEqual(len(wrapped), 2)
+        self.assertTrue(wrapped.street.eq("").all())
+        self.assertTrue(wrapped.geo_precision.eq("coordinates").all())
+        self.assertTrue(wrapped.latitude.astype(float).between(43.1627, 43.1628).all())
+        self.assertTrue(wrapped.longitude.astype(float).between(-75.9261, -75.9259).all())
+        for city, county in [("OSWEGO COUNTY", "OSWEGO"), ("PLAINFIELD OTSEGO CO", "OTSEGO"),
+                             ("RUSSIA", "HERKIMER"), ("RUSSIA HERKIMER COUNTY", "HERKIMER"), ("CANASTOTA", "MADISON")]:
+            rows = df[df.city == city]
+            self.assertTrue(rows.county.eq(county).all(), city)
+            self.assertTrue(rows.outside_county.all(), city)
+
     def test_absent_locations_stay_unmapped(self):
         missing = self.df.location_missing
         self.assertTrue(self.df.loc[missing, "geo_precision"].eq("none").all())

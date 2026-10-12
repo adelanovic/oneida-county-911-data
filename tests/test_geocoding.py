@@ -118,6 +118,43 @@ class GeocodingRegressionTests(unittest.TestCase):
         self.assertEqual(norm_cad("6 ST"), "6 ST")
         self.assertEqual(norm_cad("6TH ST"), "6TH ST")
 
+    def test_qualified_highways_never_silently_become_main_roads(self):
+        for name in ["ROUTE 49 EB", "ROUTE 49 WB", "ROUTE 291 RAMP", "ROUTE 365 EXIT 33 RAMP"]:
+            self.assertEqual(norm_cad(name), name)
+        for name, city in [("ROUTE 291 RAMP", "MARCY"), ("ORISKANY BLVD RAMP", "YORKVILLE VILLAGE"),
+                           ("ROUTE 12 RAMP", "UTICA")]:
+            hit = self.gc.county_street(name, city)
+            self.assertIsNotNone(hit, (name, city))
+            self.assertIn("RAMP", hit["matched"])
+            stored = self.locations[(self.locations.street == name) & (self.locations.city == city)].iloc[0]
+            self.assertIn("RAMP", stored.matched_name)
+            self.assertTrue(stored.match_method.startswith("county_roads"))
+
+    def test_directional_streets_use_distinct_exact_county_features(self):
+        points = []
+        for name, city in [("E MAIN ST", "VERONA"), ("W MAIN ST", "VERONA"), ("E LAKE ST", "VIENNA")]:
+            hit = self.gc.county_street(name, city)
+            self.assertIsNotNone(hit, (name, city))
+            self.assertIsNone(self.gc.street(name, city))
+            row = self.locations[(self.locations.street == name) & (self.locations.city == city)].iloc[0]
+            self.assertEqual(row.match_method, "county_roads")
+            points.append((row.latitude, row.longitude))
+        self.assertEqual(len(set(points)), 3)
+
+    def test_new_municipal_references_cover_the_largest_gaps(self):
+        for name, city in [("WETMORE ST", "NEW YORK MILLS WHITESTOWN"), ("E MAIN ST", "WATERVILLE VILLAGE"),
+                           ("RUSSELL AVE", "YORKVILLE VILLAGE"), ("LINE DR", "BOONVILLE VILLAGE"),
+                           ("WOODS PARK DR", "NEW HARTFORD"), ("OLD REMSEN RD", "BARNEVELD VILLAGE")]:
+            row = self.locations[(self.locations.street == name) & (self.locations.city == city)].iloc[0]
+            self.assertEqual(row.precision, "street", (name, city))
+            self.assertEqual(row.match_method, "county_roads")
+            hit = self.gc.county_street(name, city)
+            self.assertLessEqual(hit["geom"].difference(self.gc.poly(city).buffer(self.gc.BUF)).length, .01)
+
+    def test_unsupported_municipality_cannot_match_an_unrelated_county_road(self):
+        self.assertIsNone(self.gc.street("DOVER RD", "RUSSIA HERKIMER COUNTY"))
+        self.assertIsNone(self.gc.street("NEY AVE", "UNRECOGNIZED PLACE"))
+
     def test_rome_county_names_are_scoped_and_clipped(self):
         for name in ["DART CIR", "AIR CITY BLVD", "GEIGER RD", "N DOXTATOR AVE", "S DOXTATOR AVE",
                      "BROADWAY ST", "BOMBER DR", "BATEAUX PL"]:

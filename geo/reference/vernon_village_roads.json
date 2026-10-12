@@ -1,0 +1,189 @@
+{
+  "city": "VERNON VILLAGE",
+  "source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0",
+  "retrieved_utc": "2026-10-12T13:42:20.790371+00:00",
+  "requested_names": [
+    "E SENECA ST",
+    "ROUTE 5"
+  ],
+  "reviewed_aliases": {},
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 5333,
+        "FULL_STNAM": "EAST SENECA ST",
+        "CITY_LEFT": "VERNON VILLAGE",
+        "CITY_RIGHT": "VERNON VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.5340312998196,
+              43.07993077694143
+            ],
+            [
+              -75.53315445828287,
+              43.07973229043412
+            ],
+            [
+              -75.53249269937777,
+              43.07954967812373
+            ],
+            [
+              -75.53172309119213,
+              43.07932254565673
+            ],
+            [
+              -75.53072257426737,
+              43.07902332840351
+            ],
+            [
+              -75.52852937214378,
+              43.07829354023563
+            ],
+            [
+              -75.52578166913379,
+              43.07734188727062
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 5455,
+        "FULL_STNAM": "EAST SENECA ST",
+        "CITY_LEFT": "VERNON VILLAGE",
+        "CITY_RIGHT": "VERNON VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.53644289718336,
+              43.080065801436064
+            ],
+            [
+              -75.5359211108983,
+              43.080090754115304
+            ],
+            [
+              -75.53542978580174,
+              43.08008742776343
+            ],
+            [
+              -75.5348153468204,
+              43.08005091073097
+            ],
+            [
+              -75.5340312998196,
+              43.07993077694143
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 5489,
+        "FULL_STNAM": "EAST SENECA ST",
+        "CITY_LEFT": "VERNON VILLAGE",
+        "CITY_RIGHT": "VERNON VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.52578166913379,
+              43.07734188727062
+            ],
+            [
+              -75.5246995872198,
+              43.07697253815198
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7834,
+        "FULL_STNAM": "STATE ROUTE 5",
+        "CITY_LEFT": "VERNON",
+        "CITY_RIGHT": "VERNON VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.5246995872198,
+              43.07697253815198
+            ],
+            [
+              -75.52319436630542,
+              43.076484738721135
+            ],
+            [
+              -75.52180597043923,
+              43.076067085524514
+            ],
+            [
+              -75.52023732597978,
+              43.07564739395247
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7938,
+        "FULL_STNAM": "EAST SENECA ST",
+        "CITY_LEFT": "VERNON VILLAGE",
+        "CITY_RIGHT": "VERNON VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.53918729125301,
+              43.07961989369847
+            ],
+            [
+              -75.5388118331608,
+              43.07971141978492
+            ],
+            [
+              -75.53840710026964,
+              43.079790647458886
+            ],
+            [
+              -75.53806099795892,
+              43.07987813832311
+            ],
+            [
+              -75.53750910143907,
+              43.079970765149405
+            ],
+            [
+              -75.53688109968888,
+              43.08004364737253
+            ],
+            [
+              -75.53644289718336,
+              43.080065801436064
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "street_names": [
+    "EAST SENECA ST",
+    "STATE ROUTE 5"
+  ],
+  "audit_source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27VERNON+VILLAGE%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27VERNON+VILLAGE%27%29%29&outFields=FULL_STNAM&returnGeometry=false&returnDistinctValues=true&orderByFields=FULL_STNAM",
+  "reviewed_utc": "2026-10-12T16:30:45+00:00",
+  "selection": "Exact county names with geometry inside municipality + 200 m; fallbacks, fuzzy/qualified matches and audited source disagreements. Ambiguous generic labels remain guarded in code."
+}

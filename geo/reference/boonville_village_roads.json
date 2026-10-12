@@ -1,0 +1,241 @@
+{
+  "city": "BOONVILLE VILLAGE",
+  "source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0",
+  "retrieved_utc": "2026-10-12T13:42:20.790371+00:00",
+  "requested_names": [
+    "KORTENAER VILLAGE",
+    "LINE DR",
+    "MANY DR",
+    "RAILROAD AVE",
+    "SUNSET DR"
+  ],
+  "reviewed_aliases": {},
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 4571,
+        "FULL_STNAM": "SUNSET DR",
+        "CITY_LEFT": "BOONVILLE VILLAGE",
+        "CITY_RIGHT": "BOONVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.34268493809095,
+              43.485426600856044
+            ],
+            [
+              -75.34118070117158,
+              43.485564009118434
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7064,
+        "FULL_STNAM": "RAILROAD AVE",
+        "CITY_LEFT": "BOONVILLE VILLAGE",
+        "CITY_RIGHT": "BOONVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.33555868925488,
+              43.483281400421
+            ],
+            [
+              -75.33534992220554,
+              43.48302676651342
+            ],
+            [
+              -75.3350805121609,
+              43.482732123654884
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7067,
+        "FULL_STNAM": "KORTENAER VILLAGE",
+        "CITY_LEFT": "BOONVILLE VILLAGE",
+        "CITY_RIGHT": "BOONVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.33795539504676,
+              43.481645289043335
+            ],
+            [
+              -75.33846590685657,
+              43.48160611846495
+            ],
+            [
+              -75.3386143088927,
+              43.48155389613231
+            ],
+            [
+              -75.3387238162504,
+              43.48148295809062
+            ],
+            [
+              -75.33878134184012,
+              43.481365098465744
+            ],
+            [
+              -75.33876094716466,
+              43.48118627180143
+            ],
+            [
+              -75.3387078613772,
+              43.48094163482169
+            ],
+            [
+              -75.33866789048567,
+              43.480729912988906
+            ],
+            [
+              -75.33862812896783,
+              43.480555850200346
+            ],
+            [
+              -75.33862739281146,
+              43.48042404077637
+            ],
+            [
+              -75.33867876860037,
+              43.48036268982541
+            ],
+            [
+              -75.3388142897145,
+              43.48031992029616
+            ],
+            [
+              -75.33905329952465,
+              43.48028625871256
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9347,
+        "FULL_STNAM": "RAILROAD AVE",
+        "CITY_LEFT": "BOONVILLE VILLAGE",
+        "CITY_RIGHT": "BOONVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.3350805121609,
+              43.482732123654884
+            ],
+            [
+              -75.3349919044388,
+              43.482638848193226
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9570,
+        "FULL_STNAM": "LINE DR",
+        "CITY_LEFT": "BOONVILLE VILLAGE",
+        "CITY_RIGHT": "BOONVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.32035075065636,
+              43.477695550565734
+            ],
+            [
+              -75.31987008339583,
+              43.47826525936362
+            ],
+            [
+              -75.31924501672931,
+              43.47916040575391
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 10336,
+        "FULL_STNAM": "MANY DR",
+        "CITY_LEFT": "BOONVILLE VILLAGE",
+        "CITY_RIGHT": "BOONVILLE VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.32879040213625,
+              43.48291296368332
+            ],
+            [
+              -75.32866560288765,
+              43.48306770245113
+            ],
+            [
+              -75.3285799405438,
+              43.48319945674693
+            ],
+            [
+              -75.32856497964201,
+              43.48333672558285
+            ],
+            [
+              -75.32865240895731,
+              43.4835308785
+            ],
+            [
+              -75.32879471235661,
+              43.48370771943779
+            ],
+            [
+              -75.32885809076954,
+              43.48381045655213
+            ],
+            [
+              -75.32884285122822,
+              43.483896266524916
+            ],
+            [
+              -75.32875700084203,
+              43.483993715918906
+            ],
+            [
+              -75.32727417843697,
+              43.48545922283037
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "street_names": [
+    "KORTENAER VILLAGE",
+    "LINE DR",
+    "MANY DR",
+    "RAILROAD AVE",
+    "SUNSET DR"
+  ],
+  "audit_source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27BOONVILLE+VILLAGE%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27BOONVILLE+VILLAGE%27%29%29&outFields=FULL_STNAM&returnGeometry=false&returnDistinctValues=true&orderByFields=FULL_STNAM",
+  "reviewed_utc": "2026-10-12T16:30:45+00:00",
+  "selection": "Exact county names with geometry inside municipality + 200 m; fallbacks, fuzzy/qualified matches and audited source disagreements. Ambiguous generic labels remain guarded in code."
+}

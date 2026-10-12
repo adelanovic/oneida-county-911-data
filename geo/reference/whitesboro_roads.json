@@ -10,12 +10,16 @@
     "DEXTER ST",
     "ELLIS AVE",
     "MAIN ST, WHITESBORO",
+    "THARRATT PL",
+    "TRACY ST",
     "WHITESBORO MIDDLE SCHOOL"
   ],
   "street_names": [
     "COMMERCIAL DRIVE RAMP",
     "DEXTER ST",
     "ELLIS AVE",
+    "THARRATT PL",
+    "TRACY ST",
     "WHITESBORO MIDDLE SCHOOL"
   ],
   "features": [
@@ -42,6 +46,138 @@
             [
               -75.30020679054836,
               43.12522753375365
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3409,
+        "FULL_STNAM": "TRACY ST",
+        "CITY_LEFT": "WHITESBORO VILLAGE",
+        "CITY_RIGHT": "WHITESBORO VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.29428434912433,
+              43.12213449860052
+            ],
+            [
+              -75.29450561868344,
+              43.12205752731416
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3411,
+        "FULL_STNAM": "TRACY ST",
+        "CITY_LEFT": "WHITESBORO VILLAGE",
+        "CITY_RIGHT": "WHITESBORO VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.294391681088,
+              43.12186044678964
+            ],
+            [
+              -75.29535719384789,
+              43.121442897071965
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3420,
+        "FULL_STNAM": "THARRATT PL",
+        "CITY_LEFT": "WHITESBORO VILLAGE",
+        "CITY_RIGHT": "WHITESBORO VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.29537940302716,
+              43.11726163163452
+            ],
+            [
+              -75.2953347801801,
+              43.11768919944942
+            ],
+            [
+              -75.29528459160305,
+              43.11803794459886
+            ],
+            [
+              -75.2952691077113,
+              43.1181702430893
+            ],
+            [
+              -75.2952598041331,
+              43.11827642763375
+            ],
+            [
+              -75.29524137531673,
+              43.11843719279089
+            ],
+            [
+              -75.29524564105253,
+              43.11856713235441
+            ],
+            [
+              -75.29525194387102,
+              43.1186237442863
+            ],
+            [
+              -75.29527490312006,
+              43.11868271394233
+            ],
+            [
+              -75.29531718356088,
+              43.11878181267797
+            ],
+            [
+              -75.29535949040257,
+              43.11883934832783
+            ],
+            [
+              -75.29541847362141,
+              43.118914347327724
+            ],
+            [
+              -75.29571554055353,
+              43.119209947334284
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3425,
+        "FULL_STNAM": "TRACY ST",
+        "CITY_LEFT": "WHITESBORO VILLAGE",
+        "CITY_RIGHT": "WHITESBORO VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.29191603850548,
+              43.123089229360446
+            ],
+            [
+              -75.29428434912433,
+              43.12213449860052
             ]
           ]
         ]
@@ -155,5 +291,8 @@
         ]
       }
     }
-  ]
+  ],
+  "audit_source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27WHITESBORO+VILLAGE%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27WHITESBORO+VILLAGE%27%29%29&outFields=FULL_STNAM&returnGeometry=false&returnDistinctValues=true&orderByFields=FULL_STNAM",
+  "reviewed_utc": "2026-10-12T16:30:45+00:00",
+  "selection": "Exact county names with geometry inside municipality + 200 m; fallbacks, fuzzy/qualified matches and audited source disagreements. Ambiguous generic labels remain guarded in code."
 }

@@ -595,6 +595,21 @@ async function main() {
     await navigate(pageUrl);
     console.log('PASS: Camden village street details retain village labels and road-estimate caveats on mobile');
 
+    for (const width of [390, 1440]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<600});
+      await navigate(pageUrl);
+      for (const [street,city,ambiguity] of [['E MAIN ST','VERONA',false],['ROUTE 291 RAMP','MARCY',false],['ERIE BLVD W','ROME INSIDE',true]]) {
+        await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));
+          const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]===${JSON.stringify(city)}});option.click()})()`);
+        const detail=await evaluate(`(()=>{const p=document.querySelector('#chart-help-dialog'),r=p.getBoundingClientRect();return {open:p.open,left:r.left,right:r.right,body:document.querySelector('#chart-help-body').textContent}})()`);
+        assert(detail.open && detail.left>=0 && detail.right<=width,JSON.stringify(detail));
+        assert(detail.body.includes(street),detail.body);
+        assert(detail.body.includes(ambiguity?'Ambiguous match':'Oneida County CAD'),detail.body);
+        await evaluate(`document.querySelector('#chart-help-dialog').close()`);
+      }
+    }
+    console.log('PASS: directional roads, ramps and separate matching stretches disclose source and ambiguity on mobile and desktop');
+
     const overlap = await evaluate(`(()=>{const a=document.querySelector('#cmp-a'),b=document.querySelector('#cmp-b');
       a.value='T:WHITESTOWN';a.dispatchEvent(new Event('change'));b.value='V:WHITESTOWN|WHITESBORO';b.dispatchEvent(new Event('change'));
       const first=[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent);
@@ -732,7 +747,7 @@ async function main() {
       document.querySelector('#dl-places').click();const places=await blob.text();
       return {rows:lines.length-1,header:lines[0],placesRows:places.split('\\r\\n').length-1}} finally {URL.createObjectURL=create;HTMLAnchorElement.prototype.click=click}})()`);
     assert.equal(downloads.rows, expected.total);
-    for (const name of ['call_datetime', 'agency', 'reported_latitude', 'source_file', 'incident_cluster_id']) assert(downloads.header.includes(name));
+    for (const name of ['call_datetime', 'agency', 'reported_latitude', 'source_file', 'incident_cluster_id', 'reported_city_raw', 'matched_reference_name', 'matched_stretches']) assert(downloads.header.includes(name));
     assert(downloads.placesRows > 0);
     console.log('PASS: downloads retain all matching dispatches and source metadata');
 

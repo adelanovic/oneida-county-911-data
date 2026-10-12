@@ -1,0 +1,121 @@
+{
+  "city": "NEW YORK MILLS WHITESTOWN",
+  "source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0",
+  "retrieved_utc": "2026-10-12T13:42:20.790371+00:00",
+  "requested_names": [
+    "BLITZEN CIR",
+    "WETMORE ST"
+  ],
+  "reviewed_aliases": {},
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 3953,
+        "FULL_STNAM": "BLITZEN CIR",
+        "CITY_LEFT": "NEW YORK MILLS WHITESTOWN",
+        "CITY_RIGHT": "NEW YORK MILLS WHITESTOWN"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.28874260167964,
+              43.10664203375182
+            ],
+            [
+              -75.28923895935465,
+              43.10607320931838
+            ],
+            [
+              -75.28926097041946,
+              43.10600220754044
+            ],
+            [
+              -75.28921589609686,
+              43.105920460472554
+            ],
+            [
+              -75.28831254751799,
+              43.10546977471851
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3955,
+        "FULL_STNAM": "BLITZEN CIR",
+        "CITY_LEFT": "NEW YORK MILLS WHITESTOWN",
+        "CITY_RIGHT": "NEW YORK MILLS WHITESTOWN"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.28831254751799,
+              43.10546977471851
+            ],
+            [
+              -75.28814835793526,
+              43.10539924213947
+            ],
+            [
+              -75.28800674259816,
+              43.10537776893491
+            ],
+            [
+              -75.2876565811187,
+              43.10535681999457
+            ],
+            [
+              -75.2872842804125,
+              43.1053795850123
+            ],
+            [
+              -75.28711330667305,
+              43.105450960275185
+            ],
+            [
+              -75.28695756012237,
+              43.10559324414402
+            ],
+            [
+              -75.28679469653048,
+              43.10580649087839
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11769,
+        "FULL_STNAM": "WETMORE ST",
+        "CITY_LEFT": "NEW YORK MILLS WHITESTOWN",
+        "CITY_RIGHT": "NEW YORK MILLS WHITESTOWN"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.28626455424532,
+              43.110571020628214
+            ],
+            [
+              -75.28852132188203,
+              43.11164446761889
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "street_names": [
+    "BLITZEN CIR",
+    "WETMORE ST"
+  ],
+  "audit_source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27NEW+YORK+MILLS+WHITESTOWN%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27NEW+YORK+MILLS+WHITESTOWN%27%29%29&outFields=FULL_STNAM&returnGeometry=false&returnDistinctValues=true&orderByFields=FULL_STNAM",
+  "reviewed_utc": "2026-10-12T16:30:45+00:00",
+  "selection": "Exact county names with geometry inside municipality + 200 m; fallbacks, fuzzy/qualified matches and audited source disagreements. Ambiguous generic labels remain guarded in code."
+}

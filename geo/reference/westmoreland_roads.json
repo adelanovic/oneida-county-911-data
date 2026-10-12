@@ -1,8 +1,13 @@
 {
   "city": "WESTMORELAND",
   "source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0",
-  "query_url": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27WESTMORELAND%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27WESTMORELAND%27%29%29+AND+UPPER%28FULL_STNAM%29+IN+%28%27ABBE+BLVD+SOUTH%27%2C%27BLACKBERRY+PATCH+RD%27%2C%27CHURCH+ST%27%2C%27DENSLOW+DR%27%2C%27INTERSTATE+90+EB%27%2C%27INTERSTATE+90+EXIT+32%27%2C%27INTERSTATE+90+EXIT+32+RAMP%27%2C%27INTERSTATE+90+SERVICE+ENTRANCE%27%2C%27INTERSTATE+90+WB%27%2C%27ONEIDA+SERVICE+CENTER%27%2C%27STOP+7+RD%27%29&outFields=OBJECTID%2CFULL_STNAM%2CCITY_LEFT%2CCITY_RIGHT%2CDATEUPDATE%2CADD_SOURCE&returnGeometry=true&outSR=4326&orderByFields=OBJECTID",
-  "retrieved_utc": "2026-10-12T05:43:17+00:00",
+  "source_labels": [
+    "WESTMORELAND"
+  ],
+  "query_urls": [
+    "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27WESTMORELAND%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27WESTMORELAND%27%29%29+AND+UPPER%28FULL_STNAM%29+IN+%28%27ABBE+BLVD+SOUTH%27%2C%27BLACKBERRY+PATCH+RD%27%2C%27CHURCH+ST%27%2C%27DENSLOW+DR%27%2C%27INTERSTATE+90+EB%27%2C%27INTERSTATE+90+EXIT+32%27%2C%27INTERSTATE+90+EXIT+32+RAMP%27%2C%27INTERSTATE+90+RAMP%27%2C%27INTERSTATE+90+SERVICE+ENTRANCE%27%2C%27INTERSTATE+90+WB%27%2C%27ONEIDA+SERVICE+CENTER%27%2C%27PAZDUR+BLVD+SOUTH%27%2C%27SMITH+RD%27%2C%27STATE+ROUTE+365+EB%27%2C%27STATE+ROUTE+365+WB%27%2C%27STOP+7+RD%27%2C%27SUNRISE+BLVD+NORTH%27%29&outFields=OBJECTID%2CFULL_STNAM%2CCITY_LEFT%2CCITY_RIGHT%2CDATEUPDATE%2CADD_SOURCE&returnGeometry=true&outSR=4326&orderByFields=OBJECTID"
+  ],
+  "retrieved_utc": "2026-10-12T16:33:39+00:00",
   "requested_names": [
     "ABBE BLVD SOUTH",
     "BLACKBERRY PATCH RD",
@@ -15,7 +20,12 @@
     "NYS THRUWAY EXIT 32",
     "NYS THRUWAY EXIT 32 RAMP",
     "ONEIDA SERVICE CENTER",
+    "PAZDUR BLVD SOUTH",
+    "ROUTE 365 EB",
+    "ROUTE 365 WB",
+    "SMITH RD",
     "STOP 7 RD",
+    "SUNRISE BLVD NORTH",
     "THRUWAY SERVICE ENTRANCE"
   ],
   "reviewed_aliases": {
@@ -24,7 +34,8 @@
     "NYS THRUWAY EXIT 32": "INTERSTATE 90 EXIT 32",
     "NY STATE THRUWAY EXIT 32 RAMP": "INTERSTATE 90 EXIT 32 RAMP",
     "NYS THRUWAY EXIT 32 RAMP": "INTERSTATE 90 EXIT 32 RAMP",
-    "THRUWAY SERVICE ENTRANCE": "INTERSTATE 90 SERVICE ENTRANCE"
+    "THRUWAY SERVICE ENTRANCE": "INTERSTATE 90 SERVICE ENTRANCE",
+    "NY STATE THRUWAY RAMP": "INTERSTATE 90 RAMP"
   },
   "street_names": [
     "ABBE BLVD SOUTH",
@@ -34,10 +45,16 @@
     "INTERSTATE 90 EB",
     "INTERSTATE 90 EXIT 32",
     "INTERSTATE 90 EXIT 32 RAMP",
+    "INTERSTATE 90 RAMP",
     "INTERSTATE 90 SERVICE ENTRANCE",
     "INTERSTATE 90 WB",
     "ONEIDA SERVICE CENTER",
-    "STOP 7 RD"
+    "PAZDUR BLVD SOUTH",
+    "SMITH RD",
+    "STATE ROUTE 365 EB",
+    "STATE ROUTE 365 WB",
+    "STOP 7 RD",
+    "SUNRISE BLVD NORTH"
   ],
   "features": [
     {
@@ -451,6 +468,58 @@
             [
               -75.40180506136782,
               43.12215027812324
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 6586,
+        "FULL_STNAM": "INTERSTATE 90 RAMP",
+        "CITY_LEFT": "WESTMORELAND",
+        "CITY_RIGHT": "WESTMORELAND",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.40180506136782,
+              43.12215027812324
+            ],
+            [
+              -75.40153654410238,
+              43.12246601885786
+            ],
+            [
+              -75.40129913380254,
+              43.12267088708564
+            ],
+            [
+              -75.401037390942,
+              43.12280588566126
+            ],
+            [
+              -75.4008071357118,
+              43.122888306392106
+            ],
+            [
+              -75.40044143920363,
+              43.12294788258538
+            ],
+            [
+              -75.39947944588778,
+              43.12309698467603
+            ],
+            [
+              -75.39808280825152,
+              43.12325628224253
+            ],
+            [
+              -75.39722897263151,
+              43.12327022380109
             ]
           ]
         ]
@@ -1126,6 +1195,78 @@
     },
     {
       "attributes": {
+        "OBJECTID": 6588,
+        "FULL_STNAM": "STATE ROUTE 365 WB",
+        "CITY_LEFT": "WESTMORELAND",
+        "CITY_RIGHT": "WESTMORELAND",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.53811285148299,
+              43.16931816827499
+            ],
+            [
+              -75.53964320713568,
+              43.16851417246574
+            ],
+            [
+              -75.54040214299805,
+              43.16812618079012
+            ],
+            [
+              -75.54087417795054,
+              43.16786354313085
+            ],
+            [
+              -75.54233426770728,
+              43.16712372248668
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7791,
+        "FULL_STNAM": "STATE ROUTE 365 EB",
+        "CITY_LEFT": "WESTMORELAND",
+        "CITY_RIGHT": "WESTMORELAND",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.54223601339284,
+              43.167003935361244
+            ],
+            [
+              -75.54070012962265,
+              43.167817865006164
+            ],
+            [
+              -75.53961238756813,
+              43.16838101437043
+            ],
+            [
+              -75.53842341916598,
+              43.16899423090311
+            ],
+            [
+              -75.53779108112843,
+              43.169332033086036
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
         "OBJECTID": 9011,
         "FULL_STNAM": "INTERSTATE 90 WB",
         "CITY_LEFT": "WESTMORELAND",
@@ -1690,6 +1831,134 @@
     },
     {
       "attributes": {
+        "OBJECTID": 9589,
+        "FULL_STNAM": "INTERSTATE 90 RAMP",
+        "CITY_LEFT": "WESTMORELAND",
+        "CITY_RIGHT": "WESTMORELAND",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.39885206470818,
+              43.12521242175612
+            ],
+            [
+              -75.39879032172216,
+              43.12493280580844
+            ],
+            [
+              -75.39881168899936,
+              43.124762638150884
+            ],
+            [
+              -75.39883309180422,
+              43.1245979570344
+            ],
+            [
+              -75.39888724981112,
+              43.12446892641408
+            ],
+            [
+              -75.3989949605749,
+              43.1243558034647
+            ],
+            [
+              -75.39906094324036,
+              43.12428126238399
+            ],
+            [
+              -75.39912359368822,
+              43.124232357178016
+            ],
+            [
+              -75.39920497328204,
+              43.12419746933048
+            ],
+            [
+              -75.39928019090442,
+              43.124158549829964
+            ],
+            [
+              -75.39936423444152,
+              43.12411877012624
+            ],
+            [
+              -75.39951141256176,
+              43.12408531018966
+            ],
+            [
+              -75.39973580615882,
+              43.124035144631236
+            ],
+            [
+              -75.40020000304932,
+              43.12400060019303
+            ],
+            [
+              -75.40050686186775,
+              43.12399558330265
+            ],
+            [
+              -75.40094865151039,
+              43.12398486102818
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 11608,
+        "FULL_STNAM": "SMITH RD",
+        "CITY_LEFT": "WESTMORELAND",
+        "CITY_RIGHT": "WESTMORELAND",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4668874997594,
+              43.091241581157284
+            ],
+            [
+              -75.46666632424967,
+              43.091296618273304
+            ],
+            [
+              -75.46622392885642,
+              43.091400675210636
+            ],
+            [
+              -75.46595373948026,
+              43.09148598438879
+            ],
+            [
+              -75.4657330647975,
+              43.09160718136366
+            ],
+            [
+              -75.46529235027546,
+              43.09193378012215
+            ],
+            [
+              -75.46463952148508,
+              43.09242965776905
+            ],
+            [
+              -75.46446688030098,
+              43.09255759193328
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
         "OBJECTID": 11613,
         "FULL_STNAM": "DENSLOW DR",
         "CITY_LEFT": "WESTMORELAND",
@@ -1871,6 +2140,42 @@
             [
               -75.3848298215386,
               43.09371948797014
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 12287,
+        "FULL_STNAM": "PAZDUR BLVD SOUTH",
+        "CITY_LEFT": "WESTMORELAND",
+        "CITY_RIGHT": "WESTMORELAND",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.4211604111351,
+              43.16919996764773
+            ],
+            [
+              -75.42174076520821,
+              43.16927341172627
+            ],
+            [
+              -75.42360956261265,
+              43.16948797660748
+            ],
+            [
+              -75.42673275271513,
+              43.16982439370843
+            ],
+            [
+              -75.42746262338481,
+              43.16989875208988
             ]
           ]
         ]
@@ -2339,6 +2644,94 @@
             [
               -75.40180506136782,
               43.12215027812324
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 12343,
+        "FULL_STNAM": "SUNRISE BLVD NORTH",
+        "CITY_LEFT": "WESTMORELAND",
+        "CITY_RIGHT": "WESTMORELAND",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.42341286039934,
+              43.173551082123886
+            ],
+            [
+              -75.42372681151903,
+              43.17395884678611
+            ],
+            [
+              -75.42377060546244,
+              43.1740211085701
+            ],
+            [
+              -75.42379291125738,
+              43.174049171356195
+            ],
+            [
+              -75.42381127989232,
+              43.174063879293776
+            ],
+            [
+              -75.42382862803899,
+              43.174070147206635
+            ],
+            [
+              -75.4238469030065,
+              43.17407148695758
+            ],
+            [
+              -75.42386613521617,
+              43.17407211988436
+            ],
+            [
+              -75.42393242362333,
+              43.17406907829308
+            ],
+            [
+              -75.42562945558672,
+              43.1740300902347
+            ],
+            [
+              -75.42719445381587,
+              43.17404956819487
+            ],
+            [
+              -75.42743656931532,
+              43.17405499159401
+            ],
+            [
+              -75.42747489606113,
+              43.17405414962833
+            ],
+            [
+              -75.42749236449171,
+              43.17405273814228
+            ],
+            [
+              -75.42751100043765,
+              43.17404990403488
+            ],
+            [
+              -75.42753461063786,
+              43.174042480499786
+            ],
+            [
+              -75.42755387141118,
+              43.174034329417005
+            ],
+            [
+              -75.42756996841015,
+              43.17402451165954
             ]
           ]
         ]

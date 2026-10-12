@@ -241,9 +241,21 @@ def parse_type(cleaned):
 # ---------------------------------------------------------------------------------------------
 # Locations
 
-COORD_RE = re.compile(r"(-?\d{2}\.\d+)\s*~\s*(-?\s*\d{2,3}\.\d+)")
+COORD_RE = re.compile(r"(-?\s*\d{2}\.\d+(?:\s+\d+)*)\s*[~,]\s*(-?\s*\d{2,3}\.\d+(?:\s+\d+)*)")
+
+
+def parse_coordinates(location):
+    """Accept a complete printed coordinate pair, including wrapped decimal digits."""
+    match = COORD_RE.fullmatch(location.strip())
+    if match:
+        lat, lon = (float(re.sub(r"\s+", "", value)) for value in match.groups())
+        if -90 <= lat <= 90 and -180 <= lon <= 180:
+            return lat, lon
+    return np.nan, np.nan
+
+
 CITY_FIX = {"ROME OUTISIDE": "ROME OUTSIDE", "NEW YORK MILLS NEW HARTFO": "NEW YORK MILLS NEW HARTFORD",
-            "WESTMORELAN D": "WESTMORELAND"}
+            "WESTMORELAN D": "WESTMORELAND", "NEW YORK MILLS WHITE": "NEW YORK MILLS WHITESTOWN"}
 DIRS = {"NORTH": "N", "SOUTH": "S", "EAST": "E", "WEST": "W"}
 STREET_SUFFIXES = {"ST", "RD", "AVE", "BLVD", "DR", "LN", "PL", "CT", "CIR", "TER", "WAY", "PKWY", "PKY", "HWY",
                    "TPKE", "PK", "PARK", "SQ", "TRL", "LOOP", "PLZ", "ROW", "XING", "EXT"}
@@ -289,7 +301,15 @@ CITY_PARTS = {
     "CONSTANTIA OSWEGO COUNTY": ("CONSTANTIA", "", "", "OSWEGO"),
     "PULASKI": ("RICHLAND", "PULASKI", "", "OSWEGO"),
     "WEST LEYDEN": ("", "", "WEST LEYDEN", "LEWIS"),
+    "OSWEGO COUNTY": ("", "", "", "OSWEGO"),
+    "PLAINFIELD OTSEGO CO": ("PLAINFIELD", "", "", "OTSEGO"),
+    "RUSSIA": ("RUSSIA", "", "", "HERKIMER"),
+    "RUSSIA HERKIMER COUNTY": ("RUSSIA", "", "", "HERKIMER"),
+    "CANASTOTA": ("LENOX", "CANASTOTA", "", "MADISON"),
 }
+ONEIDA_MUNICIPALITIES = set("ANNSVILLE AUGUSTA AVA BOONVILLE BRIDGEWATER CAMDEN DEERFIELD FLORENCE FLOYD "
+                            "FORESTPORT KIRKLAND LEE MARCY MARSHALL PARIS REMSEN ROME SANGERFIELD SHERRILL "
+                            "STEUBEN TRENTON UTICA VERNON VERONA VIENNA WESTERN WESTMORELAND WHITESTOWN".split()) | {"NEW HARTFORD"}
 VILLAGE_TOWN = {
     "BARNEVELD": "TRENTON", "BOONVILLE": "BOONVILLE", "CAMDEN": "CAMDEN", "CLAYVILLE": "PARIS",
     "CLINTON": "KIRKLAND", "HOLLAND PATENT": "TRENTON", "NEW HARTFORD": "NEW HARTFORD", "ONEIDA CASTLE": "VERNON",
@@ -309,7 +329,10 @@ def city_parts(city):
         if v in VILLAGE_TOWN:
             return VILLAGE_TOWN[v], v, "", "ONEIDA"
         raise ValueError(f"village with no town mapping: {city}")
-    return city, "", "", "ONEIDA"  # a town, or the cities of Utica and Sherrill
+    if city in ONEIDA_MUNICIPALITIES:
+        return city, "", "", "ONEIDA"
+    # Preserve the reported label, but never invent a county or town for an unknown code.
+    return "", "", "", ""
 
 
 # ---------------------------------------------------------------------------------------------
@@ -385,14 +408,15 @@ def main():
 
     # Location / coordinates
     loc = raw.location.map(lambda c: join_lines(c, vocab))
-    coords = loc.str.extract(COORD_RE)
-    df["latitude"] = pd.to_numeric(coords[0], errors="coerce")
-    df["longitude"] = pd.to_numeric(coords[1].str.replace(" ", ""), errors="coerce")
+    coords = pd.DataFrame(loc.map(parse_coordinates).tolist(), index=loc.index)
+    df["latitude"] = coords[0]
+    df["longitude"] = coords[1]
     loc_clean = loc.where(coords[0].isna(), "")
     df["location_raw"] = loc
     df["street"] = loc_clean.map(std_street)
     df["is_intersection"] = df.street.str.contains(" / ", regex=False)
-    city = raw.city.map(lambda c: join_lines(c, vocab)).str.upper().replace(CITY_FIX)
+    df["city_raw"] = raw.city.map(lambda c: join_lines(c, vocab)).str.upper()
+    city = df.city_raw.replace(CITY_FIX)
     df["city"] = city
     parts = city.map(city_parts)
     df["town"] = [p[0] for p in parts]
@@ -452,7 +476,7 @@ def main():
             "mpds_description", "street", "is_intersection", "city", "town", "village", "district", "county",
             "outside_county", "latitude", "longitude",
             "location_missing", "incident_cluster_id", "agencies_in_cluster",
-            "agency_raw", "response_type_raw", "location_raw",
+            "agency_raw", "response_type_raw", "location_raw", "city_raw",
             "report_date", "report_format", "report_version", "source_file", "page", "row_in_file"]
     df[cols].to_csv(OUT / "oneida_911_records.csv", index=False, encoding="utf-8")
 

@@ -48,6 +48,8 @@ COUNTY_REFERENCES = {"UTICA": "utica_roads.json", "WHITESBORO VILLAGE": "whitesb
                      "ROME OUTSIDE": "rome_outside_roads.json", "VERONA": "verona_roads.json",
                      "WESTMORELAND": "westmoreland_roads.json", "KIRKLAND": "kirkland_roads.json",
                      "CLINTON VILLAGE": "clinton_roads.json", "CAMDEN VILLAGE": "camden_roads.json"}
+# Explicit catalog of additional reviewed municipal subsets; never discover arbitrary JSON files.
+COUNTY_REFERENCES.update(json.loads((ROOT / "geo/reference/additional_municipalities.json").read_text(encoding="utf-8")))
 COUNTY_NAME_ALIASES = {"ROME INSIDE": {"BLACK RVER BLVD": "BLACK RIVER BLVD",
                                       "ERIE BLVD BLVD W": "ERIE BLVD WEST",
                                       "NORTH JAMES": "NORTH JAMES ST"},
@@ -105,9 +107,8 @@ def strip_house_number(street):
 
 
 def norm_cad(street):
-    s = strip_house_number(street)
-    s = re.sub(r"\s+(EB|WB|NB|SB|RAMP|EXIT \d+\w* RAMP|EXIT \d+\w*|ACCESS RD)$", "", s)
-    return re.sub(r"\s+(EB|WB|NB|SB|RAMP)$", "", s)
+    # A ramp, exit or carriageway is a different feature from the main road.
+    return strip_house_number(street)
 
 
 # Spelling-insensitive key: "ROME-ORISKANY RD" = "ROME ORISKANY RD", "MC QUADE" = "MCQUADE", "MNR" = "MANOR".
@@ -186,6 +187,10 @@ def municipality_lookup(cousub, place):
         "PULASKI": places.get("PULASKI"),
         "OHIO": towns_all.get("OHIO"),
         "WEST LEYDEN": towns_all.get("LEYDEN"),
+        "CANASTOTA": places.get("CANASTOTA"),
+        "PLAINFIELD OTSEGO CO": towns_all.get("PLAINFIELD"),
+        "RUSSIA": towns_all.get("RUSSIA"),
+        "RUSSIA HERKIMER COUNTY": towns_all.get("RUSSIA"),
     }
 
     def poly(city):
@@ -271,6 +276,7 @@ class Geocoder:
         self._poly_cache = {}
         self.poly_deg = poly_deg
         county = unary_union([g for r, g in cousub if r["COUNTYFP"] == "065"])
+        self.county_area = to_m(county)
 
         geom_by_lid = {r["LINEARID"]: to_m(g) for r, g in roads}
         # Every name (primary and alternate) a road carries, from FEATNAMES.
@@ -316,9 +322,13 @@ class Geocoder:
         # preserving ramp/direction qualifiers.
         self.county_roads = defaultdict(list)
         self.county_requested = {}
+        self.county_aliases = {}
         for city, filename in COUNTY_REFERENCES.items():
             reference = json.loads((ROOT / "geo/reference" / filename).read_text(encoding="utf-8"))
+            if reference["city"] != city:
+                raise ValueError(f"Reference municipality mismatch: {filename}: {reference['city']} != {city}")
             self.county_requested[city] = set(reference["requested_names"])
+            self.county_aliases[city] = {**reference.get("reviewed_aliases", {}), **COUNTY_NAME_ALIASES.get(city, {})}
             for feature in reference["features"]:
                 attrs = feature["attributes"]
                 geom = to_m(MultiLineString(feature["geometry"]["paths"]))
@@ -331,10 +341,10 @@ class Geocoder:
         if name not in self.county_requested.get(city, set()):
             return None
         # A small, explicit correction list; no global suffix or direction guessing.
-        target = COUNTY_NAME_ALIASES.get(city, {}).get(name, name)
+        target = self.county_aliases.get(city, {}).get(name, name)
         if city in {"ROME INSIDE", "ROME OUTSIDE"} and county_name_key(name) == "ERIEBLVD":
             return None  # A short CAD segment cannot resolve an unqualified east/west report.
-        if city in {"VERONA", "WESTMORELAND"} and name == "NY STATE THRUWAY RAMP":
+        if name in {"NY STATE THRUWAY RAMP", "NYS THRUWAY RAMP", "INTERSTATE 90 RAMP"}:
             return None  # The report does not identify an exit or ramp direction.
         matches = self.county_roads.get((city, county_name_key(target)), [])
         if not matches:
@@ -349,7 +359,9 @@ class Geocoder:
             return None
         # CAD includes named access drives inside complexes. Their road extent does
         # not establish the building, entrance, or incident's positional accuracy.
-        facility = bool({"APTS", "SCHOOL", "MNR", "ACRS", "PK"} & set(name.upper().split()))
+        tokens = set(name.upper().split())
+        facility = bool({"APTS", "APARTMENTS", "ACRS", "ENTRANCE", "PARKING", "RESORT"} & tokens)
+        facility = facility or (suffix_of(name) in {"", "PARK"} and bool({"SCHOOL", "MNR", "MANOR", "PK", "PARK"} & tokens))
         facility = facility or (city == "VERONA" and target in {
             "MARION MANOR", "MARION MNR", "TURNING STONE CASINO RESORT", "VILLAGES AT STONEY CREEK",
             "INTERSTATE 90 EB PARKING", "INTERSTATE 90 WB PARKING"})
@@ -381,6 +393,10 @@ class Geocoder:
         alt = ORDINAL_RE.sub(lambda m: ORDINALS[m.group(1)], name)
         alt = re.sub(r"^(\d+) ST\b", lambda m: m.group(1) + ordinal_suffix(int(m.group(1))) + " ST", alt)
         muni = self.poly(city)
+        if city and muni is None:
+            return None, None  # An unsupported reported municipality is not an unknown local street.
+        if muni is not None and muni.intersection(self.county_area).area < muni.area * .01:
+            return None, None  # County-only TIGER roads cannot establish a neighboring-county road.
         local = set(self.candidates(city)) if muni is not None else set()
         choices = []
         if name in self.geom:
@@ -396,8 +412,11 @@ class Geocoder:
             fuzzy = []
             for cand in difflib.get_close_matches(alt, sorted(local), n=3, cutoff=0.86):
                 dc, dn = directions(cand), directions(name)
-                if dc and dn and dc != dn:
-                    continue  # "E LAKE ST" is not "W LAKE ST"; "HANGAR RD W" may still be "HANGAR RD"
+                if dc != dn:
+                    continue  # Missing direction is not evidence for the same directional branch.
+                qualifiers = lambda s: re.findall(r"\b(?:EB|WB|NB|SB|RAMP|EXIT|ACCESS)\b", s)
+                if qualifiers(cand) != qualifiers(alt):
+                    continue
                 risky = suffix_of(cand) != suffix_of(alt) or re.findall(r"\d+", cand) != re.findall(r"\d+", alt)
                 if risky:
                     continue  # conflicting street types/numbers require a reviewed alias
@@ -405,6 +424,12 @@ class Geocoder:
             # An unqualified street name cannot establish which directional branch was reported.
             if not directions(name) and len({tuple(sorted(directions(c))) for c in fuzzy if directions(c)}) > 1:
                 return None, None
+            if len(fuzzy) > 1:
+                scores = [difflib.SequenceMatcher(None, alt, candidate).ratio() for candidate in fuzzy[:2]]
+                area = muni.buffer(self.BUF)
+                first, second = (self.geom[candidate].intersection(area) for candidate in fuzzy[:2])
+                if scores[0] - scores[1] < .03 and not first.equals(second):
+                    return None, None  # Similar names for different features need a reviewed correction.
             if fuzzy:
                 return fuzzy[0], "fuzzy"
         return None, None

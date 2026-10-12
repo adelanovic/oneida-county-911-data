@@ -47,7 +47,8 @@ The dispatch data covers 681 days: 364 in 2024, 194 in 2025 and 123 in 2026. Thr
 | `mpds_description` | Text after the code. |
 | `street` | Street or block name (the reports print no house numbers). The 2026 spelling is converted to 2024–25 style: `NORTH`→`N`, `SAINT`→`ST`, `STATE ROUTE`→`ROUTE`. |
 | `is_intersection` | The street contains ` / `. |
-| `city` | City, town or village code as printed (e.g. `ROME INSIDE`, `YORKVILLE VILLAGE`). |
+| `city` | Normalized reported city, town or village code, including reviewed truncation/typo corrections. |
+| `city_raw` | Repaired source municipality text before code corrections; retained for provenance. |
 | `town` | The city (Utica, Rome, Sherrill) or town the call is in. Villages roll up to the town that contains them (Whitesboro → `WHITESTOWN`), and Rome Inside/Outside both become `ROME`. Use this for town-level grouping. |
 | `village` | The village within the town, if any (e.g. `WHITESBORO`). New York Mills straddles two towns; the dispatch code records which part. |
 | `district` | Sub-area qualifier: `INSIDE`/`OUTSIDE` (Rome's inner and outer districts), `HINCKLEY` (Trenton). |
@@ -72,3 +73,5 @@ The dispatch data covers 681 days: 364 in 2024, 194 in 2025 and 123 in 2026. Thr
 - **The CAD system changed in 2026:** coarser timestamps and partly different call-type wording. Include `report_format` as a feature or control for it.
 - Call types are what dispatch recorded at intake, not confirmed outcomes. There are no arrival or clear times, so response times can't be computed.
 - `September-24-2026` and `September-25-2026` each had a `-v2` reissue. Only the v2 rows are kept (931 v1 rows dropped).
+
+Location matching preserves ramp, exit and travel-direction qualifiers. Reviewed county road snapshots cover 45 reporting areas; town and village subsets remain distinct. Unknown place codes do not default to Oneida County. The map flags separate matching road stretches as ambiguous; dispatch downloads include the original municipality label, matched reference name and stretch count. Coordinate parsing accepts complete valid pairs using tilde or comma separators, including wrapped decimal digits.

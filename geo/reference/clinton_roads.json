@@ -5,12 +5,16 @@
   "retrieved_utc": "2026-10-12T05:52:42+00:00",
   "requested_names": [
     "BASSETT",
+    "CHENANGO AVE NORTH",
+    "CHENANGO AVE SOUTH",
     "SUNSET DR",
     "UTICA ST",
     "W PARK AVE"
   ],
   "reviewed_aliases": {},
   "street_names": [
+    "CHENANGO AVE NORTH",
+    "CHENANGO AVE SOUTH",
     "SUNSET DR",
     "UTICA ST"
   ],
@@ -62,6 +66,44 @@
             [
               -75.38493432343297,
               43.04640227134123
+            ],
+            [
+              -75.38486051043775,
+              43.04636327757832
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3167,
+        "FULL_STNAM": "CHENANGO AVE SOUTH",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "CLINTON VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.38246385269926,
+              43.04822756123584
+            ],
+            [
+              -75.3828707099714,
+              43.0478839927212
+            ],
+            [
+              -75.3833264072781,
+              43.04752124780132
+            ],
+            [
+              -75.3846802692667,
+              43.04641784155249
+            ],
+            [
+              -75.38477359574632,
+              43.04636847485406
             ],
             [
               -75.38486051043775,
@@ -326,6 +368,63 @@
           ]
         ]
       }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9950,
+        "FULL_STNAM": "CHENANGO AVE NORTH",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "CLINTON VILLAGE"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.38246385269926,
+              43.04822756123584
+            ],
+            [
+              -75.3821773562363,
+              43.048473556140046
+            ],
+            [
+              -75.38175399573802,
+              43.048943921700285
+            ],
+            [
+              -75.38133001374504,
+              43.049315003998366
+            ],
+            [
+              -75.38082845560835,
+              43.04975654135406
+            ],
+            [
+              -75.38027599760332,
+              43.05019250043486
+            ],
+            [
+              -75.38000985139013,
+              43.050419029949985
+            ],
+            [
+              -75.37972348638466,
+              43.05062109901168
+            ],
+            [
+              -75.37915070664236,
+              43.05101787804817
+            ],
+            [
+              -75.3785775109835,
+              43.05134843281883
+            ]
+          ]
+        ]
+      }
     }
-  ]
+  ],
+  "audit_source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27CLINTON+VILLAGE%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27CLINTON+VILLAGE%27%29%29&outFields=FULL_STNAM&returnGeometry=false&returnDistinctValues=true&orderByFields=FULL_STNAM",
+  "reviewed_utc": "2026-10-12T16:30:45+00:00",
+  "selection": "Exact county names with geometry inside municipality + 200 m; fallbacks, fuzzy/qualified matches and audited source disagreements. Ambiguous generic labels remain guarded in code."
 }

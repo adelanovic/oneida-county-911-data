@@ -5,6 +5,8 @@
   "retrieved_utc": "2026-10-12T05:52:39+00:00",
   "requested_names": [
     "BUNDY CIR",
+    "CLINTON RD",
+    "DWIGHT AVE",
     "FARMDALE RD",
     "FOUNTAIN VW",
     "GREEN APPLE WAY",
@@ -12,6 +14,9 @@
     "MAIN QUAD LN",
     "MUSEUM LN",
     "NEW CARRIAGE HOUSE APTS",
+    "PROSPECT ST",
+    "ROUTE 233",
+    "ROYAL MEADOW DR",
     "STAFFORD CIR N",
     "STAFFORD CIR NORTH",
     "STAFFORD CIR S",
@@ -20,6 +25,8 @@
   "reviewed_aliases": {},
   "street_names": [
     "BUNDY CIRCLE",
+    "CLINTON RD",
+    "DWIGHT AVE",
     "FARMDALE RD",
     "FOUNTAIN VW",
     "GREEN APPLE WAY",
@@ -27,11 +34,130 @@
     "MAIN QUAD LN",
     "MUSEUM LN",
     "NEW CARRIAGE HOUSE APTS",
+    "PROSPECT ST",
+    "ROYAL MEADOW DR",
     "STAFFORD CIR NORTH",
     "STAFFORD CIR SOUTH",
+    "STATE ROUTE 233",
     "UTICA ST"
   ],
   "features": [
+    {
+      "attributes": {
+        "OBJECTID": 3099,
+        "FULL_STNAM": "PROSPECT ST",
+        "CITY_LEFT": "KIRKLAND",
+        "CITY_RIGHT": "KIRKLAND"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.374460350726,
+              43.088409271113036
+            ],
+            [
+              -75.37223765848466,
+              43.08855810119907
+            ],
+            [
+              -75.37092473729027,
+              43.088663043260986
+            ],
+            [
+              -75.37071969310568,
+              43.088682837801215
+            ],
+            [
+              -75.37059505582013,
+              43.08871469126015
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3104,
+        "FULL_STNAM": "STATE ROUTE 233",
+        "CITY_LEFT": "KIRKLAND",
+        "CITY_RIGHT": "KIRKLAND"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.39013415947383,
+              43.071860572125125
+            ],
+            [
+              -75.38984583160222,
+              43.072446679260075
+            ],
+            [
+              -75.3897194706276,
+              43.072721987059666
+            ],
+            [
+              -75.38965183473817,
+              43.07289630582123
+            ],
+            [
+              -75.38959383400166,
+              43.073111823658145
+            ],
+            [
+              -75.38955453567993,
+              43.07332040610794
+            ],
+            [
+              -75.38954003001086,
+              43.07349683567608
+            ],
+            [
+              -75.38953157078242,
+              43.07364117438547
+            ],
+            [
+              -75.38953912611755,
+              43.073847306454354
+            ],
+            [
+              -75.38956535552826,
+              43.07404192243731
+            ],
+            [
+              -75.38961355813981,
+              43.074252496931905
+            ],
+            [
+              -75.38965519332874,
+              43.074412700201215
+            ],
+            [
+              -75.38985968014981,
+              43.07512439422156
+            ],
+            [
+              -75.38999703044576,
+              43.075595798670676
+            ],
+            [
+              -75.39015942228849,
+              43.076073989224504
+            ],
+            [
+              -75.39034039199014,
+              43.076524628508174
+            ],
+            [
+              -75.39048953395765,
+              43.076883750647525
+            ]
+          ]
+        ]
+      }
+    },
     {
       "attributes": {
         "OBJECTID": 3118,
@@ -51,6 +177,28 @@
             [
               -75.3703927487822,
               43.078738517689764
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3177,
+        "FULL_STNAM": "DWIGHT AVE",
+        "CITY_LEFT": "KIRKLAND",
+        "CITY_RIGHT": "KIRKLAND"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.39117933021527,
+              43.03991558185577
+            ],
+            [
+              -75.39125175925,
+              43.039573319303976
             ]
           ]
         ]
@@ -215,6 +363,136 @@
             [
               -75.32613629213915,
               43.03750261543323
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 5556,
+        "FULL_STNAM": "DWIGHT AVE",
+        "CITY_LEFT": "KIRKLAND",
+        "CITY_RIGHT": "KIRKLAND"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.39094748348299,
+              43.04099987803901
+            ],
+            [
+              -75.39117933021527,
+              43.03991558185577
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7248,
+        "FULL_STNAM": "DWIGHT AVE",
+        "CITY_LEFT": "KIRKLAND",
+        "CITY_RIGHT": "KIRKLAND"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.39010707721567,
+              43.04472920442048
+            ],
+            [
+              -75.39016206389434,
+              43.04446016077639
+            ],
+            [
+              -75.3905145136801,
+              43.04290743980352
+            ],
+            [
+              -75.39094748348299,
+              43.04099987803901
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7249,
+        "FULL_STNAM": "DWIGHT AVE",
+        "CITY_LEFT": "KIRKLAND",
+        "CITY_RIGHT": "KIRKLAND"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.39003000163775,
+              43.04501883040901
+            ],
+            [
+              -75.39010707721567,
+              43.04472920442048
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7272,
+        "FULL_STNAM": "CLINTON RD",
+        "CITY_LEFT": "KIRKLAND",
+        "CITY_RIGHT": "KIRKLAND"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.34229381380399,
+              43.070061910942776
+            ],
+            [
+              -75.34298143612065,
+              43.07000771786866
+            ],
+            [
+              -75.34369038825903,
+              43.06995547191778
+            ],
+            [
+              -75.34392952569131,
+              43.06993282636774
+            ],
+            [
+              -75.34426253372347,
+              43.06988797176439
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7274,
+        "FULL_STNAM": "STATE ROUTE 233",
+        "CITY_LEFT": "KIRKLAND",
+        "CITY_RIGHT": "KIRKLAND"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.39026851284011,
+              43.071621045714664
+            ],
+            [
+              -75.39013415947383,
+              43.071860572125125
             ]
           ]
         ]
@@ -481,6 +759,56 @@
             [
               -75.38474895238163,
               43.058602130097974
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 9429,
+        "FULL_STNAM": "ROYAL MEADOW DR",
+        "CITY_LEFT": "KIRKLAND",
+        "CITY_RIGHT": "KIRKLAND"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.36243651201112,
+              43.082428585394844
+            ],
+            [
+              -75.36258098129606,
+              43.08268089397476
+            ],
+            [
+              -75.36265756697382,
+              43.08283169400596
+            ],
+            [
+              -75.36273823210588,
+              43.08296090339223
+            ],
+            [
+              -75.3628105224193,
+              43.08309630495918
+            ],
+            [
+              -75.36299235125091,
+              43.08326526630126
+            ],
+            [
+              -75.36320354696109,
+              43.083421803669964
+            ],
+            [
+              -75.36340625926213,
+              43.08356603801027
+            ],
+            [
+              -75.36569416960887,
+              43.084769161131746
             ]
           ]
         ]
@@ -1598,5 +1926,8 @@
         ]
       }
     }
-  ]
+  ],
+  "audit_source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27KIRKLAND%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27KIRKLAND%27%29%29&outFields=FULL_STNAM&returnGeometry=false&returnDistinctValues=true&orderByFields=FULL_STNAM",
+  "reviewed_utc": "2026-10-12T16:30:45+00:00",
+  "selection": "Exact county names with geometry inside municipality + 200 m; fallbacks, fuzzy/qualified matches and audited source disagreements. Ambiguous generic labels remain guarded in code."
 }

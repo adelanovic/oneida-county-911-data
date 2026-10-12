@@ -1,0 +1,113 @@
+{
+  "city": "BARNEVELD VILLAGE",
+  "source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0",
+  "source_labels": [
+    "BARNEVELD VILLAGE",
+    "TRENTON"
+  ],
+  "query_url": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27TRENTON%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27TRENTON%27%29%29&outFields=FULL_STNAM&returnGeometry=false&returnDistinctValues=true&orderByFields=FULL_STNAM",
+  "retrieved_utc": "2026-10-12T13:42:20.790371+00:00",
+  "requested_names": [
+    "OLD REMSEN RD"
+  ],
+  "reviewed_aliases": {},
+  "street_names": [
+    "OLD REMSEN RD"
+  ],
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 13660,
+        "FULL_STNAM": "OLD REMSEN RD",
+        "CITY_LEFT": "TRENTON",
+        "CITY_RIGHT": "TRENTON"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.18896533315531,
+              43.27507075740667
+            ],
+            [
+              -75.18892825896597,
+              43.27518571803846
+            ],
+            [
+              -75.18890269148096,
+              43.275318630242985
+            ],
+            [
+              -75.18889795018205,
+              43.27542331357638
+            ],
+            [
+              -75.18891824133148,
+              43.275546380891235
+            ],
+            [
+              -75.18910286618603,
+              43.27675884500413
+            ],
+            [
+              -75.189170550017,
+              43.27725245363962
+            ],
+            [
+              -75.18927646649472,
+              43.277884101457374
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 1578,
+        "FULL_STNAM": "OLD REMSEN RD",
+        "CITY_LEFT": "TRENTON",
+        "CITY_RIGHT": "TRENTON"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.18942420915246,
+              43.27869280310029
+            ],
+            [
+              -75.1894765347517,
+              43.278915810214315
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 13661,
+        "FULL_STNAM": "OLD REMSEN RD",
+        "CITY_LEFT": "TRENTON",
+        "CITY_RIGHT": "TRENTON"
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.18927646649472,
+              43.277884101457374
+            ],
+            [
+              -75.1893533797593,
+              43.27830519007694
+            ],
+            [
+              -75.18942420915246,
+              43.27869280310029
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -151,10 +151,10 @@ def main():
                               "county", "call_datetime", "hour", "agency", "mpds_level", "incident_cluster_id",
                               "agencies_in_cluster", "latitude", "longitude", "location_missing", "time_precision",
                               "geo_latitude", "geo_longitude", "geo_precision", "geo_match_method", "geo_expected_error_m",
-                              "source_file", "page", "row_in_file"])
+                              "source_file", "page", "row_in_file", "city_raw"])
     loc = pd.read_csv(ROOT / "geo" / "locations.csv", keep_default_na=False)
-    df = df.merge(loc[["street", "city", "matched_name"]], on=["street", "city"], how="left", validate="many_to_one")
-    geo_cols = ["street", "city", "geo_latitude", "geo_longitude", "geo_precision", "geo_expected_error_m", "geo_match_method", "matched_name"]
+    df = df.merge(loc[["street", "city", "matched_name", "n_pieces"]], on=["street", "city"], how="left", validate="many_to_one")
+    geo_cols = ["street", "city", "geo_latitude", "geo_longitude", "geo_precision", "geo_expected_error_m", "geo_match_method", "matched_name", "n_pieces"]
     loc = df[df.geo_precision != "none"][geo_cols].drop_duplicates().reset_index(drop=True)
     loc = loc.rename(columns={"geo_latitude": "latitude", "geo_longitude": "longitude", "geo_precision": "precision",
                               "geo_expected_error_m": "expected_error_m", "geo_match_method": "match_method"})
@@ -232,13 +232,14 @@ def main():
         "agencyTypes": agency_types,
         "locations": [[round(r.latitude, 5), round(r.longitude, 5), r.street, r.city, r.precision,
                        int(float(r.expected_error_m)) if r.expected_error_m != "" else None, r.match_method,
-                       r.matched_name]
+                       r.matched_name, int(float(r.n_pieces)) if r.n_pieces != "" else None]
                       for r in loc.itertuples()],
         "dates": dates,
         "agencies": agencies,
         "streets": streets,
         "sources": sources,
         "reportedCoordinates": {str(i): [float(r.latitude), float(r.longitude)] for i, r in enumerate(df.itertuples()) if r.latitude != "" and r.longitude != ""},
+        "reportedCities": {str(i): r.city_raw for i, r in enumerate(df.itertuples()) if r.city_raw != r.city},
         "agencyKind": [df.loc[df.agency == a, "agency_type"].iloc[0] for a in agencies],
         "population": place_population(df),
         "records": records,
