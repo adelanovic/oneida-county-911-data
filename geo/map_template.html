@@ -129,10 +129,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .chart-help:hover span { background: var(--dot-soft); border-color: var(--dot); }
 .help-dialog { width: min(36rem, calc(100vw - 32px)); max-height: min(80dvh, 46rem); box-sizing: border-box; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); box-shadow: 0 12px 48px #0004; }
 .help-dialog::backdrop { background: #0007; }
-.help-dialog-head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.help-dialog[open] { display: flex; flex-direction: column; overflow: hidden; }
+.help-dialog-head { display: flex; flex-shrink: 0; gap: 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
 .help-dialog h2 { margin: 0; font-size: 1.1rem; }
 .help-dialog .help-close { flex: 0 0 auto; min-height: 44px; }
-.help-dialog-body { display: grid; gap: 12px; font-size: .9rem; line-height: 1.55; overflow-wrap: anywhere; }
+.help-dialog-body { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 0; overflow-y: auto; padding-right: 8px; gap: 12px; font-size: .9rem; line-height: 1.55; overflow-wrap: anywhere; }
 .help-dialog-body p { margin: 0; max-width: none; color: var(--ink-2); font-size: inherit; }
 .help-dialog-body a { color: var(--dot); }
 .help-dialog-body .about-grid { display: grid; gap: 16px; }
@@ -2277,6 +2278,13 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     $("chart-help-body").replaceChildren(...content); button.focus({ preventScroll: true }); button.setAttribute("aria-expanded", "true"); helpDialog.showModal();
   });
   $("chart-help-close").onclick = () => helpDialog.close();
+  helpDialog.addEventListener("keydown", e => {
+    if (e.key !== "Tab") return;
+    const stops = [...helpDialog.querySelectorAll('button, a[href], input, select, textarea, [tabindex]')].filter(el => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length);
+    const first = stops[0], last = stops[stops.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
   helpDialog.addEventListener("click", e => { const r = helpDialog.getBoundingClientRect(); if (e.target === helpDialog && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) helpDialog.close(); });
   helpDialog.addEventListener("close", () => { if (helpDialog.open) return; helpTrigger?.setAttribute("aria-expanded", "false"); helpTrigger?.focus({ preventScroll: true }); });
 

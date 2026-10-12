@@ -181,6 +181,7 @@ async function main() {
         await evaluate(`document.querySelector('#theme [data-theme="${theme}"]').click();document.querySelector('button[data-chart-help="population-section"]').click()`);
         const geometry=await evaluate(`(()=>{const d=document.querySelector('#chart-help-dialog'),r=d.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:innerWidth,height:innerHeight,scroll:d.scrollWidth,client:d.clientWidth}})()`);
         assert(geometry.left>=0 && geometry.right<=geometry.width && geometry.top>=0 && geometry.bottom<=geometry.height && geometry.scroll<=geometry.client,JSON.stringify(geometry));
+        assert(await evaluate(`(()=>{const body=document.querySelector('#chart-help-body'),close=document.querySelector('#chart-help-close');body.scrollTop=body.scrollHeight;const r=close.getBoundingClientRect();body.scrollTop=0;return r.top>=0 && r.bottom<=innerHeight})()`),'Close stays visible while scrolling long notes');
         await screenshot('chart-help-'+width+'-'+theme);
         // A native dialog traps keyboard focus even when its content contains links.
         await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
