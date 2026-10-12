@@ -1,6 +1,6 @@
 # Oneida County 911 dispatch dataset and map
 
-This project extracts public county media reports, normalizes agency and call-type names, estimates street locations, and builds a static map with filters and analytical panels. A row is an agency dispatch, not necessarily a distinct emergency. The recovered archive covers 386 days across 2024–2026 (364 in 2024, 9 in 2025, 13 in 2026) and is not a continuous time series.
+This project extracts public county media reports, normalizes agency and call-type names, estimates street locations, and builds a static map with filters and analytical panels. A row is an agency dispatch, not necessarily a distinct emergency. The recovered archive contains 687 PDFs covering 684 report dates across 2024–2026. The dataset has 421,513 dispatches across 681 days with records (364 in 2024, 194 in 2025, 123 in 2026), and is not a continuous time series. Three published reports are empty; they are preserved in the manifest but excluded from dispatch-day rate denominators because they do not establish that no 911 activity occurred.
 
 ## Rebuild
 
@@ -37,11 +37,12 @@ The dataset tests use rebuilt local outputs. Browser tests use a temporary headl
 
 ## Interpretation
 
-- Seasons uses all selected years and updates when new reports are rebuilt into the map. Monthly rates divide dispatches by matching report days, including days with zero matching calls. A table shows rates and report coverage separately for each year; missing months are not treated as zero. Call-type rankings use only year-months with at least 80% coverage and require six comparable calendar months and 150 dispatches. Sparse coverage and the changed 2026 reporting system can distort comparisons. The month filter applies across years; Seasons keeps all months visible for context.
+- The Seasons panel is temporarily commented out, with its implementation preserved in the map template. When enabled, Seasons uses all selected years and updates when new reports are rebuilt into the map. Monthly rates divide dispatches by matching report days, including days with zero matching calls. A table shows rates and report coverage separately for each year; missing months are not treated as zero. Call-type rankings use only year-months with at least 80% coverage and require six comparable calendar months and 150 dispatches. Sparse coverage and the changed 2026 reporting system can distort comparisons. The month filter applies across years; Seasons keeps all months visible for context.
+- Identical whole-report copies are counted once, even when the county publishes them under different filenames. Superseded versions are also excluded; all original rows and PDFs remain available for audit.
 - Coordinates printed in reports are preserved per dispatch. Missing locations stay unmapped. Named streets that cannot be matched may receive an explicitly approximate municipality point.
 - Fuzzy matching rejects conflicting numbers and street types. Modeled expected error describes assumed address/road distributions, not verified distances to actual incidents.
 - Incident clusters are a heuristic with a maximum 120-second duration, or five seconds for records with only a municipality. Completely unspecified locations are not merged; coordinates distinguish coordinate-only incidents. Distinct agency counts refer to the complete inferred incident, even when an agency filter is active.
-- Population rates are observed dispatches per matching report day, scaled to 365 days and 1,000 residents. Year, date and weekday filters determine the report-day denominator; an hour filter restricts the dispatches counted in each matching day. These are annualized estimates from incomplete coverage, not observed full-year totals.
+- Population rates are observed dispatches per matching report day, scaled to 365 days and 1,000 residents. Year, month, date and weekday filters determine the report-day denominator; an hour filter restricts the dispatches counted in each matching day. These are annualized estimates from incomplete coverage, not observed full-year totals.
 - Dispatch CSV downloads include every dispatch matching the filters, including mutual aid hidden from the map. Places CSVs describe the currently visible mapped locations. Dispatch exports retain reported streets, coordinates, timestamp precision, agencies and PDF provenance separately from map estimates.
 
 See [output/README.md](output/README.md) for dataset columns.

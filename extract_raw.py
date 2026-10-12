@@ -75,9 +75,18 @@ def parse_file(path):
         header = [w for w in words if w[4] == "Date/Time"]
         footer = [w for w in words if w[4] == "Page" and w[1] > 600]
         if not header:
-            issues.append(f"page {pno + 1}: no table header")
-            continue
-        top = max(w[3] for w in words if abs(w[1] - header[0][1]) < 15) + 0.5  # bottom of the header block
+            # Some Positron continuation pages omit the header and start with a dispatch.
+            # Require a date/time pair in the timestamp column before accepting the page.
+            continuation = fmt == "A" and pno > 0 and any(
+                DATE_RE.match(w[4]) and w[0] < 50 and any(
+                    TIME_RE.match(t[4]) and 50 <= t[0] < 110 and abs(t[1] - w[1]) < 1.5
+                    for t in words) for w in words)
+            if not continuation:
+                issues.append(f"page {pno + 1}: no table header")
+                continue
+            top = 0
+        else:
+            top = max(w[3] for w in words if abs(w[1] - header[0][1]) < 15) + 0.5  # bottom of the header block
         bottom = min(w[1] for w in footer) - 0.5 if footer else page.rect.height
         body = [w for w in words if w[1] >= top and w[1] < bottom]
 

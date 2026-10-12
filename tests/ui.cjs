@@ -25,11 +25,21 @@ function datasetCounts() {
   const county = header.indexOf('county'), kind = header.indexOf('agency_type'), agency = header.indexOf('agency');
   const reportDate = header.indexOf('report_date');
   const seasonal = {}, seasonalMonday = {};
+  const response = header.indexOf('response_type');
+  const officerTypes = new Set(['TRAFFIC STOP','PREMISE CK','AREA CK','CITIZEN STOP','TRAFFIC DETAIL','DETAIL','WATER DETAIL',
+    'TOBACCO DETAIL','PARKING SUMMONS','WARRANT','SUMMONS','VEHICLE TRAFFIC LAW']);
+  const policeMonths={}, policeDates={};
+  const hourColumn=header.indexOf('hour');
   let total = 0, whitestown = 0, whitesboro = 0;
   const fireUnknownBy = new Map(), hasHome = new Set();
   for (const line of lines.slice(1)) {
     const f = split(line); total++;
     const iso = f[reportDate], y = iso.slice(0, 4), m = +iso.slice(5, 7);
+    if(y==='2026' && f[agency]==='Utica Police Department') {
+      const hour=+f[hourColumn], hours=policeMonths[m] ||= Array.from({length:24},()=>({n:0,initiated:0})); hours[hour].n++;
+      if(officerTypes.has(f[response])) hours[hour].initiated++;
+      const day=policeDates[iso] ||= new Array(24).fill(0); day[hour]++;
+    }
     for (const stats of [seasonal, ...(new Date(iso + 'T00:00:00Z').getUTCDay() === 1 ? [seasonalMonday] : [])]) {
       const row = stats[y] ||= Array.from({length:13}, () => ({n:0, dates:new Set()}));
       row[m].n++; row[m].dates.add(iso);
@@ -44,7 +54,7 @@ function datasetCounts() {
   let fireUnknown = 0;
   fireUnknownBy.forEach((n, a) => { if (hasHome.has(a)) fireUnknown += n; });
   const plain = stats => Object.fromEntries(Object.entries(stats).map(([y, months]) => [y, months.map(v => ({n:v.n, days:v.dates.size}))]));
-  return { total, whitestown, whitesboro, fireUnknown, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday) };
+  return { total, whitestown, whitesboro, fireUnknown, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates };
 }
 
 async function main() {
@@ -226,13 +236,18 @@ async function main() {
     assert(!policeHour.legend.includes('calls from the public'));
     console.log('PASS: police summary uses the selected hour and describes estimated dispatch types');
 
-    await navigate(pageUrl + '?agency=Utica%20Police%20Department&year=2026');
+    const zeroMonth=Object.keys(expected.policeMonths).find(m=>expected.policeMonths[m].some(v=>v.n>=20&&v.initiated===0));
+    await navigate(pageUrl + '?agency=Utica%20Police%20Department&year=2026&month='+zeroMonth);
+    const zeroHour=expected.policeMonths[zeroMonth].findIndex(v=>v.n>=20 && v.initiated===0);
+    assert(zeroHour>=0,'Expected an eligible hour with a genuine zero officer-initiated share');
     const policeMinimum = await evaluate(`({text:document.querySelector('#pol-insight').innerText,
-      zero:document.querySelector('#pol-hour [data-k="hour:1"]').getAttribute('aria-label'),
-      sparse:document.querySelector('#pol-hour [data-k="hour:2"]').getAttribute('aria-label')})`);
-    assert(policeMinimum.text.includes('lowest at 01:00 (0%)'));
+      zero:document.querySelector('#pol-hour [data-k="hour:${zeroHour}"]').getAttribute('aria-label')})`);
+    assert(policeMinimum.text.includes('lowest at '+String(zeroHour).padStart(2,'0')+':00 (0%)'));
     assert(policeMinimum.zero.includes('0% likely officer-initiated'));
-    assert(policeMinimum.sparse.includes('insufficient data'));
+    const sparseDate=Object.keys(expected.policeDates).sort().find(d=>expected.policeDates[d].some(n=>n>0&&n<20));
+    const sparseHour=expected.policeDates[sparseDate].findIndex(n=>n>0&&n<20);
+    await navigate(pageUrl+'?agency=Utica%20Police%20Department&date='+sparseDate);
+    assert((await evaluate(`document.querySelector('#pol-hour [data-k="hour:${sparseHour}"]').getAttribute('aria-label')`)).includes('insufficient data'));
     console.log('PASS: genuine zero shares remain eligible and sparse hours are marked insufficient');
 
     await navigate(pageUrl + '?cat=MEDICAL&responder=EMS');
@@ -437,6 +452,8 @@ async function main() {
     assert.deepEqual(errors,[]);
     console.log('PASS: county overview remains centered across mobile/desktop resizing and both maps expose reset controls');
 
+    // Preserve the Seasons checks for when the panel is restored.
+    if (await evaluate(`!!document.querySelector('#seasons-section')`)) {
     async function checkSeasons(stats, years) {
       const actual = await evaluate(`({years:[...document.querySelectorAll('#season-coverage tbody tr')].map(e=>e.dataset.year),
         bars:[...document.querySelectorAll('#season-top button')].map(e=>({rate:e.dataset.rate,days:+e.dataset.days,disabled:e.disabled})),
@@ -508,6 +525,20 @@ async function main() {
     assert.deepEqual(errors,[]);
     console.log('PASS: seasonal call filters and 320px layouts work in both themes without JavaScript errors');
     await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+
+    } else {
+      await navigate(pageUrl);
+      assert.equal(await evaluate(`document.querySelectorAll('#seasons-section,.section-nav a[href="#seasons-section"]').length`),0);
+      await navigate(pageUrl+'?month=11&compare=year&compareA=2024&compareB=2025');
+      const years=Object.keys(expected.seasonal);
+      assert.equal(await evaluate(`document.querySelector('#total').textContent`),fmt(years.reduce((n,y)=>n+expected.seasonal[y][11].n,0)));
+      assert.deepEqual(await evaluate(`[...document.querySelectorAll('#cmp-out tbody tr:first-child td')].slice(1).map(e=>e.textContent)`),
+        [fmt(expected.seasonal['2024'][11].n),fmt(expected.seasonal['2025'][11].n)]);
+      await evaluate(`document.querySelector('[data-clear="month"]').click()`);
+      assert(!new URL(await evaluate('location.href')).searchParams.has('month'));
+      assert.deepEqual(errors,[]);
+      console.log('PASS: Seasons panel and navigation are disabled; saved month filters still work');
+    }
 
     const injected = await send('Page.addScriptToEvaluateOnNewDocument', { source: `const originalParse=JSON.parse;JSON.parse=function(...args){const d=originalParse.apply(this,args);if(d&&d.records&&d.population)d.population={};return d}` });
     await navigate(pageUrl + '?test=missing-population');

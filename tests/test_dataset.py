@@ -70,6 +70,12 @@ class DatasetRegressionTests(unittest.TestCase):
         dt = pd.to_datetime(df.call_datetime)
         np.testing.assert_array_equal(r["z"], dt.dt.hour * 3600 + dt.dt.minute * 60 + dt.dt.second)
 
+    def test_duplicate_report_alias_not_counted_twice(self):
+        # These two county PDFs both contain the same 439 August 24 dispatches.
+        aliases = self.df[self.df.source_file.str.endswith(("/August-23-2026.pdf", "/August-24-2026.pdf"))]
+        self.assertEqual(len(aliases), 439)
+        self.assertTrue(aliases.source_file.str.endswith("/August-24-2026.pdf").all())
+
     def test_pages_match_data_and_vendor_leaflet(self):
         page = (ROOT / "docs/index.html").read_text(encoding="utf-8")
         self.assertEqual(page, (ROOT / "output/map/oneida_911_map.html").read_text(encoding="utf-8"))

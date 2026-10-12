@@ -5,6 +5,8 @@ Outputs (in output/):
   response_type_map.csv    every cleaned response type -> harmonized type + category, with counts
   agency_map.csv           every raw agency name -> canonical agency + agency type, with counts
 """
+import hashlib
+import json
 import re
 from collections import Counter
 from pathlib import Path
@@ -165,22 +167,25 @@ TYPE_SYNONYMS = {
     "CUSTODY ISSUE": "CUSTODIAL INTERFERENCE",
     "TRAFFIC HAZARD": "TRAFFIC",
     "NURSENAV-ALS": "NURSENAV",
+    "AREA CHECK": "AREA CK",
+    "CODES VIOLATION": "CODE VIOLATION",
 }
 
 CATEGORY_RULES = [  # (category, exact names or regex prefixes); first match wins
     ("MENTAL_HEALTH", ["MHL", "CHECK WELFARE - EDP", "CHECK WELFARE-EDP", "EVALUATION", "SUICIDE", "SUICIDE ATTEMPT"]),
     ("MEDICAL", ["EMS CALL", "ALARM EMS", "OVERDOSE", "NURSENAV", "ALS LINK UP", "MUTUAL AID EMS", "BURN INJURY",
-                 "DEATH", "LANDING ZONE"]),
+                 "DEATH", "LANDING ZONE", "BLOOD / EYE RUN"]),
     ("FIRE_HAZARD", [r"^FIRE (?!POLICE)", "ALARM CARBON MONOXIDE", "GAS ODOR/ALARM BUILDING", r"^ODOR OF",
                      "WIRES DOWN/BURN", "TREE DOWN", "SPILL/LEAK", "HAZMAT", r"^MUTUAL AID (FIRE|CASCADE)",
                      "PUMP CELLAR", "WATER RESCUE", "ELEVATOR RESCUE", "RESCUE", "BLDG COLLAPSE", "FLOODING",
                      "ILLEGAL BURN", "FIRE POLICE", "DECON", "EVACUATION", "WATER BREAK", "SUPERVISORY ALARM",
-                     "FORCIBLE ENTRY/NON EMS", "COLLEGE ALARM", "DROWNING", "UFD REGULAR ALARM"]),
+                     "FORCIBLE ENTRY/NON EMS", "COLLEGE ALARM", "DROWNING", "UFD REGULAR ALARM",
+                     "ALARM GAS", "EXPLOSION", "MUTUAL AID-FAST"]),
     ("TRAFFIC", ["TRAFFIC STOP", r"^MVA", "TRAFFIC", "TRAFFIC DETAIL", "DISABLED VEHICLE", "ASSIST MOTORIST",
                  "VEHICLE TRAFFIC LAW", "PARKING SUMMONS", "ABANDONED VEHICLE", r"^ACCIDENT ", "TOWING", "DWI",
-                 "FARM ACCIDENT", "CITIZEN STOP"]),
+                 "FARM ACCIDENT", "CITIZEN STOP", "PARKING COMPLAINT"]),
     ("VIOLENT_CRIME", [r"^ASSAULT", "SHOTS FIRED", "FIREARM INJURY", "FIGHT", r"^ROBBERY", r"^MENACING", r"^RAPE", "SEX OFFENSE",
-                       r"^ABDUCTION", "HOME INVASION", "WEAPON POSSESSION", "STALKING", "BOMB THREAT"]),
+                       r"^ABDUCTION", "HOME INVASION", "WEAPON POSSESSION", "STALKING", "BOMB THREAT", "HOSTAGE"]),
     ("PROPERTY_CRIME", [r"^LARCENY", r"^BURGLARY", "CRIM MISCHIEF", "ARSON", "AUTO STRIPPING", "VEHICLE STOLEN", "UNAUTHORIZED USE", "FRAUD",
                         "IDENTITY THEFT", "COUNTERFEITING", "FORGERY", "BAD CHECK", "THEFT OF SERVICE",
                         "PROPERTY DAMAGE", r"^TRESPASS", "LOST/STLN PLATE", "PROPERTY STOLEN", "ILLEGAL DUMPING",
@@ -190,7 +195,7 @@ CATEGORY_RULES = [  # (category, exact names or regex prefixes); first match win
     ("PUBLIC_ORDER", ["NOISE COMPLAINT", r"^DISCON", "FIREWORKS", "ABC COMPLAINT", "PUBLIC LEWDNESS",
                       "RECKLESS ACTIVITY", "JUVENILE", "RUNAWAY", "SUSP ACTIVITY", "SUSP PACKAGE",
                       "NARCOTIC INV/POSSESSION", "MARIJUANA", "SOLICITATION", "TOBACCO DETAIL", "CODE VIOLATION",
-                      "PRISON CONTRABAND", "FALSE REPORTING", "CRIM IMPERSONATION"]),
+                      "PRISON CONTRABAND", "FALSE REPORTING", "CRIM IMPERSONATION", "NUISANCE"]),
     ("WELFARE_ASSIST", ["CHECK WELFARE", "ASSIST", "MISSING PERSON", "FOUND PERSON", "LOCKOUT", "STANDBY",
                         "PEACE OFFICER", "ABUSE", "NEGLECT", "ENDANGER WELFARE", "ABANDONMENT", "AIDED CASE",
                         "DSS HOME VISIT", "SOCIAL WORKER", "ESCORT", "SEARCH", "BOAT ASSIST", "NOTIFICATION", "OPEN DOOR/WINDOW",
@@ -326,6 +331,27 @@ def main():
     latest = version.groupby(stem).transform("max")
     df["report_version"] = version
     superseded = version < latest
+    # The county can publish the same report under different filenames. Compare entire
+    # reports (including repeated rows), never individual dispatch rows, to retain mutual aid.
+    content_cols = ["datetime", "agency", "response_type", "location", "city", "agency_group"]
+    reports = list(raw.loc[~superseded].groupby("source_file", sort=False))
+    def report_preference(item):
+        source, rows = item
+        date = pd.Timestamp(rows.report_date.iloc[0])
+        expected = f"{date.strftime('%B')}-{date.day}-{date.year}.pdf"
+        return (Path(source).name != expected, source)
+    seen_reports, duplicate_sources = {}, set()
+    for source, rows in sorted(reports, key=report_preference):
+        content = sorted(map(tuple, rows[content_cols].to_numpy()))
+        digest = hashlib.sha256(json.dumps(content, ensure_ascii=False).encode("utf-8")).hexdigest()
+        key = (rows.report_date.iloc[0], rows.report_format.iloc[0], digest)
+        if key in seen_reports:
+            duplicate_sources.add(source)
+            print(f"Duplicate report: {source} -> {seen_reports[key]} ({len(rows)} rows)")
+        else:
+            seen_reports[key] = source
+    duplicate = raw.source_file.isin(duplicate_sources) & ~superseded
+    excluded = superseded | duplicate
 
     dt_txt = raw.datetime.str.replace("\n", " ").str.replace(r"\s+", " ", regex=True).str.strip()
     has_sec = dt_txt.str.match(r".* \d\d:\d\d:\d\d$")
@@ -391,8 +417,8 @@ def main():
     df["hour_sin"] = np.sin(angle).round(6)
     df["hour_cos"] = np.cos(angle).round(6)
 
-    df = df[~superseded].copy()
-    df["_dt"] = dt[~superseded]
+    df = df[~excluded].copy()
+    df["_dt"] = dt[~excluded]
 
     # Incident clustering: several agencies dispatched to one emergency appear as separate rows with the same
     # type and place within a short window. Heuristic; rows with no location only cluster when nearly simultaneous.
@@ -437,7 +463,8 @@ def main():
           .rename("count").reset_index().sort_values("count", ascending=False))
     am.to_csv(OUT / "agency_map.csv", index=False)
 
-    print(f"raw rows {len(raw)}, superseded-version rows dropped {int(superseded.sum())}, final {len(df)}")
+    print(f"raw rows {len(raw)}, superseded-version rows dropped {int(superseded.sum())}, "
+          f"duplicate-report rows dropped {int(duplicate.sum())}, final {len(df)}")
     print(f"bad datetimes {dt.isna().sum()}, incident clusters {df.incident_cluster_id.nunique()}")
     print("uncategorized:", df[df.category == "UNCATEGORIZED"].response_type.value_counts().to_dict())
     print(df.category.value_counts().to_string())

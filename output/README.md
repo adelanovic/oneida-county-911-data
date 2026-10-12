@@ -1,6 +1,6 @@
 # Oneida County 911 dispatch records — ML dataset
 
-Built from the 280 public PDFs in `../Oneida_County_911_Reports/reports/`.
+Built from the 687 public PDFs in `../Oneida_County_911_Reports/reports/`.
 
 ```
 python -I extract_raw.py            # PDFs -> output/raw_records.csv + extraction_log.csv
@@ -12,13 +12,15 @@ python -I geo/build_map_data.py    # dataset + Census layers -> packed map data
 python -I geo/make_map_page.py geo/vendor/leaflet-1.9.4.css # publishable HTML
 ```
 
+The dispatch data covers 681 days: 364 in 2024, 194 in 2025 and 123 in 2026. Three empty published reports remain in the source manifest but do not count as observed zero-activity days.
+
 ## Files
 
 | File | Contents |
 |---|---|
-| `oneida_911_records.csv` | **Main dataset.** 249,065 rows, one per agency dispatch. |
-| `raw_records.csv` | Cell text exactly as extracted (line breaks kept), 249,996 rows including superseded report versions. |
-| `extraction_log.csv` | Per-PDF row count vs. the total printed in the report. All 280 match. |
+| `oneida_911_records.csv` | **Main dataset.** 421,513 rows, one per agency dispatch. |
+| `raw_records.csv` | Cell text exactly as extracted (line breaks kept), 422,883 rows including superseded report versions and duplicate report copies. |
+| `extraction_log.csv` | Per-PDF row count vs. the total printed in the report. All 687 reconcile to printed totals or agency subtotals; three reports are empty. |
 | `response_type_map.csv` | Raw response type → harmonized `response_type` + `category`, with counts. |
 | `agency_map.csv` | Raw agency name → canonical `agency` + `agency_type`, with counts. |
 
@@ -65,7 +67,7 @@ python -I geo/make_map_page.py geo/vendor/leaflet-1.9.4.css # publishable HTML
 ## Caveats for modeling
 
 - **Rows are agency dispatches, not unique emergencies.** One crash can produce 4 rows (ambulance, fire, state police, sheriff). Deduplicate on `incident_cluster_id` when you count incidents.
-- **Coverage has gaps:** 364 days in 2024 (all but two), 9 days in 2025, and 13 days in 2026. Don't treat this as a continuous time series without accounting for missing days (see `../Oneida_County_911_Reports/coverage.csv`).
+- **Coverage has gaps:** 364 days with records in 2024 (all but two), 194 in 2025, and 123 in 2026. Don't treat this as a continuous time series without accounting for missing and empty reports (see `../Oneida_County_911_Reports/coverage.csv`).
 - **The CAD system changed in 2026:** coarser timestamps and partly different call-type wording. Include `report_format` as a feature or control for it.
 - Call types are what dispatch recorded at intake, not confirmed outcomes. There are no arrival or clear times, so response times can't be computed.
 - `September-24-2026` and `September-25-2026` each had a `-v2` reissue. Only the v2 rows are kept (931 v1 rows dropped).

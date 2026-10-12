@@ -170,7 +170,7 @@ def main():
              .sort_values("n", ascending=False).reset_index(drop=True))
     type_id = {t: i for i, t in enumerate(types.response_type)}
     years = sorted(df.year.unique().tolist())
-    # Days with a report in each year; coverage is uneven (2025 and 2026 are a handful of days).
+    # Days with dispatch records in each year; archive coverage is uneven.
     days = df.assign(d=df.call_datetime.str[:10]).groupby("year").d.nunique()
     agency_types = df.agency_type.value_counts().index.tolist()
 

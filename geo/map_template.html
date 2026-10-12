@@ -394,10 +394,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <button type="button" class="btn push" id="copy" title="Copy a link to this exact view">Copy link</button>
     </div>
     <nav class="section-nav" aria-label="Jump to a section">
-      <a class="btn" href="#patterns">Time patterns</a>
+      <a class="btn" href="#flows-section">Response flows</a>
+      <a class="btn" href="#time-patterns-section">Time patterns</a>
       <a class="btn" href="#coverage-section">Report coverage</a>
       <a class="btn" href="#trend-section">Daily trend</a>
-      <a class="btn" href="#seasons-section">Seasons</a>
+      <!-- Seasons temporarily disabled: <a class="btn" href="#seasons-section">Seasons</a> -->
       <a class="btn" href="#standouts-section">What stands out</a>
       <a class="btn" href="#mix-section">Call mix</a>
       <a class="btn" href="#responders-section">Who responds</a>
@@ -406,7 +407,6 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <a class="btn" href="#compare-section">Compare</a>
       <a class="btn" href="#police-section">Police dispatch types</a>
       <a class="btn" href="#outside-section">Outside home town</a>
-      <a class="btn" href="#flows-section">Response flows</a>
       <a class="btn" href="#about">About the data</a>
     </nav>
 
@@ -433,8 +433,21 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     </div>
   </div>
 
-  <section class="patterns" id="patterns" aria-label="Time patterns and coverage">
-    <div class="chart card">
+  <section class="patterns" id="patterns" aria-label="Response flows, time patterns and coverage">
+    <div class="chart card wide" id="flows-section">
+      <div class="chart-head">
+        <h2>Response flows between towns</h2>
+        <p>Arrows run from an agency's home town to the town it responded in; thicker arrows mean more dispatches. Hover an arrow for the agencies involved; click a route to filter the map to that town.</p>
+      </div>
+      <div class="seg" id="flow-kind" role="group" aria-label="Agency type" style="width:max-content"><button type="button" data-k="FIRE" aria-pressed="true">Fire departments</button><button type="button" data-k="EMS" aria-pressed="false">Ambulance services</button></div>
+      <div class="flow-wrap">
+        <div id="flowmap" aria-label="Map of response flows between towns"></div>
+        <div><h3 class="eyebrow" style="margin:0 0 6px">Busiest routes</h3><div class="rank" id="flow-list"></div></div>
+      </div>
+      <div class="insight" id="flow-insight"></div>
+      <p class="note-sm">Home town is estimated from all available reports. The agency-type toggle replaces the responder filter; routes shown touch the selected town (villages and Rome districts roll up to their town). The percentage covers all destinations under the other filters. Arrows show up to 70 routes with at least 3 dispatches and known map centers; neighboring-county routes appear only in the list.</p>
+    </div>
+    <div class="chart card" id="time-patterns-section">
       <div class="chart-head">
         <h2>When dispatches happen</h2>
         <p>Average dispatches per report day, by hour and weekday, for the current filters. Click a square, an hour or a day to filter the map.</p>
@@ -462,6 +475,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <div class="legend-line"><span><i class="raw"></i>Each report day</span><span><i></i>7-day average</span><span>○ Unusual spikes</span></div>
       <div class="insight" id="trend-insight"></div>
     </div>
+    <!-- Seasons temporarily disabled; retain markup for later.
     <div class="chart card wide" id="seasons-section">
       <div class="chart-head">
         <h2>Seasons</h2>
@@ -475,6 +489,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       <p class="so-note">Call-type charts use only year-months with at least 80% of possible report days, with at least six comparable calendar months and 150 matching dispatches. Each chart has its own scale. These are observed patterns, not proof of a recurring seasonal effect.</p>
       <div class="season-grid" id="season-grid"></div>
     </div>
+    -->
     <div class="chart card" id="standouts-section">
       <div class="chart-head">
         <h2>What stands out here</h2>
@@ -550,19 +565,6 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       </div>
       <div class="rank" id="out-list"></div>
       <p class="note-sm">Home town is estimated from all available reports. Percentages use dispatches with known destinations. All filters apply except the individual-agency filter, so departments remain available for comparison. Nurse Navigation is excluded because it is a phone-triage service.</p>
-    </div>
-    <div class="chart card wide" id="flows-section">
-      <div class="chart-head">
-        <h2>Response flows between towns</h2>
-        <p>Arrows run from an agency's home town to the town it responded in; thicker arrows mean more dispatches. Hover an arrow for the agencies involved; click a route to filter the map to that town.</p>
-      </div>
-      <div class="seg" id="flow-kind" role="group" aria-label="Agency type" style="width:max-content"><button type="button" data-k="FIRE" aria-pressed="true">Fire departments</button><button type="button" data-k="EMS" aria-pressed="false">Ambulance services</button></div>
-      <div class="flow-wrap">
-        <div id="flowmap" aria-label="Map of response flows between towns"></div>
-        <div><h3 class="eyebrow" style="margin:0 0 6px">Busiest routes</h3><div class="rank" id="flow-list"></div></div>
-      </div>
-      <div class="insight" id="flow-insight"></div>
-      <p class="note-sm">Home town is estimated from all available reports. The agency-type toggle replaces the responder filter; routes shown touch the selected town (villages and Rome districts roll up to their town). The percentage covers all destinations under the other filters. Arrows show up to 70 routes with at least 3 dispatches and known map centers; neighboring-county routes appear only in the list.</p>
     </div>
     <div class="card about wide" id="about">
       <div class="chart-head">
@@ -1275,7 +1277,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     box.innerHTML = html || '<p class="so-note">No report days match these filters.</p>';
     if (focusedYear) box.querySelector(`[data-year="${focusedYear}"]`)?.focus({ preventScroll: true });
     const total = visible.reduce((sum, d) => sum + dateN[d], 0);
-    $("trend-insight").textContent = total ? `${fmt(total)} dispatches across ${fmt(visible.length)} matching report days. Compare monthly rates and report coverage in Seasons below.` : "No dispatches match these filters.";
+    $("trend-insight").textContent = total ? `${fmt(total)} dispatches across ${fmt(visible.length)} matching report days. Missing report dates are excluded.` : "No dispatches match these filters.";
   }
   const trendCursor = new Map();
   function trendDescription(year, j) {
@@ -1435,7 +1437,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     renderCompare();
     renderPolicing();
     renderFlows();
-    renderSeasons();
+    // renderSeasons(); // Seasons panel temporarily disabled.
     if (focusKey && !focused.isConnected) {
       const replacement = [...(document.getElementById(focusParent)?.querySelectorAll(`[${focusKey}]`) || [])].find(el => el.getAttribute(focusKey) === focusValue);
       if (replacement) replacement.focus({ preventScroll: true });
@@ -1818,6 +1820,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   });
   $("pol-hour").addEventListener("pointerleave", () => tipf.hidden = true);
 
+  /* Seasons temporarily disabled; retain initialization, rendering and handlers.
   // ---------- seasons: coverage-aware monthly rates across any available years
   const MONTH_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   $("season-ax").innerHTML = MON.map(m => `<span>${m}</span>`).join("");
@@ -1899,6 +1902,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const m = e.target.closest("[data-month]"); if (m) { toggleMonth(+m.dataset.month); return; }
     const g = e.target.closest("[data-g]"); if (g) pick.group(+g.dataset.g);
   });
+
+  */
 
   function renderPolicing() {
     // All filters except category / call type (the split is the point) and the specific-agency filter (to list departments).
