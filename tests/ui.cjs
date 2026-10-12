@@ -33,6 +33,7 @@ function datasetCounts() {
   let total = 0, whitestown = 0, whitesboro = 0;
   const fireUnknownBy = new Map(), hasHome = new Set();
   const outsideBy = new Map();
+  const population = { all: { known: 0, unknown: 0, utica: 0 }, years: {} };
   for (const line of lines.slice(1)) {
     const f = split(line); total++;
     if (['FIRE', 'EMS'].includes(f[kind]) && !/nurse navigation/i.test(f[agency])) {
@@ -44,6 +45,11 @@ function datasetCounts() {
         if (dest.startsWith('T:')) a.towns.set(dest, (a.towns.get(dest) || 0) + 1); }
     }
     const iso = f[reportDate], y = iso.slice(0, 4), m = +iso.slice(5, 7);
+    for (const stats of [population.all, population.years[y] ||= { known: 0, unknown: 0, utica: 0 }]) {
+      if (f[county] === 'ONEIDA' && f[town]) stats.known++;
+      else if (!f[county] || f[county] === 'ONEIDA') stats.unknown++;
+      if (f[town] === 'UTICA') stats.utica++;
+    }
     if(y==='2026' && f[agency]==='Utica Police Department') {
       const hour=+f[hourColumn], hours=policeMonths[m] ||= Array.from({length:24},()=>({n:0,initiated:0})); hours[hour].n++;
       if(officerTypes.has(f[response])) hours[hour].initiated++;
@@ -67,7 +73,7 @@ function datasetCounts() {
     const home = [...a.towns].sort((a, b) => b[1] - a[1])[0][0];
     return [name, { known: a.known, unknown: a.unknown, out: a.known - a.dests.get(home) }];
   }));
-  return { total, whitestown, whitesboro, fireUnknown, outside, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates };
+  return { total, whitestown, whitesboro, fireUnknown, outside, population, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates };
 }
 
 async function main() {
@@ -165,7 +171,43 @@ async function main() {
       const row=[...document.querySelectorAll('#cmp-out tbody tr')].find(e=>e.firstChild.textContent.startsWith('Per 1,000'));
       return {ranking,comparison:row.children[1].textContent}})()`);
     assert.equal(rates.ranking, rates.comparison);
-    console.log('PASS: population ranking and comparison use the same weekday denominator');
+    console.log('PASS: population ranking and comparison use the same observed weekday counts');
+
+    await navigate(pageUrl);
+    const pcObserved=await evaluate(`(()=>{
+      const d=JSON.parse(document.querySelector('#data').textContent);
+      return {pop:d.population,county:document.querySelector('#pc-list .v').childNodes[0].textContent,
+        utica:document.querySelector('#pc-list [data-place="T:UTICA"] .v').textContent,
+        note:document.querySelector('#pc-location-note').textContent,coverage:document.querySelector('#pc-coverage').textContent};
+    })()`);
+    const fmt1=n=>n>=100 ? fmt(Math.round(n)) : n>=10 ? n.toFixed(1) : n.toFixed(2);
+    assert.equal(pcObserved.county,fmt1(expected.population.all.known/pcObserved.pop.ALL*1000));
+    assert.equal(pcObserved.utica,fmt1(expected.population.all.utica/pcObserved.pop['T:UTICA']*1000));
+    assert(pcObserved.note.includes(fmt(expected.population.all.unknown)+' dispatches without an assigned town'));
+    assert(pcObserved.coverage.includes('not annual rates'));
+    const afterPlace=await evaluate(`(()=>{const c=document.querySelector('#city');c.value='T:UTICA';c.dispatchEvent(new Event('change'));return document.querySelector('#pc-list .v').childNodes[0].textContent})()`);
+    assert.equal(afterPlace,pcObserved.county);
+    await navigate(pageUrl+'?year=2024&rate=annual');
+    const pcAnnual=await evaluate(`({value:document.querySelector('#pc-list [data-place="T:UTICA"] .v').textContent,coverage:document.querySelector('#pc-coverage').textContent,mode:document.querySelector('#pc-scale [aria-pressed="true"]').dataset.scale})`);
+    const yearDays=expected.seasonal['2024'].reduce((s,a)=>s+a.days,0);
+    assert.equal(pcAnnual.value,fmt1(expected.population.years['2024'].utica/pcObserved.pop['T:UTICA']*1000*366/yearDays));
+    assert.equal(pcAnnual.mode,'annual');
+    assert(pcAnnual.coverage.includes('not a measured full-year total'));
+    const incompleteYear=Object.keys(expected.seasonal).find(y=>{
+      const months=expected.seasonal[y];
+      const totalDays=(Date.UTC(+y+1,0,1)-Date.UTC(+y,0,1))/864e5;
+      return months.reduce((s,a)=>s+a.days,0)/totalDays<.9 || months.slice(1).some((a,m)=>a.days/new Date(Date.UTC(+y,m+1,0)).getUTCDate()<.8);
+    });
+    for (const query of ['rate=annual',...(incompleteYear ? ['year='+incompleteYear+'&rate=annual'] : []),'year=2024&month=1&rate=annual','year=2024&day=mon&rate=annual','year=2024&hour=0&rate=annual','date=2024-01-01&rate=annual']) {
+      await navigate(pageUrl+'?'+query);
+      const withheld=await evaluate(`({value:document.querySelector('#pc-list [data-place="T:UTICA"] .v').textContent,coverage:document.querySelector('#pc-coverage').textContent,bars:[...document.querySelectorAll('#pc-list .bar')].every(b=>b.hidden)})`);
+      assert.equal(withheld.value,'\u2014',query);
+      assert(withheld.coverage.includes('Rates withheld') && withheld.bars,query);
+    }
+    await evaluate(`document.querySelector('#reset').click()`);
+    assert.equal(await evaluate(`document.querySelector('#pc-scale [aria-pressed="true"]').dataset.scale`),'observed');
+    assert(!await evaluate(`location.search.includes('rate=annual')`));
+    console.log('PASS: population rates match independent CSV totals, use assigned-location benchmarks and guard annual scaling including leap years');
 
     const group = await evaluate(`(()=>{document.querySelector('#reset').click();const c=document.querySelector('#cat');c.value='MEDICAL';c.dispatchEvent(new Event('change'));
       const before=document.querySelector('#total').textContent;document.querySelector('#mix button[data-mix^="g:"]').click();
@@ -631,6 +673,10 @@ async function main() {
         assert(layout.picker>=44);
         assert.equal(layout.months[6].top>layout.months[0].top,width<=600);
         await screenshot('coverage-'+width+'-'+theme);
+        await evaluate(`document.querySelector('#population-section').scrollIntoView({behavior:'instant',block:'start'})`);
+        const pcLayout=await evaluate(`(()=>{const p=document.querySelector('#population-section'),r=p.getBoundingClientRect();return {fits:p.scrollWidth<=p.clientWidth,left:r.left,right:r.right,width:innerWidth,rows:[...p.querySelectorAll('.rank-row')].every(e=>e.scrollWidth<=e.clientWidth),buttons:[...p.querySelectorAll('#pc-scale button')].every(e=>e.scrollHeight<=e.clientHeight && e.getBoundingClientRect().height>=42)}})()`);
+        assert(pcLayout.fits && pcLayout.rows && pcLayout.buttons && pcLayout.left>=0 && pcLayout.right<=pcLayout.width,JSON.stringify(pcLayout));
+        await screenshot('population-'+width+'-'+theme);
         if(width===1440 || width===390) {
           await evaluate(`document.querySelector('#flows-section').scrollIntoView({behavior:'instant',block:'start'})`);
           await screenshot('connections-'+width+'-'+theme);

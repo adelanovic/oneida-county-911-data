@@ -20,6 +20,32 @@ class DatasetRegressionTests(unittest.TestCase):
                                       "<u2" if k in ["t", "d", "l", "k", "s", "f", "v", "r"] else "u1")
                        for k, v in cls.data["records"].items()}
 
+    def test_population_reporting_areas_match_census_2024(self):
+        est = pd.read_csv(ROOT / "geo/census/sub-est.csv", dtype=str, encoding="latin-1")
+        est = est[(est.STATE == "36") & (est.COUNTY == "065")]
+        column = "POPESTIMATE2024"
+        towns = {re.sub(r" (town|city)$", "", r.NAME).upper(): int(getattr(r, column))
+                 for r in est[est.SUMLEV == "061"].itertuples()}
+        parts = est[est.SUMLEV == "071"]
+        # Reporting labels group these entire villages/city into one response area.
+        for village, source, target in [("Waterville", "Marshall", "Sangerfield"),
+                                        ("Remsen", "Trenton", "Remsen"),
+                                        ("Sherrill", "Vernon", "Sherrill")]:
+            code = est[(est.SUMLEV == "061") & (est.NAME == source + " town")].COUSUB.iloc[0]
+            rows = parts[(parts.COUSUB == code) & parts.NAME.str.startswith(village + " ")]
+            amount = rows[column].astype(int).sum()
+            self.assertGreater(amount, 0)
+            towns[source.upper()] -= amount
+            towns[target.upper()] = towns.get(target.upper(), 0) + amount
+        pop = self.data["population"]
+        self.assertEqual(pop["ALL"], int(est[est.SUMLEV == "050"][column].iloc[0]))
+        self.assertEqual(sum(v for k, v in pop.items() if k.startswith("T:")), pop["ALL"])
+        for name, value in towns.items():
+            self.assertEqual(pop["T:" + name], value, name)
+        for name, code in [("NEW HARTFORD", "50309"), ("WHITESTOWN", "81754")]:
+            expected = int(parts[(parts.COUSUB == code) & parts.NAME.str.startswith("New York Mills village")][column].iloc[0])
+            self.assertEqual(pop["V:" + name + "|NEW YORK MILLS"], expected)
+
     def test_reported_coordinates_survive(self):
         df = self.df
         reported = df[df.latitude != ""]

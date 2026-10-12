@@ -69,6 +69,8 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
 .seg button:hover { background: var(--dot-soft); }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
 .seg button[aria-pressed="true"] small { color: inherit; opacity: .7; }
+#pc-scale { width: fit-content; max-width: 100%; height: auto; min-height: 44px; }
+#pc-scale button { flex: 1; min-width: 0; padding: 8px 12px; align-items: center; justify-content: center; text-align: center; line-height: 1.3; }
 .check { display: flex; gap: 8px; align-items: center; height: 36px; color: var(--ink-2); font-size: .86rem; cursor: pointer; }
 .check input { accent-color: var(--dot); width: 16px; height: 16px; margin: 0; cursor: pointer; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 36px; }
@@ -1638,7 +1640,6 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   const LEVEL_COLOR = [null, "var(--q1)", "var(--q2)", "var(--q3)", "var(--q4)", "var(--q6)", "var(--q7)"];
   const kindLabel = k => LABEL[k] || titleCase(k.replace(/_/g, " "));
   const COUNTY_POP = D.population?.ALL;
-  const reportDays = () => D.dates.reduce((s, iso, d) => s + (yearOK(d) && dateOK(d) && dowOK(d) ? 1 : 0), 0);
 
   function renderResponders(unitN, inc) {
     const total = unitN.reduce((a, b) => a + b, 0);
@@ -1742,12 +1743,13 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
   $("pc-mode").onclick = e => { const b = e.target.closest("button"); if (!b) return; pcMode = b.dataset.m;
     $("pc-mode").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); update(); };
   const placeName = k => k.startsWith("V:") ? `${titleCase(k.split("|")[1])}${Object.keys(placeCities).filter(x => x.startsWith("V:") && x.endsWith("|" + k.split("|")[1])).length > 1 ? ` (${titleCase(k.slice(2).split("|")[0])} part)` : ""}` : titleCase(k.slice(2));
+  const populationPlaceName = k => placeName(k) + (k.startsWith("T:") && ["MARSHALL", "SANGERFIELD", "REMSEN", "TRENTON", "VERNON", "SHERRILL"].includes(k.slice(2)) ? " (reporting area)" : "");
   function renderPerCapita(cityN) {
     if (!COUNTY_POP) {
       $("pc-list").innerHTML = `<p class="so-note">Population estimates are unavailable for this build.</p>`;
       return;
     }
-    const period = populationPeriod(), unavailable = pcScale === "annual" && !!period.reason;
+    const period = populationPeriod(), unavailable = !period.dates.length || (pcScale === "annual" && !!period.reason);
     const perYear = pcScale === "annual" ? period.factor : 1;
     $("pc-scale").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.scale === pcScale));
     $("pc-coverage").textContent = period.dates.length ? `${fmt(period.dates.length)} covered days, ${period.dates[0]} to ${period.dates.at(-1)}${st.hour >= 0 ? `, hour ${hourLabel(st.hour)} only` : ""}. ${pcScale === "annual" ? unavailable ? period.reason + " Rates withheld; dispatch counts remain visible." : "Annual equivalent: observed dispatches scaled by calendar-year days / covered days, not a measured full-year total." : "Observed-period rates are not annual rates; longer covered periods accumulate more dispatches."} Missing report days are not treated as zero. Coverage can miss seasonal peaks.${period.dates.some(iso => iso.startsWith("2026")) ? " The 2026 reports omit some proactive police dispatch types; comparisons with earlier years reflect reporting differences too." : ""}` : "No covered days match the time filters.";
@@ -1766,7 +1768,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const mx = Math.max(countyRate, ...rows.map(r => r[3])) || 1;
     $("pc-list").innerHTML = `<div class="rank-row" style="cursor:default"><span class="nm"><b>Oneida County benchmark</b><small>${fmt(COUNTY_POP)} residents · ${fmt(county)} assigned dispatches</small></span><span class="v">${unavailable ? "—" : fmt1(countyRate)}<small>${pcScale === "annual" ? "annual equivalent" : "observed period"}</small></span></div>` +
       rows.map(([k, n, pop, r]) => `<div class="rank-row${st.place === k ? " on" : ""}" data-place="${k}" tabindex="0" role="button">
-      <span class="nm">${esc(placeName(k))}${k.startsWith("T:") && ["MARSHALL", "SANGERFIELD", "REMSEN", "TRENTON", "VERNON", "SHERRILL"].includes(k.slice(2)) ? " (reporting area)" : ""}<small>${fmt(pop)} residents · ${fmt(n)} dispatches</small></span><span class="v">${unavailable ? "—" : fmt1(r)}</span>
+      <span class="nm">${esc(populationPlaceName(k))}<small>${fmt(pop)} residents · ${fmt(n)} dispatches</small></span><span class="v">${unavailable ? "—" : fmt1(r)}</span>
       <span class="bar"${unavailable ? " hidden" : ""}><i style="width:${(100 * r / mx).toFixed(1)}%"></i><span class="avgmark" style="left:${(100 * countyRate / mx).toFixed(1)}%"></span></span></div>`).join("");
   }
 
@@ -1810,7 +1812,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     // report days per side
     const daysFor = y => D.dates.reduce((s, iso, d) => s + ((y == null ? yearOK(d) && dateOK(d) : dateYear[d] === y && monthOK(d)) && dowOK(d) ? 1 : 0), 0);
     const days = byPlace ? [daysFor(null), daysFor(null)] : [daysFor(cmp.ya), daysFor(cmp.yb)];
-    const names = byPlace ? [cmp.a, cmp.b].map(k => placeName(k)) : [D.years[cmp.ya], D.years[cmp.yb]].map(String);
+    const names = byPlace ? [cmp.a, cmp.b].map(k => populationPlaceName(k)) : [D.years[cmp.ya], D.years[cmp.yb]].map(String);
     const pops = byPlace ? [D.population?.[cmp.a], D.population?.[cmp.b]] : [null, null];
     const pct = (v, n) => n ? `${(100 * v / n).toFixed(1)}%` : "–";
     const rows = [
