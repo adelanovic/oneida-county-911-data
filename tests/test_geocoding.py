@@ -205,6 +205,49 @@ class GeocodingRegressionTests(unittest.TestCase):
             self.assertTrue(r.match_method.startswith("county_roads"), name)
             self.assertEqual(r.expected_error_m, "", name)
 
+    def test_westmoreland_named_streets_are_local_and_preserve_qualifiers(self):
+        for name in ["STOP 7 RD", "ABBE BLVD SOUTH", "DENSLOW DR", "BLACKBERRY PATCH RD", "CHURCH ST"]:
+            hit = self.gc.county_street(name, "WESTMORELAND")
+            self.assertIsNotNone(hit, name)
+            self.assertEqual(hit["matched"], name)
+            self.assertEqual(hit["precision"], "street")
+            self.assertGreater(hit["geom"].intersection(self.gc.poly("WESTMORELAND")).length, 0)
+            self.assertLessEqual(hit["geom"].difference(self.gc.poly("WESTMORELAND").buffer(self.gc.BUF)).length, .01)
+            self.assertIsNone(self.gc.county_street(name, "VERONA"))
+            r = self.locations[(self.locations.street == name) & (self.locations.city == "WESTMORELAND")].iloc[0]
+            self.assertEqual(r.precision, "street", name)
+        self.assertIsNone(self.gc.county_street("ABBE BLVD", "WESTMORELAND"))
+        self.assertIsNone(self.gc.county_street("STOP 8 RD", "WESTMORELAND"))
+
+    def test_westmoreland_thruway_aliases_keep_directions_and_exit_number(self):
+        for reported, matched in [("NY STATE THRUWAY EB", "INTERSTATE 90 EB"),
+                                  ("NY STATE THRUWAY WB", "INTERSTATE 90 WB"),
+                                  ("NYS THRUWAY EXIT 32", "INTERSTATE 90 EXIT 32"),
+                                  ("NY STATE THRUWAY EXIT 32 RAMP", "INTERSTATE 90 EXIT 32 RAMP"),
+                                  ("NYS THRUWAY EXIT 32 RAMP", "INTERSTATE 90 EXIT 32 RAMP")]:
+            hit = self.gc.county_street(reported, "WESTMORELAND")
+            self.assertEqual(hit["matched"], matched)
+            self.assertEqual(hit["precision"], "street")
+            self.assertLessEqual(hit["geom"].difference(self.gc.poly("WESTMORELAND").buffer(self.gc.BUF)).length, .01)
+            if "EXIT 32" in reported:
+                self.assertIsNone(self.gc.county_street(reported, "VERONA"))
+        east = self.gc.county_street("NY STATE THRUWAY EB", "WESTMORELAND")
+        west = self.gc.county_street("NY STATE THRUWAY WB", "WESTMORELAND")
+        self.assertFalse(east["geom"].equals(west["geom"]))
+        self.assertIsNone(self.gc.county_street("NY STATE THRUWAY RAMP", "WESTMORELAND"))
+        r = self.locations[(self.locations.street == "NY STATE THRUWAY RAMP") & (self.locations.city == "WESTMORELAND")].iloc[0]
+        self.assertEqual(r.precision, "municipality")
+
+    def test_westmoreland_service_area_is_an_approximate_facility(self):
+        for name in ["ONEIDA SERVICE CENTER", "THRUWAY SERVICE ENTRANCE"]:
+            r = self.locations[(self.locations.street == name) & (self.locations.city == "WESTMORELAND")].iloc[0]
+            self.assertEqual(r.precision, "landmark", name)
+            self.assertTrue(r.match_method.startswith("county_roads"), name)
+            self.assertEqual(r.expected_error_m, "", name)
+        a = self.gc.county_street("ONEIDA SERVICE CENTER", "WESTMORELAND")
+        b = self.gc.county_street("THRUWAY SERVICE ENTRANCE", "WESTMORELAND")
+        self.assertFalse(a["geom"].equals(b["geom"]))
+
     def test_outside_whole_road_fallback_is_rejected(self):
         for name, city in [("OLD STATE RD", "TRENTON"), ("ROUTE 49", "WHITESTOWN"),
                            ("ROME NEW LONDON RD", "ROME OUTSIDE")]:

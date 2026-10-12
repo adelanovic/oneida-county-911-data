@@ -3,7 +3,7 @@
 The reports name a street (no house number) and a city/town/village. Each pair is resolved to the stretch of
 that street inside the municipality, then reduced to one point:
 
-Reviewed Utica, Whitesboro, Marcy, Rome and Verona gaps first try exact names in the saved county CAD road subset, preserving direction and ramp
+Reviewed Utica, Whitesboro, Marcy, Rome, Verona and Westmoreland gaps first try exact names in the saved county CAD road subset, preserving direction and ramp
 qualifiers and clipping to the same municipality tolerance. These use road-length medoids; facility/access
 features are approximate landmarks without an incident-accuracy estimate. Other locations use the steps below.
 
@@ -45,7 +45,8 @@ ROOT = Path(__file__).resolve().parent.parent
 TIGER = ROOT / "geo" / "tiger"
 COUNTY_REFERENCES = {"UTICA": "utica_roads.json", "WHITESBORO VILLAGE": "whitesboro_roads.json",
                      "MARCY": "marcy_roads.json", "ROME INSIDE": "rome_inside_roads.json",
-                     "ROME OUTSIDE": "rome_outside_roads.json", "VERONA": "verona_roads.json"}
+                     "ROME OUTSIDE": "rome_outside_roads.json", "VERONA": "verona_roads.json",
+                     "WESTMORELAND": "westmoreland_roads.json"}
 COUNTY_NAME_ALIASES = {"ROME INSIDE": {"BLACK RVER BLVD": "BLACK RIVER BLVD",
                                       "ERIE BLVD BLVD W": "ERIE BLVD WEST",
                                       "NORTH JAMES": "NORTH JAMES ST"},
@@ -56,7 +57,13 @@ COUNTY_NAME_ALIASES = {"ROME INSIDE": {"BLACK RVER BLVD": "BLACK RIVER BLVD",
                                   "NY STATE THRUWAY EXIT 33": "INTERSTATE 90 EXIT 33",
                                   "NY STATE THRUWAY EXIT 33 RAMP": "INTERSTATE 90 EXIT 33 RAMP",
                                   "NYS THRUWAY WB PARKING": "INTERSTATE 90 WB PARKING",
-                                  "NYS THRUWAY EB PARKING": "INTERSTATE 90 EB PARKING"}}
+                                  "NYS THRUWAY EB PARKING": "INTERSTATE 90 EB PARKING"},
+                       "WESTMORELAND": {"NY STATE THRUWAY WB": "INTERSTATE 90 WB",
+                                        "NY STATE THRUWAY EB": "INTERSTATE 90 EB",
+                                        "NYS THRUWAY EXIT 32": "INTERSTATE 90 EXIT 32",
+                                        "NY STATE THRUWAY EXIT 32 RAMP": "INTERSTATE 90 EXIT 32 RAMP",
+                                        "NYS THRUWAY EXIT 32 RAMP": "INTERSTATE 90 EXIT 32 RAMP",
+                                        "THRUWAY SERVICE ENTRANCE": "INTERSTATE 90 SERVICE ENTRANCE"}}
 
 # Local equirectangular projection (meters) — error well under 1% across one county.
 LAT0 = 43.2
@@ -326,7 +333,7 @@ class Geocoder:
         target = COUNTY_NAME_ALIASES.get(city, {}).get(name, name)
         if city in {"ROME INSIDE", "ROME OUTSIDE"} and county_name_key(name) == "ERIEBLVD":
             return None  # A short CAD segment cannot resolve an unqualified east/west report.
-        if city == "VERONA" and name == "NY STATE THRUWAY RAMP":
+        if city in {"VERONA", "WESTMORELAND"} and name == "NY STATE THRUWAY RAMP":
             return None  # The report does not identify an exit or ramp direction.
         matches = self.county_roads.get((city, county_name_key(target)), [])
         if not matches:
@@ -345,6 +352,8 @@ class Geocoder:
         facility = facility or (city == "VERONA" and target in {
             "MARION MANOR", "MARION MNR", "TURNING STONE CASINO RESORT", "VILLAGES AT STONEY CREEK",
             "INTERSTATE 90 EB PARKING", "INTERSTATE 90 WB PARKING"})
+        facility = facility or (city == "WESTMORELAND" and target in {
+            "ONEIDA SERVICE CENTER", "INTERSTATE 90 SERVICE ENTRANCE"})
         facility = facility or name.upper() in {"THE BEECHES", "RCH", "U TURN"}
         return dict(geom=geom, matched=" / ".join(sorted({n for n, _ in matches})),
                     method="county_roads_alias" if target != name else "county_roads",
