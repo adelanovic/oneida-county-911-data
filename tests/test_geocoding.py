@@ -51,6 +51,39 @@ class GeocodingRegressionTests(unittest.TestCase):
         self.assertIsNone(self.gc.county_street("DAWES CT", "UTICA"))
         self.assertIsNone(self.gc.county_street("WEAVER RD", "UTICA"))
 
+    def test_whitesboro_county_matches_preserve_local_street_identity(self):
+        for name in ["ELLIS AVE", "DEXTER ST", "COMMERCIAL DRIVE RAMP"]:
+            hit = self.gc.county_street(name, "WHITESBORO VILLAGE")
+            self.assertIsNotNone(hit, name)
+            self.assertEqual(hit["matched"], name)
+            self.assertEqual(hit["precision"], "street")
+            self.assertLessEqual(hit["geom"].difference(self.gc.poly("WHITESBORO VILLAGE").buffer(self.gc.BUF)).length, .01)
+            self.assertIsNone(self.gc.county_street(name, "WHITESTOWN"))
+            stored = self.locations[(self.locations.street == name) & (self.locations.city == "WHITESBORO VILLAGE")].iloc[0]
+            self.assertEqual(stored.match_method, "county_roads")
+        self.assertNotEqual(self.gc.county_street("DEXTER ST", "WHITESBORO VILLAGE")["matched"],
+                            self.gc.street("DEXTER AVE", "WHITESBORO VILLAGE")["matched"])
+
+    def test_whitesboro_school_is_approximate_facility(self):
+        stored = self.locations[(self.locations.street == "WHITESBORO MIDDLE SCHOOL") &
+                                (self.locations.city == "WHITESBORO VILLAGE")].iloc[0]
+        self.assertEqual(stored.precision, "landmark")
+        self.assertEqual(stored.match_method, "county_roads")
+        self.assertEqual(stored.expected_error_m, "")
+
+    def test_whitesboro_repeated_place_suffix_is_scoped_alias(self):
+        hit = self.gc.street("MAIN ST, WHITESBORO", "WHITESBORO VILLAGE")
+        original = self.gc.street("MAIN ST", "WHITESBORO VILLAGE")
+        self.assertEqual(hit["matched"], "MAIN ST")
+        self.assertEqual(hit["method"], "reviewed_alias")
+        self.assertTrue(hit["geom"].equals(original["geom"]))
+        self.assertIsNone(self.gc.street("MAIN ST, WHITESBORO", "UTICA"))
+
+    def test_incomplete_whitesboro_labels_stay_approximate(self):
+        for name in ["2 1", "12 1"]:
+            stored = self.locations[(self.locations.street == name) & (self.locations.city == "WHITESBORO VILLAGE")].iloc[0]
+            self.assertEqual(stored.precision, "municipality")
+
     def test_kennedy_complex_estimates_do_not_claim_incident_accuracy(self):
         points = set()
         for suffix in ["HI RISE", "E", "W", "ENTRANCE"]:

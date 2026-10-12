@@ -1,0 +1,159 @@
+{
+  "city": "WHITESBORO VILLAGE",
+  "source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0",
+  "query_url": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+%3D+%27WHITESBORO+VILLAGE%27+OR+UPPER%28CITY_RIGHT%29+%3D+%27WHITESBORO+VILLAGE%27%29+AND+UPPER%28FULL_STNAM%29+IN+%28%27COMMERCIAL+DRIVE+RAMP%27%2C%27DEXTER+ST%27%2C%27ELLIS+AVE%27%2C%27WHITESBORO+MIDDLE+SCHOOL%27%29&outFields=OBJECTID%2CFULL_STNAM%2CCITY_LEFT%2CCITY_RIGHT%2CDATEUPDATE%2CADD_SOURCE&returnGeometry=true&outSR=4326&orderByFields=OBJECTID",
+  "retrieved_utc": "2026-10-12T05:07:06+00:00",
+  "requested_names": [
+    "12 1",
+    "2 1",
+    "COMMERCIAL DRIVE RAMP",
+    "DEXTER ST",
+    "ELLIS AVE",
+    "MAIN ST, WHITESBORO",
+    "WHITESBORO MIDDLE SCHOOL"
+  ],
+  "street_names": [
+    "COMMERCIAL DRIVE RAMP",
+    "DEXTER ST",
+    "ELLIS AVE",
+    "WHITESBORO MIDDLE SCHOOL"
+  ],
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 3355,
+        "FULL_STNAM": "DEXTER ST",
+        "CITY_LEFT": "WHITESBORO VILLAGE",
+        "CITY_RIGHT": "WHITESBORO VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.30169579509895,
+              43.12425446743153
+            ],
+            [
+              -75.30124509504043,
+              43.124516696654744
+            ],
+            [
+              -75.30020679054836,
+              43.12522753375365
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3440,
+        "FULL_STNAM": "WHITESBORO MIDDLE SCHOOL",
+        "CITY_LEFT": "WHITESBORO VILLAGE",
+        "CITY_RIGHT": "WHITESBORO VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.29045110273297,
+              43.11649343339003
+            ],
+            [
+              -75.29112574717878,
+              43.11603007009485
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3474,
+        "FULL_STNAM": "COMMERCIAL DRIVE RAMP",
+        "CITY_LEFT": "WHITESBORO VILLAGE",
+        "CITY_RIGHT": "WHITESBORO VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.29008895371251,
+              43.116317361643006
+            ],
+            [
+              -75.28948279797949,
+              43.116011255093
+            ],
+            [
+              -75.28934714784357,
+              43.11591628670872
+            ],
+            [
+              -75.28927407182462,
+              43.11585104635805
+            ],
+            [
+              -75.28922794107477,
+              43.1157806509867
+            ],
+            [
+              -75.289195346706,
+              43.11570829163525
+            ],
+            [
+              -75.28918232861128,
+              43.115636791396284
+            ],
+            [
+              -75.2891845676017,
+              43.11556619180891
+            ],
+            [
+              -75.28922329245027,
+              43.11547687426601
+            ],
+            [
+              -75.28954780184878,
+              43.114931880117034
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 6577,
+        "FULL_STNAM": "ELLIS AVE",
+        "CITY_LEFT": "WHITESBORO VILLAGE",
+        "CITY_RIGHT": "WHITESBORO VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.28670421774942,
+              43.11876680084064
+            ],
+            [
+              -75.28538845915718,
+              43.11984513686136
+            ],
+            [
+              -75.28382590454791,
+              43.12111892328679
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -3,8 +3,8 @@
 The reports name a street (no house number) and a city/town/village. Each pair is resolved to the stretch of
 that street inside the municipality, then reduced to one point:
 
-Reviewed Utica gaps first try exact names in the saved county CAD road subset, preserving direction and ramp
-qualifiers and clipping to the same municipality tolerance. These use road-length medoids; apartment/access
+Reviewed Utica and Whitesboro gaps first try exact names in the saved county CAD road subset, preserving direction and ramp
+qualifiers and clipping to the same municipality tolerance. These use road-length medoids; facility/access
 features are approximate landmarks without an incident-accuracy estimate. Other locations use the steps below.
 
   1. Name matching: TIGER primary names plus every alternate name (FEATNAMES, e.g. "Genesee St" = "State Rte 12"),
@@ -279,19 +279,19 @@ class Geocoder:
         self._cand = {}
         self._street = {}
         # Pinned public county CAD geometry fills reviewed gaps in the Census file.
-        # Restrict it to Utica and exact names, preserving ramp/direction qualifiers.
-        reference = json.loads((ROOT / "geo/reference/utica_roads.json").read_text(encoding="utf-8"))
+        # Restrict each snapshot to its reviewed municipality and exact names,
+        # preserving ramp/direction qualifiers.
         self.county_roads = defaultdict(list)
-        for feature in reference["features"]:
-            attrs = feature["attributes"]
-            geom = to_m(MultiLineString(feature["geometry"]["paths"]))
-            self.county_roads[county_name_key(attrs["FULL_STNAM"])].append((attrs["FULL_STNAM"], geom))
+        for city, filename in [("UTICA", "utica_roads.json"), ("WHITESBORO VILLAGE", "whitesboro_roads.json")]:
+            reference = json.loads((ROOT / "geo/reference" / filename).read_text(encoding="utf-8"))
+            for feature in reference["features"]:
+                attrs = feature["attributes"]
+                geom = to_m(MultiLineString(feature["geometry"]["paths"]))
+                self.county_roads[city, county_name_key(attrs["FULL_STNAM"])].append((attrs["FULL_STNAM"], geom))
 
     def county_street(self, name, city):
         """An exact county CAD name match, clipped to the reported municipality."""
-        if city != "UTICA":
-            return None
-        matches = self.county_roads.get(county_name_key(name), [])
+        matches = self.county_roads.get((city, county_name_key(name)), [])
         if not matches:
             return None
         area = self.poly(city).buffer(self.BUF)
@@ -300,7 +300,7 @@ class Geocoder:
             return None
         # CAD includes named access drives inside complexes. Their road extent does
         # not establish the building, entrance, or incident's positional accuracy.
-        facility = "APTS" in name.upper().split()
+        facility = bool({"APTS", "SCHOOL"} & set(name.upper().split()))
         return dict(geom=geom, matched=" / ".join(sorted({n for n, _ in matches})),
                     method="county_roads", precision="landmark" if facility else "street", area=area)
 
@@ -317,6 +317,11 @@ class Geocoder:
         return self._cand[city]
 
     def resolve(self, name, city):
+        # This one reported name repeats its municipality after a comma. Keep the
+        # original source text; do not strip arbitrary comma qualifiers globally.
+        if (name, city) == ("MAIN ST, WHITESBORO", "WHITESBORO VILLAGE"):
+            matched, method = self.resolve("MAIN ST", city)
+            return (matched, "reviewed_alias") if matched and method == "exact" else (None, None)
         alt = ORDINAL_RE.sub(lambda m: ORDINALS[m.group(1)], name)
         alt = re.sub(r"^(\d+) ST\b", lambda m: m.group(1) + ordinal_suffix(int(m.group(1))) + " ST", alt)
         muni = self.poly(city)

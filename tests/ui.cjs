@@ -265,6 +265,23 @@ async function main() {
     await navigate(pageUrl);
     console.log('PASS: recovered county road and complex points disclose their source and uncertainty');
 
+    await send('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
+    for(const street of ['WHITESBORO MIDDLE SCHOOL','MAIN ST, WHITESBORO']) {
+      await navigate(pageUrl+'?place='+encodeURIComponent('V:WHITESTOWN|WHITESBORO'));
+      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));q.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))})()`);
+      await delay(1100);
+      const detail=await evaluate(`(()=>{const p=document.querySelector('#chart-help-dialog'),r=p.getBoundingClientRect();return {open:p.open,left:r.left,right:r.right,body:document.querySelector('#chart-help-body').textContent}})()`);
+      assert(detail.open && detail.left>=0 && detail.right<=320,JSON.stringify(detail));
+      assert(detail.body.includes(street),detail.body);
+      assert(!detail.body.includes('Unmatched street'),detail.body);
+      if(street.includes('SCHOOL')) assert(detail.body.includes('Oneida County CAD') && detail.body.includes('not independently verified'),detail.body);
+      else assert(detail.body.includes('matched to MAIN ST'),detail.body);
+      await screenshot(street.includes('SCHOOL') ? 'whitesboro-school-mobile' : 'whitesboro-main-alias-mobile');
+    }
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate(pageUrl);
+    console.log('PASS: Whitesboro school and reviewed Main Street alias retain original labels and usable mobile details');
+
     const overlap = await evaluate(`(()=>{const a=document.querySelector('#cmp-a'),b=document.querySelector('#cmp-b');
       a.value='T:WHITESTOWN';a.dispatchEvent(new Event('change'));b.value='V:WHITESTOWN|WHITESBORO';b.dispatchEvent(new Event('change'));
       const first=[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent);
