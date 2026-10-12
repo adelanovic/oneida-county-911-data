@@ -248,6 +248,49 @@ class GeocodingRegressionTests(unittest.TestCase):
         b = self.gc.county_street("THRUWAY SERVICE ENTRANCE", "WESTMORELAND")
         self.assertFalse(a["geom"].equals(b["geom"]))
 
+    def test_kirkland_county_streets_preserve_local_names_and_directions(self):
+        for name in ["GREEN APPLE WAY", "MAIN QUAD LN", "MUSEUM LN", "STAFFORD CIR N", "STAFFORD CIR NORTH",
+                     "STAFFORD CIR S", "LEWISTON GARDENS RD", "BUNDY CIR", "FARMDALE RD", "FOUNTAIN VW"]:
+            hit = self.gc.county_street(name, "KIRKLAND")
+            self.assertIsNotNone(hit, name)
+            self.assertEqual(hit["precision"], "street")
+            self.assertGreater(hit["geom"].intersection(self.gc.poly("KIRKLAND")).length, 0)
+            self.assertLessEqual(hit["geom"].difference(self.gc.poly("KIRKLAND").buffer(self.gc.BUF)).length, .01)
+            self.assertIsNone(self.gc.county_street(name, "CLINTON VILLAGE"))
+            r = self.locations[(self.locations.street == name) & (self.locations.city == "KIRKLAND")].iloc[0]
+            self.assertEqual(r.precision, "street", name)
+        north = self.gc.county_street("STAFFORD CIR N", "KIRKLAND")
+        south = self.gc.county_street("STAFFORD CIR S", "KIRKLAND")
+        self.assertFalse(north["geom"].equals(south["geom"]))
+        self.assertIsNone(self.gc.county_street("STAFFORD CIR", "KIRKLAND"))
+        self.assertIsNone(self.gc.county_street("STAFFORD RD N", "KIRKLAND"))
+
+    def test_utica_street_keeps_kirkland_and_clinton_reporting_areas(self):
+        roads = []
+        for city in ["KIRKLAND", "CLINTON VILLAGE"]:
+            hit = self.gc.county_street("UTICA ST", city)
+            self.assertEqual(hit["matched"], "UTICA ST")
+            self.assertLessEqual(hit["geom"].difference(self.gc.poly(city).buffer(self.gc.BUF)).length, .01)
+            roads.append(hit["geom"])
+            r = self.locations[(self.locations.street == "UTICA ST") & (self.locations.city == city)].iloc[0]
+            self.assertEqual(r.precision, "street")
+        self.assertFalse(roads[0].equals(roads[1]))
+        for name in ["W PARK AVE", "BASSETT"]:
+            self.assertIsNone(self.gc.county_street(name, "CLINTON VILLAGE"))
+            r = self.locations[(self.locations.street == name) & (self.locations.city == "CLINTON VILLAGE")].iloc[0]
+            self.assertEqual(r.precision, "municipality", name)
+        r = self.locations[(self.locations.street == "SUNSET DR") & (self.locations.city == "CLINTON VILLAGE")].iloc[0]
+        self.assertEqual(r.precision, "street")
+
+    def test_new_carriage_house_keeps_facility_and_new_old_distinction(self):
+        hit = self.gc.county_street("NEW CARRIAGE HOUSE APTS", "KIRKLAND")
+        self.assertEqual(hit["matched"], "NEW CARRIAGE HOUSE APTS")
+        self.assertEqual(hit["precision"], "landmark")
+        self.assertIsNone(self.gc.county_street("OLDE CARRIAGE HOUSE APTS", "KIRKLAND"))
+        r = self.locations[(self.locations.street == "NEW CARRIAGE HOUSE APTS") & (self.locations.city == "KIRKLAND")].iloc[0]
+        self.assertEqual(r.precision, "landmark")
+        self.assertEqual(r.expected_error_m, "")
+
     def test_outside_whole_road_fallback_is_rejected(self):
         for name, city in [("OLD STATE RD", "TRENTON"), ("ROUTE 49", "WHITESTOWN"),
                            ("ROME NEW LONDON RD", "ROME OUTSIDE")]:

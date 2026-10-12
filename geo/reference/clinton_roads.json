@@ -1,0 +1,331 @@
+{
+  "city": "CLINTON VILLAGE",
+  "source": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0",
+  "query_url": "https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0/query?f=json&where=%28UPPER%28CITY_LEFT%29+IN+%28%27CLINTON+VILLAGE%27%29+OR+UPPER%28CITY_RIGHT%29+IN+%28%27CLINTON+VILLAGE%27%29%29+AND+UPPER%28FULL_STNAM%29+IN+%28%27SUNSET+DR%27%2C%27UTICA+ST%27%29&outFields=OBJECTID%2CFULL_STNAM%2CCITY_LEFT%2CCITY_RIGHT%2CDATEUPDATE%2CADD_SOURCE&returnGeometry=true&outSR=4326&orderByFields=OBJECTID",
+  "retrieved_utc": "2026-10-12T05:52:42+00:00",
+  "requested_names": [
+    "BASSETT",
+    "SUNSET DR",
+    "UTICA ST",
+    "W PARK AVE"
+  ],
+  "reviewed_aliases": {},
+  "street_names": [
+    "SUNSET DR",
+    "UTICA ST"
+  ],
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 3163,
+        "FULL_STNAM": "SUNSET DR",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "CLINTON VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.38493929128178,
+              43.04826628221568
+            ],
+            [
+              -75.38496369904587,
+              43.04682157881393
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3166,
+        "FULL_STNAM": "SUNSET DR",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "CLINTON VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.38496369904587,
+              43.04682157881393
+            ],
+            [
+              -75.3849615365337,
+              43.04647575970005
+            ],
+            [
+              -75.38493432343297,
+              43.04640227134123
+            ],
+            [
+              -75.38486051043775,
+              43.04636327757832
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 3203,
+        "FULL_STNAM": "UTICA ST",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "KIRKLAND",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.36740139415306,
+              43.05458763843543
+            ],
+            [
+              -75.36660045407135,
+              43.05534941877488
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7256,
+        "FULL_STNAM": "UTICA ST",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "CLINTON VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37468156403769,
+              43.05184167271892
+            ],
+            [
+              -75.37360921992014,
+              43.0522294694483
+            ],
+            [
+              -75.37250340504825,
+              43.05261276080541
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7302,
+        "FULL_STNAM": "UTICA ST",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "CLINTON VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37801559234022,
+              43.049444293977245
+            ],
+            [
+              -75.37805349491407,
+              43.04988592256636
+            ],
+            [
+              -75.37804081176978,
+              43.04999878720445
+            ],
+            [
+              -75.37801262819876,
+              43.050048500549174
+            ],
+            [
+              -75.37797635664792,
+              43.05009081687778
+            ],
+            [
+              -75.37793045191715,
+              43.050137246973286
+            ],
+            [
+              -75.37786930546946,
+              43.05018525372361
+            ],
+            [
+              -75.37702464032704,
+              43.050848391404735
+            ],
+            [
+              -75.3768380346865,
+              43.05097055277735
+            ],
+            [
+              -75.37655067667244,
+              43.05111418462523
+            ],
+            [
+              -75.37625601529629,
+              43.05124198466063
+            ],
+            [
+              -75.3757527061356,
+              43.05142331681212
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 7303,
+        "FULL_STNAM": "UTICA ST",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "CLINTON VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37250340504825,
+              43.05261276080541
+            ],
+            [
+              -75.3711529782621,
+              43.053103414552794
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8488,
+        "FULL_STNAM": "UTICA ST",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "CLINTON VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.3757527061356,
+              43.05142331681212
+            ],
+            [
+              -75.37478808883189,
+              43.05180006841777
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8489,
+        "FULL_STNAM": "UTICA ST",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "CLINTON VILLAGE",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.37478808883189,
+              43.05180006841777
+            ],
+            [
+              -75.37468156403769,
+              43.05184167271892
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8490,
+        "FULL_STNAM": "UTICA ST",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "KIRKLAND",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.36831559298486,
+              43.05404847501611
+            ],
+            [
+              -75.36788773233845,
+              43.05425025285805
+            ],
+            [
+              -75.36775853727846,
+              43.05432357432696
+            ],
+            [
+              -75.3676527296509,
+              43.054396106422054
+            ],
+            [
+              -75.36740139415306,
+              43.05458763843543
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "attributes": {
+        "OBJECTID": 8491,
+        "FULL_STNAM": "UTICA ST",
+        "CITY_LEFT": "CLINTON VILLAGE",
+        "CITY_RIGHT": "KIRKLAND",
+        "DATEUPDATE": null,
+        "ADD_SOURCE": " "
+      },
+      "geometry": {
+        "paths": [
+          [
+            [
+              -75.3711529782621,
+              43.053103414552794
+            ],
+            [
+              -75.36996512400277,
+              43.0534436495596
+            ],
+            [
+              -75.3687596307883,
+              43.05387385473494
+            ],
+            [
+              -75.36831559298486,
+              43.05404847501611
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

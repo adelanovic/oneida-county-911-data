@@ -353,6 +353,23 @@ async function main() {
     await navigate(pageUrl);
     console.log('PASS: Westmoreland service areas disclose approximate placement on mobile; unspecified ramps remain approximate');
 
+    await send('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
+    for(const [street,city,place] of [['UTICA ST','CLINTON VILLAGE','V:KIRKLAND|CLINTON'],['NEW CARRIAGE HOUSE APTS','KIRKLAND','T:KIRKLAND']]) {
+      await navigate(pageUrl+'?place='+encodeURIComponent(place));
+      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]===${JSON.stringify(city)}});option.click()})()`);
+      await delay(1100);
+      const detail=await evaluate(`(()=>{const p=document.querySelector('#chart-help-dialog'),r=p.getBoundingClientRect();return {open:p.open,left:r.left,right:r.right,body:document.querySelector('#chart-help-body').textContent}})()`);
+      assert(detail.open && detail.left>=0 && detail.right<=320,JSON.stringify(detail));
+      assert(detail.body.includes(street) && detail.body.includes('Kirkland'),detail.body);
+      assert(detail.body.includes('Oneida County CAD') && !detail.body.includes('Unmatched street'),detail.body);
+      if(city==='CLINTON VILLAGE') assert(detail.body.includes('Clinton'),detail.body);
+      else assert(detail.body.includes('not independently verified'),detail.body);
+      await screenshot('kirkland-'+street.toLowerCase().replaceAll(' ','-'));
+    }
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate(pageUrl);
+    console.log('PASS: Clinton village street labels and Kirkland apartments retain reporting areas and source caveats on mobile');
+
     const overlap = await evaluate(`(()=>{const a=document.querySelector('#cmp-a'),b=document.querySelector('#cmp-b');
       a.value='T:WHITESTOWN';a.dispatchEvent(new Event('change'));b.value='V:WHITESTOWN|WHITESBORO';b.dispatchEvent(new Event('change'));
       const first=[...document.querySelectorAll('#cmp-out .cmp-summary tbody tr:first-child td')].slice(1).map(e=>e.textContent);

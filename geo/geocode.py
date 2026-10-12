@@ -3,7 +3,7 @@
 The reports name a street (no house number) and a city/town/village. Each pair is resolved to the stretch of
 that street inside the municipality, then reduced to one point:
 
-Reviewed Utica, Whitesboro, Marcy, Rome, Verona and Westmoreland gaps first try exact names in the saved county CAD road subset, preserving direction and ramp
+Reviewed municipal gaps first try exact names in the saved county CAD road subsets, preserving direction and ramp
 qualifiers and clipping to the same municipality tolerance. These use road-length medoids; facility/access
 features are approximate landmarks without an incident-accuracy estimate. Other locations use the steps below.
 
@@ -46,7 +46,8 @@ TIGER = ROOT / "geo" / "tiger"
 COUNTY_REFERENCES = {"UTICA": "utica_roads.json", "WHITESBORO VILLAGE": "whitesboro_roads.json",
                      "MARCY": "marcy_roads.json", "ROME INSIDE": "rome_inside_roads.json",
                      "ROME OUTSIDE": "rome_outside_roads.json", "VERONA": "verona_roads.json",
-                     "WESTMORELAND": "westmoreland_roads.json"}
+                     "WESTMORELAND": "westmoreland_roads.json", "KIRKLAND": "kirkland_roads.json",
+                     "CLINTON VILLAGE": "clinton_roads.json"}
 COUNTY_NAME_ALIASES = {"ROME INSIDE": {"BLACK RVER BLVD": "BLACK RIVER BLVD",
                                       "ERIE BLVD BLVD W": "ERIE BLVD WEST",
                                       "NORTH JAMES": "NORTH JAMES ST"},
