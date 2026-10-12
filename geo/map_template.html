@@ -551,10 +551,12 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     <div class="chart card" id="medical-section">
       <div class="chart-head">
         <h2>Medical urgency</h2>
-        <p>Medical dispatches by dispatch priority (Medical Priority Dispatch levels), share of each hour's dispatches. Omega and Alpha are the lowest priority; Delta and Echo are the most serious, such as cardiac arrest or not breathing. Click an hour to filter.</p>
+        <p>Medical Priority Dispatch System (MPDS) classifications describe priority at dispatch, not confirmed patient severity or outcomes. Shares use only medical dispatches with a recorded priority code; uncoded dispatches are counted separately. These count agency dispatches, not unique patients or emergencies. The hourly chart keeps the full day visible and applies every filter except hour; the summary applies the selected hour. Hourly comparisons require at least 20 coded dispatches in each of at least two hours. The town ranking ignores the place filter, applies the hour filter and requires 150 coded dispatches per town. Its county benchmark uses only coded dispatches assigned to an Oneida County town or city. Hover, focus or use arrow keys to inspect hourly values; Enter or tap selects an hour without clearing the weekday filter.</p>
       </div>
       <div class="scroll-x"><div class="stack" id="urg-stack"></div><div class="stack-ax" id="urg-ax"></div></div>
       <div class="legend-row" id="urg-legend"></div>
+      <div class="note-sm" id="urg-hour-detail" aria-live="polite"></div>
+      <details><summary>Hourly priority counts and shares</summary><div class="scroll-x"><table class="cmp-table"><thead><tr><th scope="col">Hour</th><th scope="col">Coded</th><th scope="col">Without code</th><th scope="col">Omega</th><th scope="col">Alpha</th><th scope="col">Bravo</th><th scope="col">Charlie</th><th scope="col">Delta</th><th scope="col">Echo</th></tr></thead><tbody id="urg-table"></tbody></table></div></details>
       <div class="insight" id="urg-insight"></div>
       <label class="chart-picker">Filter by hour <select data-hour-picker aria-label="Filter medical dispatches by hour"></select></label>
       <div><h3 class="eyebrow" style="margin:4px 0 6px">Highest share of Delta and Echo dispatches, by town</h3><div class="rank" id="urg-towns"></div></div>
@@ -1411,7 +1413,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     const heatN = new Float64Array(7 * 24), dateN = new Float64Array(D.dates.length);
     const typeHour = new Float64Array(D.types.length * 24);
     const unitN = new Float64Array(D.agencies.length), medHour = Array.from({ length: 24 }, () => new Float64Array(7));
-    const medCity = new Float64Array(D.cities.length * 2), inc = { inv: 0, multi: 0, size: [0, 0, 0, 0], dispatches: 0 };
+    const medCity = new Float64Array(D.cities.length * 3), inc = { inv: 0, multi: 0, size: [0, 0, 0, 0], dispatches: 0 };
     const incidentSeen = new Set();
     let unloc = 0, failed = 0, hidden = 0, approximate = 0;
     for (let i = 0; i < N; i++) {
@@ -1422,11 +1424,11 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
       if (mt && my && mp && time && unitOK(u)) agN[a]++;
       if (mt && my && mp && time && agOK(a)) unitN[u]++;
       if (mt && ma && mp && time) yearN[dateYear[d]]++;
-      if (mt && my && ma && time) { cityN[c]++; if (m) { medCity[c * 2]++; if (m >= 5) medCity[c * 2 + 1]++; } }
+      if (mt && my && ma && time) { cityN[c]++; if (typeCat[t] === "MEDICAL") { medCity[c * 3 + (m ? 0 : 2)]++; if (m >= 5) medCity[c * 3 + 1]++; } }
       if (mt && my && ma && mp && md) heatN[dateDow[d] * 24 + h]++;
       if (mt && ma && mp && mw && mh) dateN[d]++;
       if (my && ma && mp && md && mw) typeHour[t * 24 + h]++;
-      if (m && mt && my && ma && mp && md && mw) medHour[h][m]++;
+      if (typeCat[t] === "MEDICAL" && mt && my && ma && mp && md && mw) medHour[h][m]++;
       if (!(mt && my && ma && mp && time)) continue;
       inc.dispatches++;
       if (!incidentSeen.has(R.i[i])) {
@@ -1752,44 +1754,89 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     $("urg-legend").innerHTML = LEVELS.slice(1).map(([c, n], k) => `<span><i style="background:${LEVEL_COLOR[k + 1]}"></i>${n} (${c})</span>`).join("") + `<span style="color:var(--muted)">lowest → highest priority</span>`;
   }
   const urgCols = [...$("urg-stack").children];
-  $("urg-stack").addEventListener("click", onChartClick);
-  $("urg-stack").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChartClick(e); } });
+  let urgState = null, urgCursor = 0;
+  const codedMedical = col => col.slice(1).reduce((a, b) => a + b, 0);
+  function medicalPercent(n, total) {
+    if (!total) return "\u2014";
+    if (!n) return "0%";
+    if (n === total) return "100%";
+    const value = 100 * n / total;
+    return value < 0.1 ? "<0.1%" : value > 99.9 ? ">99.9%" : value.toFixed(1) + "%";
+  }
+  const medicalHourRange = h => `${hourLabel(h)}\u2013${hourLabel((h + 1) % 24)}`;
+  function medicalHourDescription(h) {
+    const col = urgState.hour[h], n = codedMedical(col);
+    return `${medicalHourRange(h)}: ${fmt(n)} coded medical dispatches; ${fmt(col[0])} without a priority code. ` +
+      (n ? LEVELS.slice(1).map(([, name], k) => `${name}: ${fmt(col[k + 1])} (${medicalPercent(col[k + 1], n)})`).join("; ") : "Priority shares unavailable.");
+  }
+  function inspectMedicalHour(h) {
+    if (!urgState) return;
+    urgCursor = h;
+    urgCols.forEach((el, x) => el.tabIndex = x === h ? 0 : -1);
+    const col = urgState.hour[h], n = codedMedical(col);
+    $("urg-hour-detail").textContent = `${medicalHourRange(h)}: ${fmt(n)} coded; ${fmt(col[0])} without a priority code. Delta: ${medicalPercent(col[5], n)}; Echo: ${medicalPercent(col[6], n)}.`;
+  }
+  function chooseMedicalHour(h) {
+    st.hour = st.hour === h ? -1 : h;
+    update(); inspectMedicalHour(h);
+  }
+  $("urg-stack").addEventListener("click", e => { const el = e.target.closest("[data-k]"); if (el) chooseMedicalHour(+el.dataset.k.split(":")[1]); });
+  $("urg-stack").addEventListener("focusin", e => { const el = e.target.closest("[data-k]"); if (el) inspectMedicalHour(+el.dataset.k.split(":")[1]); });
+  $("urg-stack").addEventListener("keydown", e => {
+    const el = e.target.closest("[data-k]"); if (!el) return;
+    const h = +el.dataset.k.split(":")[1];
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); chooseMedicalHour(h); return; }
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    e.preventDefault(); const next = e.key === "Home" ? 0 : e.key === "End" ? 23 : Math.max(0, Math.min(23, h + (e.key === "ArrowLeft" ? -1 : 1)));
+    inspectMedicalHour(next); urgCols[next].focus();
+  });
   $("urg-stack").addEventListener("pointermove", e => {
     const el = e.target.closest("[data-k]"); if (!el || !urgState) { tipf.hidden = true; return; }
-    const x = +el.dataset.k.split(":")[1], col = urgState.hour[x], n = col.reduce((a, b) => a + b, 0);
-    showTip(e, `<b>${hourLabel(x)}–${hourLabel((x + 1) % 24)}</b><br>` + (n ? LEVELS.slice(1).map(([c, nm], k) => `${nm}: ${(100 * col[k + 1] / n).toFixed(0)}%`).reverse().join(" · ") + `<br><span>${fmt(n)} medical dispatches</span>` : "<span>No medical dispatches</span>"));
+    const h = +el.dataset.k.split(":")[1]; inspectMedicalHour(h);
+    showTip(e, esc(medicalHourDescription(h)));
   });
   $("urg-stack").addEventListener("pointerleave", () => tipf.hidden = true);
-  let urgState = null;
   function renderUrgency(medHour, medCity) {
     urgState = { hour: medHour };
-    let all = 0, de = 0;
-    urgCols.forEach((el, x) => {
-      const col = medHour[x], n = col.reduce((a, b) => a + b, 0); all += n; de += col[5] + col[6];
+    const total = [0, 0, 0];
+    urgCols.forEach((el, h) => {
+      const col = medHour[h], n = codedMedical(col);
+      if (hourOK(h)) { total[0] += n; total[1] += col[5] + col[6]; total[2] += col[0]; }
       el.innerHTML = n ? Array.from(col).slice(1).map((v, k) => `<i style="flex:${v};background:${LEVEL_COLOR[k + 1]}"></i>`).join("") : "";
-      el.classList.toggle("on", st.hour === x);
-      el.setAttribute("aria-label", `${hourLabel(x)}: ${fmt(n)} medical dispatches; filter by hour`);
-      el.setAttribute("aria-pressed", st.hour === x);
+      el.classList.toggle("on", st.hour === h);
+      el.setAttribute("aria-label", medicalHourDescription(h) + " Enter to filter by hour.");
+      el.setAttribute("aria-pressed", st.hour === h);
     });
-    if (!all) {
-      $("urg-insight").innerHTML = `<span>No medical dispatches match these filters${st.cat !== "ALL" && st.cat !== "MEDICAL" ? ` (the category filter is ${LABEL[st.cat]})` : ""}.</span>`;
-      $("urg-towns").innerHTML = ""; return;
-    }
-    const share = x => { const c = medHour[x], n = c.reduce((a, b) => a + b, 0); return n >= 20 ? (c[5] + c[6]) / n : -1; };
-    let hi = 0; for (let x = 1; x < 24; x++) if (share(x) > share(hi)) hi = x;
-    $("urg-insight").innerHTML = `<span><b>${(100 * de / all).toFixed(0)}%</b> of ${fmt(all)} medical dispatches were Delta or Echo.` +
-      (share(hi) > 0 ? ` The most serious share peaks at <b>${hourLabel(hi)}</b> (${(100 * share(hi)).toFixed(0)}%).</span>` : "</span>");
-    // towns: share of Delta/Echo among medical dispatches (other filters except place)
+    inspectMedicalHour(st.hour >= 0 ? st.hour : urgCursor);
+    $("urg-table").innerHTML = medHour.map((col, h) => {
+      const n = codedMedical(col);
+      return `<tr><th scope="row">${medicalHourRange(h)}</th><td>${fmt(n)}</td><td>${fmt(col[0])}</td>` +
+        Array.from(col).slice(1).map(v => `<td>${fmt(v)} (${esc(medicalPercent(v, n))})</td>`).join("") + "</tr>";
+    }).join("");
+    const [coded, de, unknown] = total, all = coded + unknown;
+    const scope = st.hour >= 0 ? `${medicalHourRange(st.hour)}: ` : "";
+    const eligible = medHour.map((col, h) => ({ h, n: codedMedical(col), de: col[5] + col[6] })).filter(v => v.n >= 20);
+    const best = eligible.reduce((a, v) => !a || v.de / v.n > a.de / a.n ? v : a, null);
+    const flat = eligible.length > 1 && eligible.every(v => v.de / v.n === best.de / best.n);
+    const hourly = eligible.length < 2 ? "Not enough hours with at least 20 coded dispatches to compare." : flat
+      ? `The Delta/Echo share is ${medicalPercent(best.de, best.n)} in every eligible hour.`
+      : `Across the full day, the Delta/Echo share is highest during ${medicalHourRange(best.h)} (${medicalPercent(best.de, best.n)}); this compares proportions, not dispatch volume.`;
+    $("urg-insight").innerHTML = !all ? "<span>No medical dispatches match the summary filters.</span>" :
+      `<span>${scope}${fmt(all)} medical dispatches: ${fmt(coded)} with a priority code and ${fmt(unknown)} without one. ` +
+      (coded ? `<b>${esc(medicalPercent(de, coded))}</b> (${fmt(de)}) of coded dispatches were Delta or Echo.` : "Priority shares unavailable.") + `</span><span>${esc(hourly)}</span>`;
+    // Town comparison applies the selected hour but ignores the selected place.
     const rows = Object.keys(placeCities).filter(k => k.startsWith("T:")).map(k => {
-      let n = 0, d = 0; placeCities[k].forEach(i => { n += medCity[i * 2]; d += medCity[i * 2 + 1]; });
-      return [k, n, d, n ? d / n : 0];
+      let n = 0, d = 0, missing = 0;
+      placeCities[k].forEach(i => { n += medCity[i * 3]; d += medCity[i * 3 + 1]; missing += medCity[i * 3 + 2]; });
+      return [k, n, d, n ? d / n : 0, missing];
     }).filter(r => r[1] >= 150).sort((a, b) => b[3] - a[3]).slice(0, 6);
-    let cn = 0, cd = 0; for (let i = 0; i < D.cities.length; i++) { cn += medCity[i * 2]; cd += medCity[i * 2 + 1]; }
+    let cn = 0, cd = 0;
+    for (let i = 0; i < D.cities.length; i++) if (info(D.cities[i])[0] && info(D.cities[i])[2] === "ONEIDA") { cn += medCity[i * 3]; cd += medCity[i * 3 + 1]; }
     const avg = cn ? cd / cn : 0, mx = Math.max(avg, ...rows.map(r => r[3])) || 1;
-    $("urg-towns").innerHTML = rows.length ? rows.map(([k, n, d, r]) => `<div class="rank-row${st.place === k ? " on" : ""}" data-place="${k}" tabindex="0" role="button">
-      <span class="nm">${esc(titleCase(k.slice(2)))}<small>${fmt(n)} medical dispatches</small></span><span class="v">${(100 * r).toFixed(0)}%</span>
-      <span class="bar"><i style="width:${(100 * r / mx).toFixed(1)}%"></i><span class="avgmark" style="left:${(100 * avg / mx).toFixed(1)}%" title="County: ${(100 * avg).toFixed(0)}%"></span></span></div>`).join("") +
-      `<p class="note-sm">Towns with at least 150 medical dispatches. Tick = county share (${(100 * avg).toFixed(0)}%).</p>` : `<p class="so-note">Not enough medical dispatches per town to compare.</p>`;
+    $("urg-towns").innerHTML = rows.length ? rows.map(([k, n, d, r, missing]) => `<div class="rank-row${st.place === k ? " on" : ""}" data-place="${k}" tabindex="0" role="button">
+      <span class="nm">${esc(titleCase(k.slice(2)))}<small>${fmt(n)} coded; ${fmt(missing)} without code</small></span><span class="v">${esc(medicalPercent(d, n))}</span>
+      <span class="bar"><i style="width:${(100 * r / mx).toFixed(1)}%"></i><span class="avgmark" style="left:${(100 * avg / mx).toFixed(1)}%" title="Oneida County: ${esc(medicalPercent(cd, cn))} (${fmt(cd)} of ${fmt(cn)} coded dispatches)"></span></span></div>`).join("") +
+      `<p class="note-sm">At least 150 coded dispatches per town. Place filter ignored. Tick = Oneida County (${esc(medicalPercent(cd, cn))}).</p>` : `<p class="so-note">No towns have at least 150 coded medical dispatches under these filters; place filter ignored.</p>`;
   }
   const pickPlace = k => { setPlace(st.place === k ? "" : k); update(); zoomToPlace(); };
   for (const id of ["urg-towns", "pc-list"]) {
@@ -2315,7 +2362,7 @@ select.active { border-color: var(--dot); box-shadow: inset 0 0 0 1px var(--dot)
     ["trend-section", "Daily dispatches and a 7-day average. Select a date to filter; missing days break the line."],
     ["mix-section", "Dispatches per report day by hour. Select a call type to filter."],
     ["responders-section", "Agency dispatches and estimated incidents for the current filters. Select an agency to filter."],
-    ["medical-section", "Dispatch-priority shares by hour. Select an hour to filter."],
+    ["medical-section", "Priority shares among coded medical dispatches, by hour. Select an hour to filter."],
     ["population-section", "Dispatches per 1,000 residents across the covered dates. The tick marks the county benchmark."],
     ["compare-section", "Compare dispatch activity for two places or years. Inspect the full-day hourly profile below."],
     ["police-section", "Estimated dispatch-type shares, not confirmed officer activity. Select a department to filter."],

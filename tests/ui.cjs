@@ -33,6 +33,7 @@ function datasetCounts() {
   const officerTypes = new Set(['TRAFFIC STOP','PREMISE CK','AREA CK','CITIZEN STOP','TRAFFIC DETAIL','DETAIL','WATER DETAIL',
     'TOBACCO DETAIL','PARKING SUMMONS','WARRANT','SUMMONS','VEHICLE TRAFFIC LAW']);
   const policeMonths={}, policeDates={}, policeCounts=[0,0,0];
+  const medical={hours:Array.from({length:24},()=>Array(7).fill(0)),mondayHours:Array.from({length:24},()=>Array(7).fill(0)),county:[0,0]};
   const adminTypes=/^(DATA|RECORDS CHECK|BACKGROUND INV|PISTOL PERMIT|SORA\b.*|TEST|TRAINING|INTERNAL|DO NOT TAG|POLYGRAPH|PERSONNEL COMP|SUBPOENA SERVED)$/;
   const hourColumn=header.indexOf('hour');
   let total = 0, whitestown = 0, whitesboro = 0;
@@ -55,6 +56,12 @@ function datasetCounts() {
         if (dest.startsWith('T:')) a.towns.set(dest, (a.towns.get(dest) || 0) + 1); }
     }
     const iso = f[reportDate], y = iso.slice(0, 4), m = +iso.slice(5, 7);
+    if(f[categoryColumn]==='MEDICAL') {
+      const level=['','O','A','B','C','D','E'].indexOf(f[priorityColumn]),h=+f[hourColumn];
+      assert(level>=0,'Unexpected medical priority code');medical.hours[h][level]++;
+      if(new Date(iso+'T00:00:00Z').getUTCDay()===1)medical.mondayHours[h][level]++;
+      if(level && f[county]==='ONEIDA' && f[town]) {medical.county[0]++;if(level>=5)medical.county[1]++;}
+    }
     for (const stats of [population.all, population.years[y] ||= { known: 0, unknown: 0, utica: 0 }]) {
       if (f[county] === 'ONEIDA' && f[town]) stats.known++;
       else if (!f[county] || f[county] === 'ONEIDA') stats.unknown++;
@@ -83,7 +90,7 @@ function datasetCounts() {
     const home = [...a.towns].sort((a, b) => b[1] - a[1])[0][0];
     return [name, { known: a.known, unknown: a.unknown, out: a.known - a.dests.get(home) }];
   }));
-  return { total, whitestown, whitesboro, fireUnknown, outside, population, comparison, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates, policeCounts };
+  return { total, whitestown, whitesboro, fireUnknown, outside, population, comparison, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates, policeCounts, medical };
 }
 
 async function main() {
@@ -574,6 +581,50 @@ async function main() {
     console.log('PASS: desktop/mobile layouts, themes and no JavaScript exceptions');
 
     await navigate(pageUrl);
+    const medicalRead=()=>evaluate(`({summary:document.querySelector('#urg-insight').innerText,rows:[...document.querySelectorAll('#urg-table tr')].map(r=>[...r.children].slice(1).map(c=>c.textContent)),benchmark:document.querySelector('#urg-towns .avgmark')?.title})`);
+    const medical=await medicalRead(), codedMedical=c=>c.slice(1).reduce((a,b)=>a+b,0);
+    assert(await evaluate(`document.querySelector('#urg-hour-detail').getBoundingClientRect().height>0`),'Hourly medical details must remain visible outside the help popup');
+    assert((await evaluate(`document.querySelector('#urg-table tr th').textContent`)).includes('00:00\u201301:00'));
+    assert.equal(medical.rows.length,24);
+    expected.medical.hours.forEach((c,h)=>{
+      assert.equal(medical.rows[h][0],fmt(codedMedical(c)));
+      assert.equal(medical.rows[h][1],fmt(c[0]));
+      c.slice(1).forEach((n,k)=>assert(medical.rows[h][k+2].startsWith(fmt(n)+' (')));
+    });
+    const coded=expected.medical.hours.reduce((n,c)=>n+codedMedical(c),0),missing=expected.medical.hours.reduce((n,c)=>n+c[0],0);
+    assert(medical.summary.includes(fmt(coded)+' with a priority code and '+fmt(missing)+' without one'));
+    const [countyCoded,countyDE]=expected.medical.county;
+    assert(medical.benchmark.includes((100*countyDE/countyCoded).toFixed(1)+'%') && medical.benchmark.includes(fmt(countyDE)+' of '+fmt(countyCoded)));
+    await evaluate(`document.querySelector('#urg-table').closest('details').open=true;document.querySelector('#urg-stack [data-k="hour:7"]').click()`);
+    const selectedMedical=await medicalRead(),h7=expected.medical.hours[7];
+    assert(selectedMedical.summary.includes(fmt(codedMedical(h7))+' with a priority code and '+fmt(h7[0])+' without one'));
+    assert.deepEqual(selectedMedical.rows,medical.rows,'Full-day table must remain visible under the hour filter');
+    assert(await evaluate(`document.querySelector('#urg-table').closest('details').open`));
+    await navigate(pageUrl+'?day=mon');
+    const medKeyboard=await evaluate(`(()=>{const el=document.querySelector('#urg-stack [data-k="hour:6"]');el.focus();el.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));const moved=document.activeElement.dataset.k,detail=document.querySelector('#urg-hour-detail').innerText;document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));return {moved,detail,url:location.href}})()`);
+    assert.equal(medKeyboard.moved,'hour:7');assert(medKeyboard.detail.includes('Delta:')&&medKeyboard.detail.includes('without a priority code'));
+    assert.equal(new URL(medKeyboard.url).searchParams.get('day'),'mon');
+    assert.equal(new URL(medKeyboard.url).searchParams.get('hour'),'7');
+    const monday=expected.medical.mondayHours[7];
+    assert((await medicalRead()).summary.includes(fmt(codedMedical(monday))+' with a priority code and '+fmt(monday[0])+' without one'));
+    await evaluate(`(()=>{const e=document.querySelector('#medical-section [data-hour-picker]');e.value='8';e.dispatchEvent(new Event('change'))})()`);
+    assert.equal(new URL(await evaluate('location.href')).searchParams.get('day'),'mon');
+    await navigate(pageUrl+'?type=EMS%20CALL');
+    const uncodedMedical=await medicalRead();
+    assert(uncodedMedical.summary.includes('0 with a priority code')&&uncodedMedical.summary.includes('Priority shares unavailable.'));
+    assert(!uncodedMedical.summary.includes('No medical dispatches'));
+    assert(uncodedMedical.rows[0][2].includes('\u2014'),'Unavailable shares must use a dash');
+    for(const [width,mobile] of [[1440,false],[320,true]]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile});
+      await navigate(pageUrl);
+      await evaluate(`document.querySelector('#medical-section').scrollIntoView({behavior:'instant',block:'start'})`);
+      const bounds=await evaluate(`({width:innerWidth,scroll:document.body.scrollWidth,detail:document.querySelector('#urg-hour-detail').getBoundingClientRect().right})`);
+      assert(bounds.scroll<=bounds.width&&bounds.detail<=bounds.width,JSON.stringify(bounds));
+      await screenshot('medical-'+width);
+    }
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate(pageUrl);
+    console.log('PASS: medical priority counts, missing codes and county benchmark match CSV; hour/weekday filters, keyboard details, table and mobile layout work');
     const policeSummary=await evaluate(`document.querySelector('#pol-insight').innerText`);
     const policeTotal=expected.policeCounts.reduce((a,b)=>a+b,0);
     assert(policeSummary.includes('Of '+fmt(policeTotal)+' police dispatches,'));
