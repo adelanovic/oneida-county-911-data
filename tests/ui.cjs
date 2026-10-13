@@ -26,6 +26,10 @@ function datasetCounts() {
   const reportDate = header.indexOf('report_date');
   const categoryColumn=header.indexOf('category'),priorityColumn=header.indexOf('mpds_level'),datetimeColumn=header.indexOf('call_datetime');
   const comparison={towns:{},dates:{}};
+  const surgeEvents=['2024-02-28','2024-02-29','2024-07-16','2025-06-22'];
+  const surgeStats={all:{},utica:{},fire:{}};
+  const surgeDateMs=iso=>Date.parse(iso+'T00:00:00Z');
+  const nearSurge=iso=>surgeEvents.some(e=>iso.slice(0,4)===e.slice(0,4) && new Date(surgeDateMs(iso)).getUTCDay()===new Date(surgeDateMs(e)).getUTCDay() && Math.abs(surgeDateMs(iso)-surgeDateMs(e))<=42*86400000);
   const addComparison=(a,f)=>{a.n++;if(f[categoryColumn]==='MEDICAL'){a.medical++;if(f[priorityColumn])a.priority++;if(['D','E'].includes(f[priorityColumn]))a.de++;}a.hours[+f[hourColumn]]++;};
   const comparisonSide=()=>({n:0,medical:0,priority:0,de:0,hours:Array(24).fill(0)});
   const seasonal = {}, seasonalMonday = {};
@@ -46,6 +50,18 @@ function datasetCounts() {
     if(['LOCAL_POLICE','SHERIFF','STATE_POLICE','CAMPUS_POLICE'].includes(f[kind]))
       policeCounts[officerTypes.has(f[response]) ? 0 : adminTypes.test(f[response]) ? 1 : 2]++;
     const callDate=f[datetimeColumn].slice(0,10);
+    if(nearSurge(callDate)) {
+      const q=Math.floor((+f[datetimeColumn].slice(11,13)*60 + +f[datetimeColumn].slice(14,16))/15);
+      const service=['LOCAL_POLICE','SHERIFF','STATE_POLICE','CAMPUS_POLICE'].includes(f[kind]) ? 0 : f[kind]==='FIRE' ? 1 : f[kind]==='EMS' ? 2 : 3;
+      for(const scope of ['all',...(f[town]==='UTICA' && f[county]==='ONEIDA'?['utica']:[]),...(f[kind]==='FIRE'?['fire']:[])]) {
+        const a=surgeStats[scope][callDate] ||= {n:0,bins:Array.from({length:96},()=>Array(4).fill(0)),types:{},agencies:{},destinations:{}};
+        a.n++;a.bins[q][service]++;
+        (a.types[f[response]] ||= Array(96).fill(0))[q]++;
+        (a.agencies[f[agency]] ||= Array(96).fill(0))[q]++;
+        const dest=f[town] ? f[town]+(f[county] && f[county]!=='ONEIDA'?' ('+f[county]+' COUNTY)':'') : f[county] && f[county]!=='ONEIDA'? f[county]+' COUNTY (TOWN NOT ASSIGNED)' : 'TOWN/CITY NOT ASSIGNED';
+        (a.destinations[dest] ||= Array(96).fill(0))[q]++;
+      }
+    }
     const discoveryYear=callDate.slice(0,4),discoveryMonth=+callDate.slice(5,7),discoveryDow=(new Date(callDate+'T00:00:00Z').getUTCDay()+6)%7;
     for(const scope of ['all',...(f[town]==='UTICA'?['utica']:[]),...(discoveryDow===0?['monday']:[])]) {
       const byType=(discoveries[scope] ||= {})[discoveryYear] ||= {};
@@ -104,7 +120,7 @@ function datasetCounts() {
     const home = [...a.towns].sort((a, b) => b[1] - a[1])[0][0];
     return [name, { known: a.known, unknown: a.unknown, out: a.known - a.dests.get(home) }];
   }));
-  return { total, whitestown, whitesboro, fireUnknown, outside, population, comparison, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates, policeCounts, medical, discoveries, localProfiles };
+  return { total, surgeStats, whitestown, whitesboro, fireUnknown, outside, population, comparison, seasonal:plain(seasonal), seasonalMonday:plain(seasonalMonday), policeMonths, policeDates, policeCounts, medical, discoveries, localProfiles };
 }
 
 async function main() {
@@ -117,7 +133,7 @@ async function main() {
   let spawnError;
   browser.on('error', error => { spawnError = error; });
   let ws, send;
-  const watchdog = setTimeout(() => { console.error('Browser regression check timed out'); browser.kill(); process.exitCode = 1; ws?.close(); }, 240000);
+  const watchdog = setTimeout(() => { console.error('Browser regression check timed out'); browser.kill(); process.exitCode = 1; ws?.close(); }, 300000);
   try {
     let target;
     for (let attempt = 0; attempt < 80; attempt++) {
@@ -176,6 +192,113 @@ async function main() {
     }
     await screenshot('desktop');
     console.log('PASS: initial page works with external fonts and CDN blocked');
+
+    const documentedSurges=['2024-02-28','2024-02-29','2024-07-16','2025-06-22'];
+    const referenceDates=iso=>Object.keys(expected.comparison.dates).filter(d=>d!==iso && !documentedSurges.includes(d) && d.slice(0,4)===iso.slice(0,4) && new Date(d+'T00:00:00Z').getUTCDay()===new Date(iso+'T00:00:00Z').getUTCDay() && Math.abs(Date.parse(d)-Date.parse(iso))<=42*86400000).sort();
+    async function checkSurge(date,scope='all') {
+      const refs=referenceDates(date),stats=expected.surgeStats[scope],a=stats[date],bins=a?.bins||Array.from({length:96},()=>Array(4).fill(0));
+      assert.deepEqual(await evaluate(`document.querySelector('#surge-reference-dates').dataset.dates.split(',').filter(Boolean).sort()`),refs);
+      assert.equal(await evaluate(`+document.querySelector('#surge-kpis').dataset.total`),a?.n||0);
+      assert.equal(await evaluate(`+document.querySelector('#surge-kpis').dataset.referenceMean`),refs.reduce((n,d)=>n+(stats[d]?.n||0),0)/refs.length);
+      const timeline=await evaluate(`[...document.querySelectorAll('[data-surge-table-bin]')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.textContent.replaceAll(',','')))`);
+      assert.equal(timeline.length,96);
+      timeline.forEach((row,q)=>{
+        assert.deepEqual(row.slice(0,4).map(Number),bins[q],date+' quarter '+q);
+        assert.equal(+row[4],bins[q].reduce((s,n)=>s+n,0));
+        const mean=refs.reduce((s,d)=>s+(stats[d]?.bins[q].reduce((n,v)=>n+v,0)||0),0)/refs.length;
+        assert(Math.abs(+row[5]-mean)<=.051,date+' reference quarter '+q);
+      });
+      return {a,refs,stats,bins};
+    }
+    for(const date of documentedSurges) {
+      await navigate(pageUrl+'?surge='+date+'&surgeAt=64');await checkSurge(date);
+    }
+    for(const [scope,query] of [['utica','&place=T:UTICA'],['fire','&responder=FIRE']]) {
+      await navigate(pageUrl+'?surge=2024-07-16&surgeAt=64'+query);await checkSurge('2024-07-16',scope);
+    }
+    await navigate(pageUrl+'?surge=2024-07-16&surgeAt=64&year=2026&month=3&day=mon&hour=7');
+    const surgeExpected=await checkSurge('2024-07-16');
+    assert((await evaluate(`document.querySelector('#surge-section').textContent`)).includes("replaces the page's time filters"));
+    for(const mode of ['interval','cumulative','day']) {
+      await evaluate(`(()=>{const s=document.querySelector('#surge-scope');s.value='${mode}';s.dispatchEvent(new Event('change'))})()`);
+      const start=mode==='interval'?64:0,end=mode==='day'?95:64;
+      const n=surgeExpected.bins.slice(start,end+1).flat().reduce((a,b)=>a+b,0);
+      assert.equal(await evaluate(`+document.querySelector('#surge-window-summary').dataset.total`),n);
+      const mean=surgeExpected.refs.reduce((s,d)=>s+(surgeExpected.stats[d]?.bins.slice(start,end+1).flat().reduce((a,b)=>a+b,0)||0),0)/surgeExpected.refs.length;
+      assert.equal(await evaluate(`+document.querySelector('#surge-window-summary').dataset.referenceMean`),mean);
+      const types=await evaluate(`[...document.querySelectorAll('[data-surge-type]')].map(tr=>({type:tr.dataset.surgeType,n:+tr.dataset.count,mean:+tr.dataset.reference}))`);
+      for(const t of types) {
+        assert.equal(t.n,surgeExpected.a.types[t.type].slice(start,end+1).reduce((a,b)=>a+b,0));
+        assert.equal(t.mean,surgeExpected.refs.reduce((s,d)=>s+(surgeExpected.stats[d]?.types[t.type]?.slice(start,end+1).reduce((a,b)=>a+b,0)||0),0)/surgeExpected.refs.length);
+      }
+      for(const panel of ['agencies','towns']) {
+        const button='#surge-all-'+panel;
+        await evaluate(`if(!document.querySelector('${button}').hidden && document.querySelector('${button}').getAttribute('aria-expanded')==='false')document.querySelector('${button}').click()`);
+        const actual=await evaluate(`[...document.querySelectorAll('#surge-${panel} tbody tr')].map(tr=>[tr.cells[0].textContent.toUpperCase(),+tr.cells[1].textContent.replaceAll(',','')])`);
+        const source=panel==='agencies'?surgeExpected.a.agencies:surgeExpected.a.destinations;
+        const target=Object.fromEntries(Object.entries(source).map(([name,values])=>[name.toUpperCase(),values.slice(start,end+1).reduce((a,b)=>a+b,0)]).filter(([,n])=>n));
+        assert.deepEqual(Object.fromEntries(actual),target,panel+' '+mode);
+      }
+    }
+    const surgeCsv=await evaluate(`(async()=>{let blob;const create=URL.createObjectURL,click=HTMLAnchorElement.prototype.click;try{URL.createObjectURL=b=>{blob=b;return 'blob:review'};HTMLAnchorElement.prototype.click=function(){};document.querySelector('#surge-download').click();return await blob.text()}finally{URL.createObjectURL=create;HTMLAnchorElement.prototype.click=click}})()`);
+    assert.equal(surgeCsv.trim().split(/\r?\n/).length,97);
+    assert.equal(surgeCsv.trim().split(/\r?\n/).slice(1).reduce((sum,line)=>sum+Number(line.split(',')[7]),0),surgeExpected.a.n);
+    assert(surgeCsv.includes('reference_dates,place_filter,category_filter') && surgeCsv.includes(surgeExpected.refs.join(';')));
+    const review2026=Object.keys(expected.comparison.dates).find(d=>d.startsWith('2026'));
+    await navigate(pageUrl+'?surge='+review2026+'&year=2024');
+    assert.equal(await evaluate(`+document.querySelector('#surge-kpis').dataset.total`),expected.comparison.dates[review2026].n);
+    assert(await evaluate(`!document.querySelector('#surge-report-warning').hidden && document.querySelector('#surge-report-warning').getBoundingClientRect().height>0`));
+    await navigate(pageUrl+'?surge=2025-06-22&year=2026&month=3&day=mon&hour=7&place=T:ROME');
+    await evaluate(`document.querySelector('#surge-explore').click()`);
+    assert.equal(await evaluate(`new URL(location.href).searchParams.get('date')`),'2025-06-22');
+    assert.equal(await evaluate(`new URL(location.href).searchParams.get('place')`),'T:ROME');
+    assert(!await evaluate(`['hour','month','day'].some(k=>new URL(location.href).searchParams.has(k))`));
+    // All current dates have enough references: simulate extra annotated exclusions to test 2 and 0 eligible dates.
+    const excludedReferences=[...referenceDates('2024-07-16').slice(2),...referenceDates('2024-02-28')];
+    const sparseInjection=await send('Page.addScriptToEvaluateOnNewDocument',{source:`const parse=JSON.parse;JSON.parse=function(...args){const d=parse.apply(this,args);if(d&&d.records&&d.weatherEvents)d.weatherEvents.push({id:'test-exclusions',label:'Test reference exclusions',dates:${JSON.stringify(excludedReferences)}});return d}`});
+    for(const [date,count] of [['2024-07-16',2],['2024-02-28',0]]) {
+      await navigate(pageUrl+'?surge='+date);
+      assert.equal(await evaluate(`document.querySelector('#surge-reference-dates').dataset.dates.split(',').filter(Boolean).length`),count);
+      assert.equal(await evaluate(`document.querySelector('#surge-kpis').dataset.referenceMean`),'');
+      assert((await evaluate(`document.querySelector('#surge-reference').textContent`)).includes('unavailable'));
+      assert((await evaluate(`document.querySelector('[data-surge-table-bin] td:last-child').textContent`)).includes('Unavailable'));
+    }
+    await send('Page.removeScriptToEvaluateOnNewDocument',{identifier:sparseInjection.identifier});
+    const absentSurgeType=await evaluate(`JSON.parse(document.querySelector('#data').textContent).types.map(t=>t[0]).find(t=>!${JSON.stringify(Object.keys(surgeExpected.a.types))}.includes(t))`);
+    await navigate(pageUrl+'?surge=2024-07-16&type='+encodeURIComponent(absentSurgeType));
+    assert.equal(await evaluate(`+document.querySelector('#surge-kpis').dataset.total`),0);
+    assert(await evaluate(`document.querySelector('#surge-replay').disabled`));
+    assert.equal(await evaluate(`+document.querySelector('#surge-window-summary').dataset.total`),0);
+    await navigate(pageUrl+'?surge=2024-07-16&surgeAt=64&surgeScope=cumulative');
+    await evaluate(`document.querySelector('#surge-seek').focus()`);
+    await send('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowRight',code:'ArrowRight',windowsVirtualKeyCode:39});
+    await send('Input.dispatchKeyEvent',{type:'keyUp',key:'ArrowRight',code:'ArrowRight',windowsVirtualKeyCode:39});
+    assert.equal(await evaluate(`new URL(location.href).searchParams.get('surgeAt')`),'65');
+    const surgeLink=await evaluate('location.href');await navigate(surgeLink);
+    assert.equal(await evaluate(`document.querySelector('#surge-seek').value`),'65');
+    assert.equal(await evaluate(`document.querySelector('#surge-scope').value`),'cumulative');
+    await evaluate(`document.querySelector('#surge-replay').click()`);
+    assert.equal(await evaluate(`+document.querySelector('#replay-seek').value`),65*900);
+    assert.equal(await evaluate(`document.querySelector('#replay-play').getAttribute('aria-pressed')`),'false');
+    assert.equal(await evaluate(`new URL(location.href).searchParams.get('date')`),'2024-07-16');
+    assert(!await evaluate(`['hour','month','day'].some(k=>new URL(location.href).searchParams.has(k))`));
+    for(const [width,height,mobile] of [[1440,900,false],[390,844,true],[320,844,true]]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile});
+      for(const theme of ['light','dark']) {
+        await evaluate(`document.querySelector('#theme [data-theme="${theme}"]').click();document.querySelector('#surge-section').scrollIntoView({behavior:'instant',block:'start'})`);
+        assert(await evaluate(`(()=>{const e=document.querySelector('#surge-section'),r=e.getBoundingClientRect(),c=document.querySelector('#surge-chart');return document.documentElement.scrollWidth<=innerWidth && e.scrollWidth<=e.clientWidth && c.scrollWidth<=c.clientWidth && r.left>=0 && r.right<=innerWidth && document.querySelector('#surge-seek').getBoundingClientRect().height>=44})()`),'Surge review and full-day timeline fit '+width+' '+theme);
+        await screenshot('surge-'+width+'-'+theme);
+        await evaluate(`document.querySelector('#surge-chart').scrollIntoView({behavior:'instant',block:'center'})`);
+        await screenshot('surge-chart-'+width+'-'+theme);
+        await evaluate(`document.querySelector('.surge-columns').scrollIntoView({behavior:'instant',block:'start'})`);
+        await screenshot('surge-details-'+width+'-'+theme);
+      }
+    }
+    await evaluate(`document.querySelector('#reset').click()`);
+    assert(!await evaluate(`new URL(location.href).searchParams.has('surge')`));
+    assert.deepEqual(errors,[]);
+    console.log('PASS: surge review quarter-hour counts, reference dates/means, filters, detail windows, types, agencies, towns, CSV, sparse coverage, keyboard sharing and paused replay match independent CSV evidence');
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});await navigate(pageUrl);
 
     if (await evaluate(`!!document.querySelector('#stories-section')`)) {
     async function checkDiscoveries(scope='all',requireSome=true) {
