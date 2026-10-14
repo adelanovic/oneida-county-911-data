@@ -218,7 +218,7 @@ async function main() {
     }
     await navigate(pageUrl+'?surge=2024-07-16&surgeAt=64&year=2026&month=3&day=mon&hour=7');
     const surgeExpected=await checkSurge('2024-07-16');
-    assert((await evaluate(`document.querySelector('#surge-section').textContent`)).includes("replaces the page's time filters"));
+    assert((await evaluate(`document.querySelector('#surge-section').textContent`)).includes("time filters are separate"));
     for(const mode of ['interval','cumulative','day']) {
       await evaluate(`(()=>{const s=document.querySelector('#surge-scope');s.value='${mode}';s.dispatchEvent(new Event('change'))})()`);
       const start=mode==='interval'?64:0,end=mode==='day'?95:64;
