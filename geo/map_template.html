@@ -552,7 +552,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
   <section class="patterns" id="patterns" aria-label="Response connections, time patterns and coverage">
     <!-- Find the story temporarily disabled; retain markup for later.
     <div class="chart card wide" id="stories-section">
-      <div class="chart-head"><h2>Find the story</h2><p>These comparisons describe the mix of agency dispatches, not resident risk, causes or statistical significance. Each place is compared with the rest of Oneida County, excluding that exact reporting area so the groups do not overlap. Unassigned locations and neighboring counties are excluded from both denominators. Time and responder filters apply equally to both sides; place chooses the area to investigate. Call-type and category filters restrict discoveries, but the share denominators always include all dispatch types. The year with the most covered days is analyzed separately; at least 80% calendar coverage and 28 covered dates are required. A place needs 500 dispatches and the comparison 1,000; a highlighted type needs 50 dispatches on each side, ten active dates in the place, a share ratio of 1.5 and a gap of one percentage point. Findings rank by percentage-point difference, with at most one per place and one per call type. Routine types are hidden by default: Admin &amp; proactive, traffic/citizen stops and details, summonses and vehicle-law work, fireworks, nurse navigation, nonspecific assist/EMS/traffic and call-issue labels, and labels indicating transfers or transport. This is an editorial selection, not a determination of how a call originated; transfers are not assumed to mean court transport. The checkbox includes them as candidates; denominators do not change. Reporting practices, agency coverage, facilities, visitor traffic and repeated dispatches can affect the shares. The 2026 reports omit traffic stops and premise checks; these two types are withheld for 2026 even with routine types enabled. Map points are estimates; all matching assigned-place dispatches remain in evidence counts, including those without coordinates.</p></div>
+      <div class="chart-head"><h2>Find the story</h2><p>These comparisons describe the mix of agency dispatches, not resident risk, causes or statistical significance. Each place is compared with the rest of Oneida County, excluding that exact reporting area so the groups do not overlap. Unassigned locations and neighboring counties are excluded from both denominators. Time and responder filters apply equally to both sides; place chooses the area to investigate. Call-type and category filters restrict discoveries, but the share denominators always include all dispatch types. The year with the most covered days is analyzed separately; at least 80% calendar coverage and 28 covered dates are required. A place needs 500 dispatches and the comparison 1,000; a highlighted type needs 50 dispatches on each side, ten active dates in the place, a share ratio of 1.5 and a gap of one percentage point. Findings rank by percentage-point difference, with at most one per place and one per call type. Routine types are hidden by default: Admin &amp; proactive, traffic/citizen stops and details, summonses and vehicle-law work, fireworks, nurse navigation, nonspecific assist/EMS/traffic and call-issue labels, and labels indicating transfers or transport. This is an editorial selection, not a determination of how a call originated; transfers are not assumed to mean court transport. The checkbox includes them as candidates; denominators do not change. Reporting practices, agency coverage, facilities, visitor traffic and repeated dispatches can affect the shares. The newer reports (from July 15, 2025) omit traffic stops and premise checks; these two types are withheld whenever selected dates include newer reports even with routine types enabled. Map points are estimates; all matching assigned-place dispatches remain in evidence counts, including those without coordinates.</p></div>
       <label><input type="checkbox" id="story-routine"> Include routine and nonspecific types</label>
       <div id="story-scope" class="insight"></div>
       <div class="story-layout"><div class="story-list" id="story-list" aria-label="Discoveries"></div>
@@ -582,7 +582,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
       <div class="chart-head"><h2>Surge review</h2><p>Review recorded dispatch workload in 15-minute intervals, not unit availability, response performance or confirmed weather impacts. References are covered dates on the same weekday, in the same calendar year and within six weeks before or after the review date. The selected date and all annotated weather dates are excluded. At least four reference dates are required for a mean; fewer than eight are flagged as a small reference sample. Matching reference dates with zero selected dispatches remain in the denominator. Missing reports are never treated as zero. References may contain other unusual events and are not a causal estimate or statistical significance test. Place, responder and call-type filters apply equally to both sides. The review uses its own date and full-day timeline, replacing page year, exact date, month, weekday and hour filters. Reported town assignments are used without estimated street coordinates. Matching unmapped dispatches and destinations hidden from the map remain included. Call-type change is observed count minus reference mean, not dispatches proven caused by an event. Counts are agency dispatches; multiple agencies may attend one emergency. No durations or simultaneous busy-unit counts can be inferred. Explore and Replay replace the page's time filters with the review date; Replay starts paused at the selected interval.</p></div>
       <div class="surge-controls"><label>Review date<select id="surge-date" aria-label="Surge review date"></select></label><label>Detail window<select id="surge-scope"><option value="interval">Selected 15 minutes</option><option value="cumulative">Day through selected interval</option><option value="day">Whole day</option></select></label></div>
       <div class="surge-context" id="surge-context"></div>
-      <div class="insight" id="surge-report-warning" hidden>2026: traffic stops and premise checks omitted; minute-level timestamps.</div>
+      <div class="insight" id="surge-report-warning" hidden>From July 15, 2025: traffic stops and premise checks omitted; minute-level timestamps.</div>
       <div class="insight">Uses place, responder and call-type filters; time filters are separate.</div>
       <div class="surge-kpis" id="surge-kpis"></div>
       <div class="insight" id="surge-reference"></div>
@@ -632,12 +632,12 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
     <div class="chart card wide" id="trend-section">
       <div class="chart-head">
         <h2>Daily trend</h2>
-        <p>Dispatches by report date, with a 7-day average and a separate chart for each selected year. Missing days break the line. Place, responder, call type, month, weekday and hour filters apply; the selected date is highlighted. The 2026 system omits traffic stops and premise checks. Tap a date to filter; use arrow keys to explore and Enter to select.</p>
+        <p>Dispatches by report date, with a 7-day average and a separate chart for each selected year. Missing days break the line. Place, responder, call type, month, weekday and hour filters apply; the selected date is highlighted. The newer system (from July 15, 2025) omits traffic stops and premise checks. Tap a date to filter; use arrow keys to explore and Enter to select.</p>
       </div>
       <div class="trend-box" id="trend"></div>
       <div class="legend-line"><span><i class="raw"></i>Each report day</span><span><i></i>7-day average</span><span>○ Unusual spikes</span></div>
       <div class="insight" id="trend-insight"></div>
-      <p class="note-sm" data-report-warning>2026 reports omit traffic stops and premise checks.</p>
+      <p class="note-sm" data-report-warning>Reports from July 15, 2025 omit traffic stops and premise checks.</p>
     </div>
     <!-- Seasons temporarily disabled; retain markup for later.
     <div class="chart card wide" id="seasons-section">
@@ -649,7 +649,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
       <label class="chart-picker">Filter by month <select id="season-month" aria-label="Filter by month"></select></label>
       <div class="insight" id="season-insight"></div>
       <div class="scroll-x" tabindex="0" role="region" aria-label="Monthly rates and report coverage by year"><table class="season-coverage" id="season-coverage"></table></div>
-      <p class="so-note">Each table cell shows dispatches/day and available/possible report days for the selected weekday. Shaded cells have incomplete coverage; missing reports are never counted as zero dispatches. Sparse months may miss storms, holidays or other peaks. Years can differ in coverage and reporting: the 2026 system omits traffic stops and premise checks, so changes are not necessarily changes in demand.</p>
+      <p class="so-note">Each table cell shows dispatches/day and available/possible report days for the selected weekday. Shaded cells have incomplete coverage; missing reports are never counted as zero dispatches. Sparse months may miss storms, holidays or other peaks. The newer system, starting July 15, 2025, omits traffic stops and premise checks, so changes are not necessarily changes in demand.</p>
       <p class="so-note">Call-type charts use only year-months with at least 80% of possible report days, with at least six comparable calendar months and 150 matching dispatches. Each chart has its own scale. These are observed patterns, not proof of a recurring seasonal effect.</p>
       <div class="season-grid" id="season-grid"></div>
     </div>
@@ -718,7 +718,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
       <label id="cmp-period-label" hidden><input type="checkbox" id="cmp-common"> Use only calendar dates with reports in both years</label>
       <p class="note-sm" id="cmp-scope" aria-live="polite"></p>
       <p class="note-sm" id="cmp-status" aria-live="polite"></p>
-      <p class="note-sm" data-chart-help>Medical share counts all dispatches categorized as medical. Delta/Echo shares use only medical dispatches with a priority code; the table separately counts medical dispatches without one. The hourly profile ignores the hour filter to preserve the full day. Hover, tap or use arrow keys to inspect hours; the expanded table lists every hour's counts and rates. The 2026 reports omit traffic stops and premise checks and use partly different call-type names, so differences can reflect reporting changes rather than changes in demand.</p>
+      <p class="note-sm" data-chart-help>Medical share counts all dispatches categorized as medical. Delta/Echo shares use only medical dispatches with a priority code; the table separately counts medical dispatches without one. The hourly profile ignores the hour filter to preserve the full day. Hover, tap or use arrow keys to inspect hours; the expanded table lists every hour's counts and rates. The newer reports (from July 15, 2025) omit traffic stops and premise checks and use partly different call-type names, so differences can reflect reporting changes rather than changes in demand.</p>
       <div id="cmp-out" style="display:grid;gap:14px"></div>
     </div>
     <div class="chart card" id="police-section">
@@ -732,8 +732,8 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
         <div class="scroll-x"><div class="pshare" id="pol-hour"></div><div class="pshare-ax" id="pol-ax"></div></div></div>
       <div class="insight" id="pol-insight"></div>
       <label class="chart-picker">Filter by hour <select data-hour-picker aria-label="Filter police summary by hour"></select></label>
-      <p class="note-sm" data-report-warning>2026 reports omit traffic stops and premise checks.</p>
-      <p class="note-sm">The 2026 reports omit traffic stops and premise checks, reducing the observed officer-initiated share. Category and call-type filters are ignored here; selecting a department clears them. The department list ignores the individual-agency filter and shows up to 12 departments with at least 20 matching dispatches, plus the selected department. Hourly comparisons ignore the hour filter and require 20 dispatches per hour; the summary applies the hour filter.</p>
+      <p class="note-sm" data-report-warning>Reports from July 15, 2025 omit traffic stops and premise checks.</p>
+      <p class="note-sm">The newer reports (from July 15, 2025) omit traffic stops and premise checks, reducing the observed officer-initiated share. Category and call-type filters are ignored here; selecting a department clears them. The department list ignores the individual-agency filter and shows up to 12 departments with at least 20 matching dispatches, plus the selected department. Hourly comparisons ignore the hour filter and require 20 dispatches per hour; the summary applies the hour filter.</p>
     </div>
     <div class="chart card" id="outside-section">
       <div class="chart-head">
@@ -753,7 +753,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
         <div><h3>Source</h3><p>Public daily 911 media reports (PDF) published by Oneida County, New York, at <a href="https://oneidacountyny.gov/" target="_blank" rel="noopener">oneidacountyny.gov</a>. Each row in a report is one agency dispatched to a call: time, agency, call type, street and town.</p></div>
         <div><h3>Coverage has gaps</h3><p id="about-coverage"></p></div>
         <div><h3>Dispatches, not emergencies</h3><p>When fire, an ambulance and police all go to one emergency, the report lists three rows, and this page counts three dispatches. Counts here measure workload by agency, not the number of distinct incidents.</p></div>
-        <div><h3>Two report formats</h3><p>Reports from 2024–2025 come from one dispatch system and give times to the second. The 2026 reports come from a newer system that gives times to the minute, groups rows by agency, uses some different call-type names (harmonized here), and leaves out proactive police activity such as traffic stops and premise checks, which were about a fifth of earlier dispatches. That is most of why 2026 shows fewer dispatches per day. Compare 2026 with earlier years with care.</p></div>
+        <div><h3>Two report formats</h3><p>The older dispatch system covers January 2024 through the morning of July 15, 2025 and gives times to the second. Reports from the newer system start that day, give times to the minute, group rows by agency, and use some different call-type names (harmonized here). They omit proactive police activity such as traffic stops and premise checks. The 2025 series crosses this reporting change: complete calendar coverage does not make the two periods directly comparable. Monthly PDFs are assigned to each dispatch's recorded date.</p></div>
         <div><h3>Call types are what dispatch heard</h3><p>A call type is the dispatcher's category when the call came in, not a confirmed outcome. Medical dispatches use Medical Priority Dispatch codes (for example 17B01 = Fall); this page groups them by complaint. The reports have no arrival or clear times, so response times cannot be measured.</p></div>
         <div><h3>How locations were placed</h3><p id="about-location"></p></div>
         <div><h3>Mutual aid</h3><p>A few dispatches went to towns in Herkimer, Oswego, Madison and Lewis counties. They count in the totals but are hidden from the map unless you turn them on or pick that county.</p></div>
@@ -810,6 +810,8 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
   const dateMonth = D.dates.map(iso => +iso.slice(5, 7));
   const dateDow = D.dates.map(dowOf);
   const dateIdx = new Map(D.dates.map((d, i) => [d, i]));
+  const dateHasNewReport = d => D.dateReportFormats[d].includes("B");
+  const hasNewReports = dates => dates.some(iso => dateHasNewReport(dateIdx.get(iso)));
   // Records grouped by place, for tooltips.
   const locStart = new Int32Array(D.locations.length + 1);
   for (let i = 0; i < N; i++) if (R.l[i]) locStart[R.l[i]]++;
@@ -1694,7 +1696,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
     renderTrend(dateN);
     renderResponders(unitN, inc);
     renderUrgency(medHour, medCity);
-    const includesNewReports = D.dates.some((iso, d) => iso.startsWith("2026") && yearOK(d) && dateOK(d));
+    const includesNewReports = D.dates.some((iso, d) => dateHasNewReport(d) && yearOK(d) && dateOK(d) && dowOK(d));
     document.querySelectorAll("[data-report-warning]").forEach(el => el.hidden = !includesNewReports);
     renderPerCapita(cityN);
     renderCompare();
@@ -2049,8 +2051,8 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
     const period = populationPeriod(), unavailable = !period.dates.length || (pcScale === "annual" && !!period.reason);
     const perYear = pcScale === "annual" ? period.factor : 1;
     $("pc-scale").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.scale === pcScale));
-    $("pc-coverage-detail").textContent = period.dates.length ? `${fmt(period.dates.length)} covered days, ${period.dates[0]} to ${period.dates.at(-1)}${st.hour >= 0 ? `, hour ${hourLabel(st.hour)} only` : ""}. ${pcScale === "annual" ? unavailable ? period.reason + " Rates withheld; dispatch counts remain visible." : "Annual equivalent: observed dispatches scaled by calendar-year days / covered days, not a measured full-year total." : "Observed-period rates are not annual rates; longer covered periods accumulate more dispatches."} Missing report days are not treated as zero. Coverage can miss seasonal peaks.${period.dates.some(iso => iso.startsWith("2026")) ? " The 2026 reports omit some proactive police dispatch types; comparisons with earlier years reflect reporting differences too." : ""}` : "No covered days match the time filters.";
-    $("pc-coverage").textContent = !period.dates.length ? "No covered days match the time filters." : pcScale === "annual" && unavailable ? period.reason + " Rates withheld; dispatch counts remain visible." : `${fmt(period.dates.length)} covered days (${period.dates[0]} to ${period.dates.at(-1)}). ${pcScale === "annual" ? "Annual equivalent, not a measured full-year total." : "Observed-period rates are not annual rates."}${period.dates.some(iso => iso.startsWith("2026")) ? " 2026 reports omit some police activity." : ""}`;
+    $("pc-coverage-detail").textContent = period.dates.length ? `${fmt(period.dates.length)} covered days, ${period.dates[0]} to ${period.dates.at(-1)}${st.hour >= 0 ? `, hour ${hourLabel(st.hour)} only` : ""}. ${pcScale === "annual" ? unavailable ? period.reason + " Rates withheld; dispatch counts remain visible." : "Annual equivalent: observed dispatches scaled by calendar-year days / covered days, not a measured full-year total." : "Observed-period rates are not annual rates; longer covered periods accumulate more dispatches."} Missing report days are not treated as zero. Coverage can miss seasonal peaks.${hasNewReports(period.dates) ? " The newer reports (from July 15, 2025) omit some proactive police dispatch types; comparisons with earlier years reflect reporting differences too." : ""}` : "No covered days match the time filters.";
+    $("pc-coverage").textContent = !period.dates.length ? "No covered days match the time filters." : pcScale === "annual" && unavailable ? period.reason + " Rates withheld; dispatch counts remain visible." : `${fmt(period.dates.length)} covered days (${period.dates[0]} to ${period.dates.at(-1)}). ${pcScale === "annual" ? "Annual equivalent, not a measured full-year total." : "Observed-period rates are not annual rates."}${hasNewReports(period.dates) ? " Reports from July 15, 2025 omit some police activity." : ""}`;
     let county = 0, unknown = 0;
     for (let i = 0; i < D.cities.length; i++) {
       const [town, , countyName] = info(D.cities[i]);
@@ -2160,7 +2162,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
         `</div><p class="note-sm" style="margin-top:6px">Share of each side's dispatches.</p></div>`;
     } else diffs = `<p class="so-note">Too few dispatches on one side to compare the call mix.</p>`;
     const yearIds = byPlace ? D.years.map((y, i) => i).filter(y => st.year < 0 || st.year === y) : [cmp.ya, cmp.yb];
-    const warning = yearIds.some(y => D.years[y] === 2026) ? `<p class="so-note">2026 reports omit some proactive police dispatch types.</p>` : "";
+    const warning = D.dates.some((iso, d) => dateHasNewReport(d) && allowedDate(d) && yearIds.includes(dateYear[d])) ? `<p class="so-note">Reports from July 15, 2025 omit some proactive police dispatch types.</p>` : "";
     const monthly = byPlace ? "" : `<details><summary>Report coverage by month</summary><p class="note-sm">Days used / calendar days matching the month and weekday filters. Shared-date mode may exclude otherwise available reports. Missing reports are not zero activity.</p><div class="scroll-x"><table class="cmp-table"><thead><tr><th scope="col">Month</th>${names.map(n => `<th scope="col">${esc(n)}</th>`).join("")}</tr></thead><tbody>${MON.map((m, month) => {
       if (st.month >= 0 && st.month !== month + 1) return "";
       return `<tr><th scope="row">${m}</th>${[cmp.ya, cmp.yb].map(y => {
@@ -2745,7 +2747,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
       const c=R.c[i],t=R.t[i],[town,,county]=info(D.cities[c]);
       if (!town || county!=="ONEIDA") continue;
       cityTotals[c]++;countyTotal++;
-      if (!typeOK(t) || (!storyRoutine && storyRoutineType(t)) || (year>=2026 && ["TRAFFIC STOP","PREMISE CK"].includes(D.types[t][0]))) continue;
+      if (!typeOK(t) || (!storyRoutine && storyRoutineType(t)) || (selectedDays.some(dateHasNewReport) && ["TRAFFIC STOP","PREMISE CK"].includes(D.types[t][0]))) continue;
       if (!typeCities.has(t)) {typeCities.set(t,new Float64Array(D.cities.length));activeDates.set(t,new Map());}
       typeCities.get(t)[c]++;
       const dates=activeDates.get(t);if(!dates.has(c))dates.set(c,new Set());dates.get(c).add(d);
@@ -2864,7 +2866,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
     const selectedRows = rows.filter(inWindow), selectedRefs = referenceRows.filter(inWindow);
     const mean = comparable ? referenceRows.length / refs.length : null, windowMean = comparable ? selectedRefs.length / refs.length : null;
     $("surge-date").value = surge.date; $("surge-scope").value = surge.scope;
-    $("surge-report-warning").hidden = !surge.date.startsWith("2026");
+    $("surge-report-warning").hidden = !(dateHasNewReport(dateIdx.get(surge.date)) || refs.some(dateHasNewReport));
     $("surge-seek").value = j; $("surge-seek").setAttribute("aria-valuetext", surgeRange(j)); $("surge-clock").textContent = surgeRange(j);
     const event = weatherByDate.get(surge.date);
     $("surge-context").innerHTML = event ? `${esc(event.title)} · <a href="${esc(event.source_url)}" target="_blank" rel="noopener noreferrer">NWS account</a>` : "";

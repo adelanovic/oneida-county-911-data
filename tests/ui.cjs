@@ -23,7 +23,6 @@ function datasetCounts() {
   };
   const header = split(lines[0]), town = header.indexOf('town'), village = header.indexOf('village');
   const county = header.indexOf('county'), kind = header.indexOf('agency_type'), agency = header.indexOf('agency');
-  const reportDate = header.indexOf('report_date');
   const categoryColumn=header.indexOf('category'),priorityColumn=header.indexOf('mpds_level'),datetimeColumn=header.indexOf('call_datetime');
   const comparison={towns:{},dates:{}};
   const surgeEvents=['2024-02-28','2024-02-29','2024-07-16','2025-06-22'];
@@ -85,7 +84,8 @@ function datasetCounts() {
       else { a.known++; a.dests.set(dest, (a.dests.get(dest) || 0) + 1);
         if (dest.startsWith('T:')) a.towns.set(dest, (a.towns.get(dest) || 0) + 1); }
     }
-    const iso = f[reportDate], y = iso.slice(0, 4), m = +iso.slice(5, 7);
+    // Dispatch date, not the report's file date: monthly reports cover many days under one report_date.
+    const iso = f[datetimeColumn].slice(0, 10), y = iso.slice(0, 4), m = +iso.slice(5, 7);
     if(f[categoryColumn]==='MEDICAL') {
       const level=['','O','A','B','C','D','E'].indexOf(f[priorityColumn]),h=+f[hourColumn];
       assert(level>=0,'Unexpected medical priority code');medical.hours[h][level]++;
@@ -508,7 +508,8 @@ async function main() {
     await navigate(pageUrl+'?year=2024&rate=annual');
     await evaluate(`document.querySelector('button[data-chart-help="population-section"]').click()`);
     const filteredHelp=await evaluate(`document.querySelector('#chart-help-body').textContent`);
-    assert(filteredHelp.includes('364 covered days') && filteredHelp.includes('Annual equivalent'));
+    const days2024=Object.keys(expected.comparison.dates).filter(d=>d.startsWith('2024-')).length;
+    assert(filteredHelp.includes(days2024+' covered days') && filteredHelp.includes('Annual equivalent'), filteredHelp.slice(0,200));
     await evaluate(`document.querySelector('#chart-help-close').click()`);
     assert(await evaluate(`document.querySelector('#pc-coverage').getBoundingClientRect().height>0 && document.querySelector('#pc-excluded-note').getBoundingClientRect().height>0 && document.querySelector('#pc-location-note').getBoundingClientRect().height===0`));
     await navigate(pageUrl);
@@ -807,6 +808,17 @@ async function main() {
     }
     console.log('PASS: comparison medical counts match CSV classifications; full-day hourly values support keyboard inspection and stay expanded');
 
+    await navigate(pageUrl+'?year=2025&month=8');
+    assert(await evaluate(`Array.from(document.querySelectorAll('[data-report-warning]')).every(el => !el.hidden)`));
+    await navigate(pageUrl+'?year=2025&month=6');
+    assert(await evaluate(`Array.from(document.querySelectorAll('[data-report-warning]')).every(el => el.hidden)`));
+    await navigate(pageUrl+'?surge=2025-08-01');
+    assert(await evaluate(`!document.querySelector('#surge-report-warning').hidden`));
+    await navigate(pageUrl+'?compare=year&compareA=2024&compareB=2025&month=8');
+    assert((await evaluate(`document.querySelector('#cmp-out').innerText`)).includes('Reports from July 15, 2025 omit'));
+    await navigate(pageUrl+'?compare=year&compareA=2024&compareB=2025&month=6');
+    assert(!(await evaluate(`document.querySelector('#cmp-out').innerText`)).includes('Reports from July 15, 2025 omit'));
+
     const yearQuery='?compare=year&compareA=2024&compareB=2026';
     const dateEntries=Object.entries(expected.comparison.dates);
     await navigate(pageUrl+yearQuery);const yearSummary=await readComparison();
@@ -820,7 +832,7 @@ async function main() {
       assert.equal(missing['Dispatches'][1],'No reports available');
       assert.equal(missing['Report days'][1],'0');
       assert(!await evaluate(`!!document.querySelector('#cmp-out .cmp-chart path.lb')`));
-      assert((await evaluate(`document.querySelector('#cmp-out').innerText`)).includes('2026 reports omit'));
+      assert(!(await evaluate(`document.querySelector('#cmp-out').innerText`)).includes('Reports from July 15, 2025 omit')); // No newer-format dates on either side in this month.
     }
     await navigate(pageUrl+yearQuery);
     const commonLink=await evaluate(`(()=>{const c=document.querySelector('#cmp-common');c.click();return location.href})()`);

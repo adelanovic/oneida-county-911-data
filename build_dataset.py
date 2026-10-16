@@ -144,7 +144,7 @@ MPDS_DESC_SYNONYMS = {"ALLERGIES/ENVENOMATIONS": "ALLERGIES/ENVENOMATION", "CUT 
 MPDS_RE = re.compile(r"^(\d{2})([A-EO])(\d{2})([A-Z]?)\s*-\s*(.*)$")
 MPDS_LEVEL_RANK = {"O": 0, "A": 1, "B": 2, "C": 3, "D": 4, "E": 5}
 
-# Format B (2026) wording -> format A (2024-25) wording, so the two eras share one vocabulary.
+# Format B (from July 15, 2025) wording -> format A wording, so both eras share one vocabulary.
 TYPE_SYNONYMS = {
     "SUSPICIOUS ACTIVITY": "SUSP ACTIVITY",
     "SUSPICIOUS PACKAGE": "SUSP PACKAGE",
@@ -173,11 +173,11 @@ TYPE_SYNONYMS = {
 
 CATEGORY_RULES = [  # (category, exact names or regex prefixes); first match wins
     ("MENTAL_HEALTH", ["MHL", "CHECK WELFARE - EDP", "CHECK WELFARE-EDP", "EVALUATION", "SUICIDE", "SUICIDE ATTEMPT"]),
-    ("MEDICAL", ["EMS CALL", "ALARM EMS", "OVERDOSE", "NURSENAV", "ALS LINK UP", "MUTUAL AID EMS", "BURN INJURY",
+    ("MEDICAL", ["EMS CALL", "DIFFICULTY BREATHING", "ALARM EMS", "OVERDOSE", "NURSENAV", "ALS LINK UP", "MUTUAL AID EMS", "BURN INJURY",
                  "DEATH", "LANDING ZONE", "BLOOD / EYE RUN"]),
     ("FIRE_HAZARD", [r"^FIRE (?!POLICE)", "ALARM CARBON MONOXIDE", "GAS ODOR/ALARM BUILDING", r"^ODOR OF",
                      "WIRES DOWN/BURN", "TREE DOWN", "SPILL/LEAK", "HAZMAT", r"^MUTUAL AID (FIRE|CASCADE)",
-                     "PUMP CELLAR", "WATER RESCUE", "ELEVATOR RESCUE", "RESCUE", "BLDG COLLAPSE", "FLOODING",
+                     "PUMP CELLAR", "WATER RESCUE", "ELEVATOR RESCUE", "RESCUE", "BLDG COLLAPSE", "STRUCTURAL COLLAPSE", "FLOODING",
                      "ILLEGAL BURN", "FIRE POLICE", "DECON", "EVACUATION", "WATER BREAK", "SUPERVISORY ALARM",
                      "FORCIBLE ENTRY/NON EMS", "COLLEGE ALARM", "DROWNING", "UFD REGULAR ALARM",
                      "ALARM GAS", "EXPLOSION", "MUTUAL AID-FAST"]),
@@ -337,6 +337,23 @@ def city_parts(city):
 
 # ---------------------------------------------------------------------------------------------
 
+def reviewed_cutover_duplicates(df):
+    """Remove only the reviewed Rome dispatch present in both July 15 systems.
+
+    The new report omits nine proactive State Police dispatches and a Sheriff
+    response, so a timestamp cutoff cannot establish duplication.
+    """
+    same = (df.agency.eq("Rome Police Department") & df.response_type.eq("ALARM POLICE")
+            & df.street.eq("E BLOOMFIELD ST") & df.city.eq("ROME INSIDE"))
+    old = (same & df.report_format.eq("A") & df.call_datetime.eq("2025-07-15 09:21:49")
+           & df.source_file.str.endswith("Oneida-County-web-daily-blotter_1056.pdf"))
+    new = (same & df.report_format.eq("B") & df.call_datetime.eq("2025-07-15 09:22:00")
+           & df.source_file.str.endswith("July 2025 Media Report.pdf"))
+    if old.sum() > 1 or new.sum() > 1:
+        raise ValueError("Reviewed cutover overlap is ambiguous; inspect the source rows")
+    return old & bool(new.any())
+
+
 def main():
     raw = pd.read_csv(OUT / "raw_records.csv", dtype=str, keep_default_na=False)
     vocab = build_vocab([raw.agency, raw.response_type, raw.location, raw.city])
@@ -441,6 +458,8 @@ def main():
     df["hour_sin"] = np.sin(angle).round(6)
     df["hour_cos"] = np.cos(angle).round(6)
 
+    cutover = reviewed_cutover_duplicates(df.loc[~excluded]).reindex(df.index, fill_value=False)
+    excluded = excluded | cutover
     df = df[~excluded].copy()
     df["_dt"] = dt[~excluded]
 
@@ -488,7 +507,8 @@ def main():
     am.to_csv(OUT / "agency_map.csv", index=False)
 
     print(f"raw rows {len(raw)}, superseded-version rows dropped {int(superseded.sum())}, "
-          f"duplicate-report rows dropped {int(duplicate.sum())}, final {len(df)}")
+          f"duplicate-report rows dropped {int(duplicate.sum())}, cutover-overlap rows dropped {int(cutover.sum())}, "
+          f"final {len(df)}")
     print(f"bad datetimes {dt.isna().sum()}, incident clusters {df.incident_cluster_id.nunique()}")
     print("uncategorized:", df[df.category == "UNCATEGORIZED"].response_type.value_counts().to_dict())
     print(df.category.value_counts().to_string())

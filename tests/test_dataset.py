@@ -150,6 +150,32 @@ class DatasetRegressionTests(unittest.TestCase):
         self.assertEqual(len(aliases), 439)
         self.assertTrue(aliases.source_file.str.endswith("/August-24-2026.pdf").all())
 
+    def test_cutover_retains_dispatches_missing_from_new_report(self):
+        day = self.df[self.df.call_datetime.str.startswith("2025-07-15")]
+        old = day[day.report_format.eq("A")]
+        self.assertEqual(len(old), 164)
+        late = old[old.call_datetime.ge("2025-07-15 09:14:00")]
+        self.assertEqual(len(late), 10)
+        self.assertEqual(late.agency.eq("New York State Police").sum(), 9)
+        alarm = day[day.street.eq("E BLOOMFIELD ST") & day.response_type.eq("ALARM POLICE")]
+        self.assertEqual(set(alarm.agency), {"Rome Police Department", "Oneida County Sheriff's Office"})
+        self.assertEqual(len(alarm), 2)
+        self.assertTrue(alarm.agencies_in_cluster.eq(2).all())
+
+    def test_report_formats_follow_dispatch_dates_in_monthly_pdfs(self):
+        formats = self.df.assign(date=self.df.call_datetime.str[:10]).groupby("date").report_format.agg(lambda s: "".join(sorted(set(s))))
+        self.assertEqual(self.data["dateReportFormats"], formats.reindex(self.data["dates"]).tolist())
+        lookup = dict(zip(self.data["dates"], self.data["dateReportFormats"]))
+        self.assertEqual(lookup["2025-07-14"], "A")
+        self.assertEqual(lookup["2025-07-15"], "AB")
+        self.assertEqual(lookup["2025-08-31"], "B")
+
+    def test_tracked_manifest_retains_all_extracted_sources(self):
+        manifest = pd.read_csv(ROOT / "sources/report_manifest.csv", keep_default_na=False)
+        log = pd.read_csv(ROOT / "output/extraction_log.csv", keep_default_na=False)
+        self.assertEqual(set(manifest.file), set(log.source_file))
+        self.assertEqual(len(manifest), len(log))
+
     def test_pages_match_data_and_vendor_leaflet(self):
         page = (ROOT / "docs/index.html").read_text(encoding="utf-8")
         self.assertEqual(page, (ROOT / "output/map/oneida_911_map.html").read_text(encoding="utf-8"))

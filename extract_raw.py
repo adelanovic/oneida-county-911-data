@@ -1,9 +1,9 @@
 """Step 1: extract every table row from the Oneida County 911 PDFs into raw_records.csv.
 
 Two report layouts exist:
-  A  "Media Summary Report" (Positron CAD, 2024-2025): Date/Time | Agency | Response Type | Location | City
+  A  "Media Summary Report" (Positron CAD, through July 15, 2025): Date/Time | Agency | Response Type | Location | City
      timestamps to the second, rows in chronological order, total in "Number of Responses: N".
-  B  "Oneida County Media Report" (2026): Call Date/Time | Agency | Incident Type | Location Street Name | Location Venue
+  B  "Oneida County Media Report" (from July 15, 2025): Call Date/Time | Agency | Incident Type | Location Street Name | Location Venue
      timestamps to the minute, rows grouped under "Agency: NAME (N)" headers, total in "Total Records : N".
 
 Words are assigned to columns by x position and to rows by y position, anchored on the date in column 1.
@@ -152,6 +152,10 @@ def main():
     OUT.mkdir(exist_ok=True)
     with open(DATA / "manifest.csv", newline="", encoding="utf-8") as f:
         manifest = list(csv.DictReader(f))
+    with open(ROOT / "sources/report_manifest.csv", newline="", encoding="utf-8") as f:
+        pinned = list(csv.DictReader(f))
+    if {r["file"]: r["sha256"] for r in manifest} != {r["file"]: r["sha256"] for r in pinned}:
+        raise ValueError("Local and tracked report manifests differ; run scripts/download_inputs.py --only pdfs")
 
     raw_fields = ["source_file", "report_date", "report_format", "page", "row_in_file", "agency_group"] + FIELDS
     file_fields = ["source_file", "report_date", "report_format", "pages", "stated_total", "parsed_rows",

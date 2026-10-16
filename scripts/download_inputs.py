@@ -57,6 +57,12 @@ def main():
                 target = (data / row["file"]).resolve()
                 if not target.is_relative_to(data.resolve()):
                     raise ValueError("Report path leaves the input directory")
+                if not row["source_url"]:
+                    # Reports supplied directly by the Oneida County 911 Director have no public URL.
+                    if not target.exists() or hashlib.sha256(target.read_bytes()).hexdigest() != row["sha256"]:
+                        raise FileNotFoundError(f"{row['file']} has no public source URL; copy the file provided by "
+                                                "the Oneida County 911 Director into Oneida_County_911_Reports/")
+                    continue
                 download(row["source_url"], target, row["sha256"])
         shutil.copyfile(manifest, data / "manifest.csv")
     if args.only in ("census", "all"):

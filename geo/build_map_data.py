@@ -151,7 +151,7 @@ def main():
                               "county", "call_datetime", "hour", "agency", "mpds_level", "incident_cluster_id",
                               "agencies_in_cluster", "latitude", "longitude", "location_missing", "time_precision",
                               "geo_latitude", "geo_longitude", "geo_precision", "geo_match_method", "geo_expected_error_m",
-                              "source_file", "page", "row_in_file", "city_raw"])
+                              "source_file", "page", "row_in_file", "city_raw", "report_format"])
     loc = pd.read_csv(ROOT / "geo" / "locations.csv", keep_default_na=False)
     df = df.merge(loc[["street", "city", "matched_name", "n_pieces"]], on=["street", "city"], how="left", validate="many_to_one")
     geo_cols = ["street", "city", "geo_latitude", "geo_longitude", "geo_precision", "geo_expected_error_m", "geo_match_method", "matched_name", "n_pieces"]
@@ -226,6 +226,7 @@ def main():
     basemap["labels"] = label_anchors
 
     data = {
+        "dateReportFormats": df.assign(date=df.call_datetime.str[:10]).groupby("date").report_format.agg(lambda s: "".join(sorted(set(s)))).reindex(dates).tolist(),
         "weatherEvents": json.loads((ROOT / "sources/weather_events.json").read_text(encoding="utf-8")),
         "types": [[r.response_type, r.category] for r in types.itertuples()],
         "years": years,

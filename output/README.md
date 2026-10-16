@@ -1,6 +1,6 @@
 # Oneida County 911 dispatch records — ML dataset
 
-Built from the 687 public PDFs in `../Oneida_County_911_Reports/reports/`.
+Built from 707 PDFs (public downloads and files supplied by the Oneida County 911 Director) in `../Oneida_County_911_Reports/reports/`.
 
 ```
 python -I extract_raw.py            # PDFs -> output/raw_records.csv + extraction_log.csv
@@ -12,15 +12,15 @@ python -I geo/build_map_data.py    # dataset + Census layers -> packed map data
 python -I geo/make_map_page.py geo/vendor/leaflet-1.9.4.css # publishable HTML
 ```
 
-The dispatch data covers 681 days: 364 in 2024, 194 in 2025 and 123 in 2026. Three empty published reports remain in the source manifest but do not count as observed zero-activity days.
+The dispatch data covers 864 days: 366 in 2024, 365 in 2025 and 133 in 2026. Three empty published reports remain in the source manifest; recovered reports now cover their 2025 dispatch dates. Empty reports alone do not establish zero activity.
 
 ## Files
 
 | File | Contents |
 |---|---|
-| `oneida_911_records.csv` | **Main dataset.** 421,513 rows, one per agency dispatch. |
-| `raw_records.csv` | Cell text exactly as extracted (line breaks kept), 422,883 rows including superseded report versions and duplicate report copies. |
-| `extraction_log.csv` | Per-PDF row count vs. the total printed in the report. All 687 reconcile to printed totals or agency subtotals; three reports are empty. |
+| `oneida_911_records.csv` | **Main dataset.** 506,461 rows, one per agency dispatch. |
+| `raw_records.csv` | Cell text exactly as extracted (line breaks kept), 507,832 rows including superseded report versions and duplicate report copies. |
+| `extraction_log.csv` | Per-PDF row count vs. the total printed in the report. All 707 reconcile to printed totals or agency subtotals; three reports are empty. |
 | `response_type_map.csv` | Raw response type → harmonized `response_type` + `category`, with counts. |
 | `agency_map.csv` | Raw agency name → canonical `agency` + `agency_type`, with counts. |
 
@@ -29,8 +29,8 @@ The dispatch data covers 681 days: 364 in 2024, 194 in 2025 and 123 in 2026. Thr
 | Column | Description |
 |---|---|
 | `record_id` | Row id (sorted by call time). |
-| `call_datetime` | `YYYY-MM-DD HH:MM:SS`. 2026 reports give minutes only, so seconds are `00`. |
-| `time_precision` | `second` (2024–25 reports) or `minute` (2026 reports). |
+| `call_datetime` | `YYYY-MM-DD HH:MM:SS`. New-format reports from July 15, 2025 give minutes only, so seconds are `00`. |
+| `time_precision` | `second` (format A) or `minute` (format B, starting July 15, 2025). |
 | `year` `month` `day` `hour` `minute` | Calendar parts of the call time. |
 | `day_of_week` `day_name` `is_weekend` | 0 = Monday. |
 | `week_of_year` `day_of_year` | ISO week; day 1–366. |
@@ -38,14 +38,14 @@ The dispatch data covers 681 days: 364 in 2024, 194 in 2025 and 123 in 2026. Thr
 | `agency` | Canonical agency name, unified across both report formats. |
 | `agency_type` | `LOCAL_POLICE`, `SHERIFF`, `STATE_POLICE`, `CAMPUS_POLICE`, `FIRE`, `EMS`, `OTHER_911_CENTER`, `OTHER`. |
 | `category` | Broad call category (13 classes): `MEDICAL`, `TRAFFIC`, `WELFARE_ASSIST`, `DOMESTIC_DISPUTE`, `ADMIN_PROACTIVE`, `PROPERTY_CRIME`, `PUBLIC_ORDER`, `ALARM`, `FIRE_HAZARD`, `MENTAL_HEALTH`, `CALL_ISSUE`, `ANIMAL`, `VIOLENT_CRIME`. |
-| `response_type` | Harmonized call type. 2026 wording is mapped to the 2024–25 wording (e.g. `SUSPICIOUS ACTIVITY` → `SUSP ACTIVITY`), and the `IN PROGRESS` suffix is moved to `in_progress`. |
-| `in_progress` | The call type said "IN PROGRESS". Only the 2024–25 system uses this suffix. |
+| `response_type` | Harmonized call type. New-format wording is mapped to the older wording (e.g. `SUSPICIOUS ACTIVITY` → `SUSP ACTIVITY`), and the `IN PROGRESS` suffix is moved to `in_progress`. |
+| `in_progress` | The call type said "IN PROGRESS". Only the older system uses this suffix. |
 | `is_mpds` | The call type is a Medical Priority Dispatch System code. |
 | `mpds_code` | e.g. `26A09`. |
 | `mpds_protocol` `mpds_protocol_name` | Protocol 1–37 (e.g. 26 = SICK PERSON). |
 | `mpds_level` `mpds_level_rank` | Determinant level `O/A/B/C/D/E`, ranked 0–5 (higher = more urgent). |
 | `mpds_description` | Text after the code. |
-| `street` | Street or block name (the reports print no house numbers). The 2026 spelling is converted to 2024–25 style: `NORTH`→`N`, `SAINT`→`ST`, `STATE ROUTE`→`ROUTE`. |
+| `street` | Street or block name (the reports print no house numbers). The new-format spelling is converted to older style: `NORTH`→`N`, `SAINT`→`ST`, `STATE ROUTE`→`ROUTE`. |
 | `is_intersection` | The street contains ` / `. |
 | `city` | Normalized reported city, town or village code, including reviewed truncation/typo corrections. |
 | `city_raw` | Repaired source municipality text before code corrections; retained for provenance. |
@@ -63,15 +63,17 @@ The dispatch data covers 681 days: 364 in 2024, 194 in 2025 and 123 in 2026. Thr
 | `incident_cluster_id` | Heuristic group with the same type and reported place, bounded to 120 s from its first row (5 s for municipality-only records). Coordinates distinguish coordinate-only locations. Completely unspecified locations are not merged. |
 | `agencies_in_cluster` | Number of distinct agencies in that cluster. |
 | `agency_raw` `response_type_raw` `location_raw` | Cleaned text before normalization, for auditing. |
-| `report_date` `report_format` `report_version` `source_file` `page` `row_in_file` | Where the row came from. Format `A` = 2024–25 "Media Summary Report"; format `B` = 2026 "Oneida County Media Report". |
+| `report_date` `report_format` `report_version` `source_file` `page` `row_in_file` | Source provenance. `report_date` is the nominal file date (first covered date for supplied monthly PDFs); use `call_datetime` for dispatch-date analysis. Format `A` = "Media Summary Report" through the morning of July 15, 2025; format `B` = "Oneida County Media Report" from that day. July's combined PDF retains its original June folder path; dispatch timestamps determine July coverage. |
 
 ## Caveats for modeling
 
 - **Map points aggregate dispatches, not incidents.** The map combines matching dispatches at identical displayed coordinates and shows the original reported-location breakdown when selected. This includes a single approximate municipality point for unmatched streets. Dispatch exports preserve individual source fields; places exports contain point totals and their grouped-location breakdowns.
 - **Rows are agency dispatches, not unique emergencies.** One crash can produce 4 rows (ambulance, fire, state police, sheriff). Deduplicate on `incident_cluster_id` when you count incidents.
-- **Coverage has gaps:** 364 days with records in 2024 (all but two), 194 in 2025, and 123 in 2026. Don't treat this as a continuous time series without accounting for missing and empty reports (see `../Oneida_County_911_Reports/coverage.csv`).
-- **The CAD system changed in 2026:** coarser timestamps and partly different call-type wording. Include `report_format` as a feature or control for it.
+- **Coverage has gaps:** 366 days with records in 2024, 365 in 2025, and 133 in 2026. Don't treat this as a continuous time series without accounting for missing and empty reports; the map coverage calendar uses distinct dispatch dates.
+- **The CAD system changed on July 15, 2025:** coarser timestamps, omitted traffic stops and premise checks, and partly different call-type wording. Full 2025 calendar coverage spans two reporting regimes. Include `report_format` as a feature or control for it.
 - Call types are what dispatch recorded at intake, not confirmed outcomes. There are no arrival or clear times, so response times can't be computed.
 - `September-24-2026` and `September-25-2026` each had a `-v2` reissue. Only the v2 rows are kept (931 v1 rows dropped).
 
 Location matching preserves ramp, exit and travel-direction qualifiers. Reviewed county road snapshots cover 45 reporting areas; town and village subsets remain distinct. Unknown place codes do not default to Oneida County. The map flags separate matching road stretches as ambiguous; dispatch downloads include the original municipality label, matched reference name and stretch count. Coordinate parsing accepts complete valid pairs using tilde or comma separators, including wrapped decimal digits.
+
+The reviewed July 15 Rome Police alarm dispatch appears in both systems and is counted once. Ten unmatched old-format dispatches after 09:14 remain, including nine proactive State Police dispatches and a separate Sheriff alarm response. Exclusion is based on the reviewed corresponding dispatch, not a blanket time cutoff.
