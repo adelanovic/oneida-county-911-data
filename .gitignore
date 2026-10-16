@@ -13,3 +13,6 @@ geo/map_data.json
 
 __pycache__/
 .venv/
+
+# Local audit notes
+/REVIEW.md
