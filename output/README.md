@@ -12,6 +12,8 @@ python -I geo/build_map_data.py    # dataset + Census layers -> packed map data
 python -I geo/make_map_page.py geo/vendor/leaflet-1.9.4.css # publishable HTML
 ```
 
+The page builder writes a hosted HTML shell plus content-hashed gzip metadata and binary records in `docs/assets/`. Deploy the whole `docs/` directory. `output/map/oneida_911_map.html` retains embedded data for opening offline; it is no longer identical to the hosted HTML. Preview the hosted page over HTTP, rather than opening `docs/index.html` from disk.
+
 The dispatch data covers 864 days: 366 in 2024, 365 in 2025 and 133 in 2026. Three empty published reports remain in the source manifest; recovered reports now cover their 2025 dispatch dates. Empty reports alone do not establish zero activity.
 
 ## Files

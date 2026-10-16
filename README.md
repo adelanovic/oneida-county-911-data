@@ -25,17 +25,20 @@ On macOS/Linux activate the environment with `source .venv/bin/activate`. Public
 
 The reference-data downloader restores Census TIGER/Line 2024 county roads, address features, alternate road names and water, plus New York municipality boundaries and landmarks. Reviewed locations across 45 reporting areas also use checked-in snapshots of [Oneida County public CAD road geometry](https://maps.oneidacountyny.gov/arcgis/rest/services/E911_CAD/E911_CAD/MapServer/0). The original subsets and [additional municipality catalog](geo/reference/additional_municipalities.json) keep town and village data separate, including Camden town versus Camden village and the two New York Mills reporting areas. Refresh a subset explicitly with `python -I -B scripts/refresh_location_reference.py --city "NEW HARTFORD"`. Use `--add-name "REPORTED STREET"` to add a specific name, or `--include-candidates` to discover unmatched, fuzzy, disconnected and qualified names for review. Inspect the reference diff and rerun spatial checks; ordinary builds use saved files offline. Population is from the [Census 2024 subcounty estimates](https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/cities/totals/sub-est2024.csv). Inputs and intermediate CSVs are ignored by Git; source metadata and scripts are tracked. Population is optional: without its CSV the map builds with population-rate panels marked unavailable.
 
-`docs/index.html` is the GitHub Pages entry point; `output/map/oneida_911_map.html` is an identical local copy. Both embed their data, Leaflet CSS and Leaflet JavaScript, so the map does not require a CDN. Google Fonts are optional and have system-font fallbacks. Leaflet 1.9.4 is distributed under [its BSD license](geo/vendor/Leaflet-LICENSE.txt).
+`docs/index.html` is the GitHub Pages entry point. Its small HTML shell fetches two content-hashed files in `docs/assets/` in parallel: gzip-compressed metadata and gzip-compressed binary record columns. Browser-native decompression and typed-array views avoid base64 decoding on the hosted map. Publish the entire `docs/` directory together, including both referenced assets. Builds keep previous hashed assets so cached HTML can still load during updates; unchanged assets keep their filenames and can be reused by browser caches. The page displays loading and retry states before enabling controls.
+
+`output/map/oneida_911_map.html` remains a self-contained offline copy with embedded data; open it directly from disk. To preview the hosted version, run `python -m http.server 8000 --directory docs` and open `http://localhost:8000/`. Both versions embed Leaflet CSS and JavaScript, so no map CDN is required. Google Fonts are optional and have system-font fallbacks. Leaflet 1.9.4 is distributed under [its BSD license](geo/vendor/Leaflet-LICENSE.txt).
 
 ## Validate
 
 ```powershell
 python -I -B -m unittest discover -s tests -p "test_*.py" -v
 node tests/ui.cjs
+node tests/data_loader.cjs
 python -I -B geo/evaluate_geocoding.py
 ```
 
-The dataset tests use rebuilt local outputs. Browser tests use a temporary headless Edge profile on Windows; set `BROWSER_PATH` to a Chromium/Chrome/Edge executable on other systems. They check comparisons, incident counts, rate denominators, grouped filters, downloads, shared links, keyboard controls, themes, responsive layout, and absent population data. The geocoding evaluation compares placement methods on intersection examples; these examples are not a representative accuracy sample.
+The dataset tests use rebuilt local outputs and compare every hosted binary column with its source. Browser tests serve `docs/` over local HTTP and use a temporary headless Edge profile on Windows; set `BROWSER_PATH` to a Chromium/Chrome/Edge executable on other systems. They check comparisons, incident counts, rate denominators, grouped filters, downloads, shared links, keyboard controls, themes, responsive layout, absent population data, loading/retry behavior and the standalone file. Loader tests also cover compressed and HTTP-decoded responses, corrupt downloads and older-browser handling. The geocoding evaluation compares placement methods on intersection examples; these examples are not a representative accuracy sample.
 
 ## Interpretation
 

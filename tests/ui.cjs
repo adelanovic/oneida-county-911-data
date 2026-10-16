@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
+const http = require('node:http');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 // Expected counts come from the dataset the page was built from, so the checks survive data updates.
@@ -124,6 +125,19 @@ function datasetCounts() {
 }
 
 async function main() {
+  const root = path.resolve(__dirname, '../docs');
+  const server = http.createServer((request, response) => {
+    const relative = decodeURIComponent(new URL(request.url, 'http://localhost').pathname).replace(/^\/docs\//, '');
+    const filename = path.resolve(root, relative);
+    if (!filename.startsWith(root + path.sep)) { response.writeHead(403); response.end(); return; }
+    fs.readFile(filename, (error, bytes) => {
+      if (error) { response.writeHead(404); response.end(); return; }
+      response.setHeader('Content-Type', filename.endsWith('.html') ? 'text/html; charset=utf-8' : 'application/octet-stream');
+      response.setHeader('Cache-Control', 'max-age=600');
+      response.end(bytes);
+    });
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const expected = datasetCounts();
   const fmt = n => n.toLocaleString('en-US');
   const browserPath = process.env.BROWSER_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
@@ -168,11 +182,11 @@ async function main() {
       if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text);
       return result.result.value;
     };
-    const pageUrl = pathToFileURL(path.resolve(__dirname, '../docs/index.html')).href;
+    const pageUrl = 'http://127.0.0.1:' + server.address().port + '/docs/index.html';
     async function navigate(url = pageUrl) {
       await send('Page.navigate', { url });
       for (let i = 0; i < 80; i++) {
-        if (await evaluate(`document.readyState === 'complete' && !!document.querySelector('#q') && !!document.querySelector('#theme [aria-pressed]')`)) return;
+        if (await evaluate(`document.readyState === 'complete' && !!document.querySelector('#q') && document.querySelector('#load-status')?.hidden && !!document.querySelector('#theme [aria-pressed]')`)) return;
         await delay(100);
       }
       throw new Error('Page did not initialize: ' + errors.join('\n'));
@@ -264,7 +278,7 @@ async function main() {
       assert((await evaluate(`document.querySelector('[data-surge-table-bin] td:last-child').textContent`)).includes('Unavailable'));
     }
     await send('Page.removeScriptToEvaluateOnNewDocument',{identifier:sparseInjection.identifier});
-    const absentSurgeType=await evaluate(`JSON.parse(document.querySelector('#data').textContent).types.map(t=>t[0]).find(t=>!${JSON.stringify(Object.keys(surgeExpected.a.types))}.includes(t))`);
+    const absentSurgeType=await evaluate(`window.oneidaData.types.map(t=>t[0]).find(t=>!${JSON.stringify(Object.keys(surgeExpected.a.types))}.includes(t))`);
     await navigate(pageUrl+'?surge=2024-07-16&type='+encodeURIComponent(absentSurgeType));
     assert.equal(await evaluate(`+document.querySelector('#surge-kpis').dataset.total`),0);
     assert(await evaluate(`document.querySelector('#surge-replay').disabled`));
@@ -380,7 +394,7 @@ async function main() {
       await navigate();
     }
 
-    const replayDay = await evaluate(`(()=>{const s=document.querySelector('#replay-date'),d=JSON.parse(document.querySelector('#data').textContent);return d.dates[+s.value]})()`);
+    const replayDay = await evaluate(`(()=>{const s=document.querySelector('#replay-date'),d=window.oneidaData;return d.dates[+s.value]})()`);
     const replayExpected = expected.comparison.dates[replayDay];
     assert(replayExpected, 'Replay date must exist in the independent CSV');
     assert.equal(await evaluate(`+document.querySelector('#replay-status').dataset.total`), replayExpected.n);
@@ -389,7 +403,7 @@ async function main() {
     await evaluate(`document.querySelector('#replay-section').scrollIntoView({block:'start'});document.querySelector('#replay-seek').value=86400;document.querySelector('#replay-seek').dispatchEvent(new Event('input'))`);
     assert.equal(await evaluate(`+document.querySelector('#replay-status').dataset.elapsed`), replayExpected.n, 'End of day includes all dispatches');
     assert.equal(await evaluate(`document.querySelector('#replay-clock').textContent`), '24:00');
-    const feed = await evaluate(`(()=>{const d=JSON.parse(document.querySelector('#data').textContent),read=(key,Type)=>new Type(Uint8Array.from(atob(d.records[key]),c=>c.charCodeAt(0)).buffer),z=read('z',Uint32Array),p=read('p',Uint8Array);return [...document.querySelectorAll('#replay-feed li[data-record]')].map(e=>({seconds:z[+e.dataset.record],precise:p[+e.dataset.record],text:e.querySelector('time').textContent}))})()`);
+    const feed = await evaluate(`(()=>{const d=window.oneidaData,read=(key,Type)=>d.records[key],z=read('z',Uint32Array),p=read('p',Uint8Array);return [...document.querySelectorAll('#replay-feed li[data-record]')].map(e=>({seconds:z[+e.dataset.record],precise:p[+e.dataset.record],text:e.querySelector('time').textContent}))})()`);
     assert(feed.length > 0 && feed.length <= 12);
     assert(feed.every((f,i)=>i===0 || f.seconds<=feed[i-1].seconds),'Feed must show newest first');
     assert(feed.every(f=>f.precise ? /:\d\d:\d\d/.test(f.text) : f.text.includes('minute precision')),'Replay must preserve timestamp precision');
@@ -540,7 +554,7 @@ async function main() {
     await navigate(pageUrl);
     console.log('PASS: chart explanations use compact accessible dialogs with current data, focus return, Escape, mobile taps and both themes');
 
-    const bubbleTarget=await evaluate(`(()=>{const d=JSON.parse(document.querySelector('#data').textContent),l=d.locations.find(l=>l[2]==='HOSPITAL DR'&&l[3]==='UTICA');return {street:l[2]+'|'+l[3],point:l[0]+','+l[1]}})()`);
+    const bubbleTarget=await evaluate(`(()=>{const d=window.oneidaData,l=d.locations.find(l=>l[2]==='HOSPITAL DR'&&l[3]==='UTICA');return {street:l[2]+'|'+l[3],point:l[0]+','+l[1]}})()`);
     for(const width of [1440,390,320]) {
       await send('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:1,mobile:width!==1440});
       await send('Emulation.setTouchEmulationEnabled',{enabled:width!==1440,maxTouchPoints:1});
@@ -583,7 +597,7 @@ async function main() {
     console.log('PASS: real bubble taps/clicks show dispatch types and location details in one dialog without lingering tooltips on mobile or desktop');
 
     const pointAuditExpression = `(()=>{
-      const d=JSON.parse(document.querySelector('#data').textContent),decode=(s,T)=>new T(Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer);
+      const d=window.oneidaData,decode=(s,T)=>s;
       const locations=decode(d.records.l,Uint16Array),cities=decode(d.records.c,Uint8Array),dates=decode(d.records.d,Uint16Array),groups=new Map(),q=new URLSearchParams(location.search);
       for(let i=0;i<locations.length;i++){
         if(!locations[i])continue;const info=d.cityInfo[d.cities[cities[i]]],county=info[2];if(county && county!=='ONEIDA')continue;
@@ -664,7 +678,7 @@ async function main() {
 
     for(const street of ['OLD RIVER RD','U TURN']) {
       await navigate(pageUrl+'?place=T%3AMARCY');
-      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>d.locations[+e.dataset.i][3]==='MARCY');option.click()})()`);
+      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=window.oneidaData,option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>d.locations[+e.dataset.i][3]==='MARCY');option.click()})()`);
       await delay(1100);
       const detail=await evaluate(`document.querySelector('#chart-help-body').textContent`);
       assert(detail.includes(street),detail);
@@ -678,7 +692,7 @@ async function main() {
     for(const [street,city] of [['PARK DRIVE MNR 2','ROME INSIDE'],['ERIE BLVD BLVD W','ROME INSIDE'],
                                 ['ROUTE 26 ROUTE 365 RAMP','ROME OUTSIDE'],['ERIE BLVD','ROME INSIDE']]) {
       await navigate(pageUrl+'?place=T%3AROME');
-      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]===${JSON.stringify(city)}});option.click()})()`);
+      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=window.oneidaData,option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]===${JSON.stringify(city)}});option.click()})()`);
       await delay(1100);
       const detail=await evaluate(`document.querySelector('#chart-help-body').textContent`);
       assert(detail.includes(street),detail);
@@ -697,7 +711,7 @@ async function main() {
     await send('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
     for(const street of ['NY STATE THRUWAY WB','MARION MANOR','NY STATE THRUWAY RAMP']) {
       await navigate(pageUrl+'?place=T%3AVERONA');
-      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]==='VERONA'});option.click()})()`);
+      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=window.oneidaData,option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]==='VERONA'});option.click()})()`);
       await delay(1100);
       const detail=await evaluate(`(()=>{const p=document.querySelector('#chart-help-dialog'),r=p.getBoundingClientRect();return {open:p.open,left:r.left,right:r.right,body:document.querySelector('#chart-help-body').textContent}})()`);
       assert(detail.open && detail.left>=0 && detail.right<=320,JSON.stringify(detail));
@@ -717,7 +731,7 @@ async function main() {
     await send('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
     for(const street of ['ONEIDA SERVICE CENTER','NY STATE THRUWAY RAMP']) {
       await navigate(pageUrl+'?place=T%3AWESTMORELAND');
-      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]==='WESTMORELAND'});option.click()})()`);
+      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=window.oneidaData,option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]==='WESTMORELAND'});option.click()})()`);
       await delay(1100);
       const detail=await evaluate(`(()=>{const p=document.querySelector('#chart-help-dialog'),r=p.getBoundingClientRect();return {open:p.open,left:r.left,right:r.right,body:document.querySelector('#chart-help-body').textContent}})()`);
       assert(detail.open && detail.left>=0 && detail.right<=320,JSON.stringify(detail));
@@ -733,7 +747,7 @@ async function main() {
     await send('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
     for(const [street,city,place] of [['UTICA ST','CLINTON VILLAGE','V:KIRKLAND|CLINTON'],['NEW CARRIAGE HOUSE APTS','KIRKLAND','T:KIRKLAND']]) {
       await navigate(pageUrl+'?place='+encodeURIComponent(place));
-      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]===${JSON.stringify(city)}});option.click()})()`);
+      await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));const d=window.oneidaData,option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]===${JSON.stringify(city)}});option.click()})()`);
       await delay(1100);
       const detail=await evaluate(`(()=>{const p=document.querySelector('#chart-help-dialog'),r=p.getBoundingClientRect();return {open:p.open,left:r.left,right:r.right,body:document.querySelector('#chart-help-body').textContent}})()`);
       assert(detail.open && detail.left>=0 && detail.right<=320,JSON.stringify(detail));
@@ -749,7 +763,7 @@ async function main() {
 
     await send('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
     await navigate(pageUrl+'?place='+encodeURIComponent('V:CAMDEN|CAMDEN'));
-    await evaluate(`(()=>{const q=document.querySelector('#q');q.value='RIPLEY DR';q.dispatchEvent(new Event('input'));const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]==='RIPLEY DR'&&l[3]==='CAMDEN VILLAGE'});option.click()})()`);
+    await evaluate(`(()=>{const q=document.querySelector('#q');q.value='RIPLEY DR';q.dispatchEvent(new Event('input'));const d=window.oneidaData,option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]==='RIPLEY DR'&&l[3]==='CAMDEN VILLAGE'});option.click()})()`);
     await delay(1100);
     const camdenDetail=await evaluate(`(()=>{const p=document.querySelector('#chart-help-dialog'),r=p.getBoundingClientRect();return {open:p.open,left:r.left,right:r.right,body:document.querySelector('#chart-help-body').textContent}})()`);
     assert(camdenDetail.open && camdenDetail.left>=0 && camdenDetail.right<=320,JSON.stringify(camdenDetail));
@@ -765,7 +779,7 @@ async function main() {
       await navigate(pageUrl);
       for (const [street,city,ambiguity] of [['E MAIN ST','VERONA',false],['ROUTE 291 RAMP','MARCY',false],['ERIE BLVD W','ROME INSIDE',true]]) {
         await evaluate(`(()=>{const q=document.querySelector('#q');q.value=${JSON.stringify(street)};q.dispatchEvent(new Event('input'));
-          const d=JSON.parse(document.querySelector('#data').textContent),option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]===${JSON.stringify(city)}});option.click()})()`);
+          const d=window.oneidaData,option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>{const l=d.locations[+e.dataset.i];return l[2]===${JSON.stringify(street)}&&l[3]===${JSON.stringify(city)}});option.click()})()`);
         const detail=await evaluate(`(()=>{const p=document.querySelector('#chart-help-dialog'),r=p.getBoundingClientRect();return {open:p.open,left:r.left,right:r.right,body:document.querySelector('#chart-help-body').textContent}})()`);
         assert(detail.open && detail.left>=0 && detail.right<=width,JSON.stringify(detail));
         assert(detail.body.includes(street),detail.body);
@@ -854,8 +868,8 @@ async function main() {
     console.log('PASS: year comparisons disclose ignored dates, suppress missing-report lines and share/reset matched calendar periods');
 
     const agency = await evaluate(`(()=>{document.querySelector('#reset').click();
-      const d=JSON.parse(document.querySelector('#data').textContent),u=d.agencies.indexOf('AmCare Ambulance');
-      const bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));const units=bytes(d.records.u),ids=new Uint32Array(bytes(d.records.i).buffer);
+      const d=window.oneidaData,u=d.agencies.indexOf('AmCare Ambulance');
+      const bytes=s=>s;const units=bytes(d.records.u),ids=d.records.i;
       const expected=new Set();let n=0;for(let i=0;i<units.length;i++)if(units[i]===u){expected.add(ids[i]);n++}
       document.querySelector('#resp-list [data-u="'+u+'"]').click();
       return {n,incidents:expected.size,total:document.querySelector('#total').textContent,kpis:[...document.querySelectorAll('#resp-kpis b')].map(e=>e.textContent)}})()`);
@@ -873,7 +887,7 @@ async function main() {
 
     await navigate(pageUrl);
     const pcObserved=await evaluate(`(()=>{
-      const d=JSON.parse(document.querySelector('#data').textContent);
+      const d=window.oneidaData;
       return {pop:d.population,county:document.querySelector('#pc-list .v').childNodes[0].textContent,
         utica:document.querySelector('#pc-list [data-place="T:UTICA"] .v').textContent,
         note:document.querySelector('#pc-location-note').textContent,coverage:document.querySelector('#pc-coverage').textContent};
@@ -1032,7 +1046,7 @@ async function main() {
     assert(policeSummary.includes('This compares proportions, not dispatch volume.'));
     console.log('PASS: police summary percentages and counts match the CSV without rounding small shares to zero');
     const policeHour = await evaluate(`(()=>{
-      const d=JSON.parse(document.querySelector('#data').textContent),bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+      const d=window.oneidaData,bytes=s=>s;
       const units=bytes(d.records.u),hours=bytes(d.records.h),police=new Set(['LOCAL_POLICE','SHERIFF','STATE_POLICE','CAMPUS_POLICE']);
       let expected=0;for(let i=0;i<units.length;i++)if(hours[i]===7&&police.has(d.agencyKind[units[i]]))expected++;
       document.querySelector('#pol-hour [data-k="hour:7"]').click();
@@ -1078,7 +1092,7 @@ async function main() {
       const c=document.querySelector('#city');c.value='T:UTICA';c.dispatchEvent(new Event('change'));
       const changed=document.querySelector('#out-list').innerText!==before;
       document.querySelector('#reset').click();const a=document.querySelector('#agency');
-      const d=JSON.parse(document.querySelector('#data').textContent);a.value=d.agencyTypes.indexOf('FIRE');a.dispatchEvent(new Event('change'));
+      const d=window.oneidaData;a.value=d.agencyTypes.indexOf('FIRE');a.dispatchEvent(new Event('change'));
       return {changed,unknown,out:document.querySelector('#out-list').innerText,
         kinds:[...document.querySelectorAll('#out-list [data-u]')].map(e=>d.agencyKind[+e.dataset.u])}})()`);
     assert(outside.changed);
@@ -1091,7 +1105,7 @@ async function main() {
     await navigate(pageUrl);
     const outsideAll = await evaluate(`(()=>{
       document.querySelector('#out-expand').click();
-      const d=JSON.parse(document.querySelector('#data').textContent);
+      const d=window.oneidaData;
       return [...document.querySelectorAll('#out-list [data-u]')].map(r=>({name:d.agencies[+r.dataset.u],text:r.innerText,value:r.querySelector('.v').innerText}));
     })()`);
     assert.equal(outsideAll.length, Object.values(expected.outside).filter(a => a.known >= 40).length);
@@ -1104,7 +1118,7 @@ async function main() {
     }
     const townOutside = await evaluate(`(()=>{
       const c=document.querySelector('#city');c.value='T:WHITESTOWN';c.dispatchEvent(new Event('change'));
-      const d=JSON.parse(document.querySelector('#data').textContent);
+      const d=window.oneidaData;
       return [...document.querySelectorAll('#out-list [data-u]')].map(r=>({name:d.agencies[+r.dataset.u],value:r.querySelector('.v').innerText}));
     })()`);
     for (const name of ['COCVAC Ambulance','New York Mills Fire Department']) {
@@ -1118,7 +1132,7 @@ async function main() {
       const rows=[...document.querySelectorAll('#out-list [data-u]')],last=rows.at(-1),u=last.dataset.u;
       last.click();button.click();
       const selected=document.querySelector('#out-list [data-u="'+u+'"]');
-      return {name:JSON.parse(document.querySelector('#data').textContent).agencies[+u],selected:!!selected?.classList.contains('on'),expanded:button.getAttribute('aria-expanded'),count:document.querySelectorAll('#out-list [data-u]').length,text:document.querySelector('#out-list').innerText};
+      return {name:window.oneidaData.agencies[+u],selected:!!selected?.classList.contains('on'),expanded:button.getAttribute('aria-expanded'),count:document.querySelectorAll('#out-list [data-u]').length,text:document.querySelector('#out-list').innerText};
     })()`);
     assert(retained.selected);
     assert.equal(retained.expanded,'false');
@@ -1158,8 +1172,8 @@ async function main() {
     assert.equal(countyClick, 'C:HERKIMER');
     console.log('PASS: county destinations can be selected through route controls');
 
-    const smallSample = await evaluate(`(()=>{const d=JSON.parse(document.querySelector('#data').textContent),bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-      const units=bytes(d.records.u),dates=new Uint16Array(bytes(d.records.d).buffer),counts=new Map();
+    const smallSample = await evaluate(`(()=>{const d=window.oneidaData,bytes=s=>s;
+      const units=bytes(d.records.u),dates=d.records.d,counts=new Map();
       for(let i=0;i<units.length;i++)if(d.agencyKind[units[i]]==='CAMPUS_POLICE'){
         const key=dates[i]+':'+units[i];counts.set(key,(counts.get(key)||0)+1)}
       const days=[...new Set([...counts.keys()].map(k=>+k.split(':')[0]))];
@@ -1194,7 +1208,7 @@ async function main() {
       chart.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));
       const detail=document.querySelector('#trend-detail-2026').innerText;
       chart.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
-      const d=JSON.parse(document.querySelector('#data').textContent);
+      const d=window.oneidaData;
       return {date:new URL(location.href).searchParams.get('date'),expected:d.dates.filter(s=>s.startsWith('2026'))[1],detail,focused:document.activeElement.dataset.year}})()`);
     assert.equal(trendKeys.date, trendKeys.expected);
     assert.equal(trendKeys.focused, '2026');
@@ -1284,7 +1298,7 @@ async function main() {
     await evaluate(`document.querySelector('#reset-map').click()`);
     const countyCamera = await evaluate(`new URL(location.href).searchParams.get('view').split(',').map(Number)`);
     await navigate(pageUrl + '?cat=MEDICAL&view=0,0,15');
-    const limitedCamera = await evaluate(`(()=>{const view=new URL(location.href).searchParams.get('view').split(',').map(Number),d=JSON.parse(document.querySelector('#data').textContent),points=[];
+    const limitedCamera = await evaluate(`(()=>{const view=new URL(location.href).searchParams.get('view').split(',').map(Number),d=window.oneidaData,points=[];
       function collect(a){if(typeof a[0]==='number'){points.push(a);return}a.forEach(collect)}d.basemap.towns.forEach(t=>collect(t.rings));
       return {view,south:Math.min(...points.map(p=>p[0])),north:Math.max(...points.map(p=>p[0])),west:Math.min(...points.map(p=>p[1])),east:Math.max(...points.map(p=>p[1]))}})()`);
     const nearCounty = view => view[0] >= limitedCamera.south - (limitedCamera.north-limitedCamera.south)*.15 - .001 &&
@@ -1457,11 +1471,37 @@ async function main() {
     assert.deepEqual(errors, []);
     await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: injected.identifier });
     console.log('PASS: missing optional population data does not interrupt initialization');
+
+    const slow = await send('Page.addScriptToEvaluateOnNewDocument', { source: `const originalFetch=fetch;window.fetch=(...args)=>new Promise(resolve=>setTimeout(resolve,1200)).then(()=>originalFetch(...args));` });
+    await send('Page.navigate', { url: pageUrl + '?test=loading' });
+    for (let i=0;i<40;i++) { if(await evaluate(`!!document.querySelector('#load-message')`)) break; await delay(50); }
+    assert(await evaluate(`!document.querySelector('#load-status').hidden && document.querySelector('.app').inert && document.querySelector('h1').textContent.includes('Oneida')`));
+    for(let i=0;i<80;i++) { if(await evaluate(`document.querySelector('#load-status').hidden`)) break; await delay(100); }
+    assert.equal(await evaluate(`document.querySelector('#total').textContent`),fmt(expected.total));
+    await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: slow.identifier });
+
+    const broken = await send('Page.addScriptToEvaluateOnNewDocument', { source: `window.fetch=()=>Promise.resolve(new Response('',{status:503}));` });
+    await send('Page.navigate', { url: pageUrl + '?test=failed-download' });
+    for(let i=0;i<80;i++) { if(await evaluate(`document.querySelector('#load-status')?.getAttribute('role')==='alert'`)) break; await delay(100); }
+    assert(await evaluate(`!document.querySelector('#load-retry').hidden && document.querySelector('.app').inert && document.querySelector('#load-message').textContent.includes('could not load')`));
+    await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: broken.identifier });
+    await evaluate(`document.querySelector('#load-retry').click()`);
+    for(let i=0;i<80;i++) { if(await evaluate(`document.querySelector('#load-status')?.hidden`)) break; await delay(100); }
+    assert.equal(await evaluate(`document.querySelector('#total').textContent`),fmt(expected.total));
+    console.log('PASS: shell appears while data loads; failed downloads show a working retry without enabling incomplete controls');
+
+    await send('Network.setBlockedURLs', { urls: ['*fonts.googleapis.com*','*fonts.gstatic.com*','*cdnjs.cloudflare.com*','*assets/*'] });
+    await navigate(pathToFileURL(path.resolve(__dirname, '../output/map/oneida_911_map.html')).href);
+    assert.equal(await evaluate(`document.querySelector('#total').textContent`),fmt(expected.total));
+    assert(await evaluate(`window.oneidaData.records.z instanceof Uint32Array && !document.querySelector('.app').inert`));
+    assert.deepEqual(errors, []);
+    console.log('PASS: standalone map initializes from a local file with all external data assets blocked');
     console.log('Review screenshots: ' + profile);
   } finally {
     if (ws?.readyState === WebSocket.OPEN) { try { await send('Browser.close'); } catch (_) {} ws.close(); }
     else browser.kill();
     clearTimeout(watchdog);
+    server.closeAllConnections(); server.close();
   }
 }
 

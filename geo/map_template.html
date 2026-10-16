@@ -483,7 +483,12 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
 @media (prefers-reduced-motion: reduce) { .leaflet-zoom-anim .leaflet-zoom-animated { transition: none !important; } }
 </style>
 
-<div class="app">
+<div id="load-status" role="status" style="position:fixed;top:16px;right:16px;z-index:10000;padding:16px;box-sizing:border-box;max-width:calc(100vw - 32px);background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px">
+  <span id="load-message">Loading dispatch records…</span>
+  <button id="load-retry" type="button" hidden onclick="location.reload()">Try again</button>
+</div>
+<noscript>This map needs JavaScript to load dispatch records.</noscript>
+<div class="app" inert aria-busy="true">
   <div class="screen">
     <header>
       <h1>Oneida County 911 Call Map</h1>
@@ -770,9 +775,11 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
 
 <script>__LEAFLET_JS__</script>
 <script id="data" type="application/json">__DATA__</script>
+<script>__DATA_LOADER__</script>
 <script>
-(() => {
-  const D = JSON.parse(document.getElementById("data").textContent);
+(async () => {
+  const D = await window.loadOneidaData();
+  window.oneidaData = D;
   const weatherByDate = new Map((D.weatherEvents || []).flatMap(event => event.dates.map(date => [date, event])));
   const LABEL = {
     MEDICAL: "Medical", TRAFFIC: "Traffic", WELFARE_ASSIST: "Welfare & assist", DOMESTIC_DISPUTE: "Domestic & dispute",
@@ -798,13 +805,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
   function dowOf(iso) { const [y, m, d] = iso.split("-").map(Number); return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7; }
 
   // ---------- records: one packed row per dispatch
-  const bytes = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
-  const u16 = s => { const b = bytes(s); return new Uint16Array(b.buffer, 0, b.length / 2); };
-  const u32 = s => { const b = bytes(s); return new Uint32Array(b.buffer, 0, b.length / 4); };
-  const R = { t: u16(D.records.t), a: bytes(D.records.a), c: bytes(D.records.c), d: u16(D.records.d),
-    h: bytes(D.records.h), l: u16(D.records.l), u: bytes(D.records.u), m: bytes(D.records.m), k: u16(D.records.k),
-    i: u32(D.records.i), s: u16(D.records.s), z: u32(D.records.z), q: bytes(D.records.q), p: bytes(D.records.p),
-    f: u16(D.records.f), v: u16(D.records.v), r: u16(D.records.r) };
+  const R = D.records;
   const N = R.t.length;
   const dateYear = D.dates.map(iso => D.years.indexOf(+iso.slice(0, 4)));
   const dateMonth = D.dates.map(iso => +iso.slice(5, 7));
@@ -3026,5 +3027,13 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
   markTheme();
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", repaint);
   new MutationObserver(repaint).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-})();
+  document.querySelector(".app").inert = false;
+  document.querySelector(".app").setAttribute("aria-busy", "false");
+  document.getElementById("load-status").hidden = true;
+})().catch(error => {
+  console.error(error);
+  document.getElementById("load-status").setAttribute("role", "alert");
+  document.getElementById("load-message").textContent = "The map could not load. Check your connection and try again. " + (error.message.includes("updated browser") ? error.message : "");
+  document.getElementById("load-retry").hidden = false;
+});
 </script>

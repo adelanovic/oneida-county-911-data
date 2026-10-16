@@ -1,5 +1,7 @@
 """Regression checks against rebuilt artifacts and their reported-source fields."""
 import base64
+import gzip
+import hashlib
 import json
 import re
 import unittest
@@ -178,9 +180,26 @@ class DatasetRegressionTests(unittest.TestCase):
 
     def test_pages_match_data_and_vendor_leaflet(self):
         page = (ROOT / "docs/index.html").read_text(encoding="utf-8")
-        self.assertEqual(page, (ROOT / "output/map/oneida_911_map.html").read_text(encoding="utf-8"))
-        embedded = re.search(r'<script id="data" type="application/json">(.*?)</script>', page, re.S)[1]
-        self.assertEqual(json.loads(embedded), self.data)
+        offline = (ROOT / "output/map/oneida_911_map.html").read_text(encoding="utf-8")
+        embedded = lambda text: json.loads(re.search(r'<script id="data" type="application/json">(.*?)</script>', text, re.S)[1])
+        self.assertEqual(embedded(offline), self.data)
+        config = embedded(page)
+        metadata = json.loads(gzip.decompress((ROOT / "docs" / config["metadataUrl"]).read_bytes()))
+        binary = gzip.decompress((ROOT / "docs" / config["recordsUrl"]).read_bytes())
+        self.assertEqual(len(binary), metadata["recordBytes"])
+        self.assertEqual(set(metadata["records"]), set(self.data["records"]))
+        self.assertEqual(metadata["formatVersion"], 1)
+        self.assertLess(len(page.encode("utf-8")), 600_000)
+        for name in ("metadataUrl", "recordsUrl"):
+            compressed = (ROOT / "docs" / config[name]).read_bytes()
+            self.assertIn(hashlib.sha256(compressed).hexdigest()[:16], config[name])
+        for key, field in metadata["records"].items():
+            start, size = field["offset"], field["width"] * field["count"]
+            self.assertEqual(field["count"], self.data["total"])
+            self.assertEqual(start % 4, 0)
+            self.assertEqual(binary[start:start + size], base64.b64decode(self.data["records"][key]), key)
+        self.assertEqual({k: v for k, v in metadata.items() if k not in ("records", "recordBytes", "formatVersion")},
+                         {k: v for k, v in self.data.items() if k != "records"})
         self.assertNotIn("__LEAFLET", page)
         self.assertNotIn('src="https://cdnjs.cloudflare.com', page)
 
