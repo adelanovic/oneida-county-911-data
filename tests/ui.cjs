@@ -206,6 +206,33 @@ async function main() {
     }
     await screenshot('desktop');
     console.log('PASS: initial page works with external fonts and CDN blocked');
+    for (const width of [1440,320]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width===320});
+      for (const [street,precision] of [['LENOX AVE','street'],['CAROLYN COURTS APTS A - N','municipality'],['BUSH RD','street_nearby'],['PARK DRIVE MNR 2','landmark']]) {
+        await navigate();
+        const result = await evaluate(`(()=>{
+          const d=window.oneidaData,li=d.locations.findIndex(l=>l[2]===${JSON.stringify(street)} && l[4]===${JSON.stringify(precision)}),loc=d.locations[li];
+          const q=document.querySelector('#q');q.value=loc[2];q.dispatchEvent(new Event('input'));
+          const option=[...document.querySelectorAll('#sugg [data-i]')].find(e=>+e.dataset.i===li);option.click();
+          const row=[...document.querySelectorAll('.point-details > ol > li')].find(e=>e.querySelector('b').textContent.startsWith(loc[2]+':'));
+          const box=document.querySelector('#chart-help-dialog').getBoundingClientRect();
+          const expected=loc[5]>=1000?(loc[5]/1000).toFixed(1)+' km':Math.round(loc[5]/10)*10+' m';
+          return {text:row.querySelector('.location-uncertainty').textContent,expected,left:box.left,right:box.right,width:innerWidth};
+        })()`);
+        if(precision==='landmark') {
+          assert(result.text.includes('No validated incident distance-error estimate'),result.text);
+          assert(!result.text.includes('0 m'),result.text);
+        } else {
+          assert(result.text.includes('Modeled mean straight-line distance: '+result.expected),result.text);
+          assert(result.text.includes('not measured incident accuracy'),result.text);
+          if(precision==='municipality') assert(result.text.includes('uniformly spread across the municipality'),result.text);
+        }
+        assert(result.left>=0 && result.right<=result.width,result.text);
+      }
+    }
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+    await navigate();
+    console.log('PASS: selected street, tentative and grouped municipality points show their model distances; facilities do not invent accuracy, on desktop and mobile');
 
     const documentedSurges=['2024-02-28','2024-02-29','2024-07-16','2025-06-22'];
     const referenceDates=iso=>Object.keys(expected.comparison.dates).filter(d=>d!==iso && !documentedSurges.includes(d) && d.slice(0,4)===iso.slice(0,4) && new Date(d+'T00:00:00Z').getUTCDay()===new Date(iso+'T00:00:00Z').getUTCDay() && Math.abs(Date.parse(d)-Date.parse(iso))<=42*86400000).sort();

@@ -4,7 +4,7 @@ Run after build_dataset.py and geo/geocode.py. Adds:
   geo_latitude, geo_longitude   estimated point (see geo/geocode.py for how it is chosen)
   geo_precision                 coordinates | intersection | street | street_nearby | landmark | municipality | none
   geo_match_method              exact | alias | ordinal | spelling | fuzzy | fuzzy_risky | landmark | municipality ...
-  geo_expected_error_m          modeled mean distance along the reference geometry, not measured incident accuracy
+  geo_expected_error_m          modeled mean straight-line distance to sampled reference locations, not measured incident accuracy
 """
 from pathlib import Path
 

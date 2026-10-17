@@ -22,7 +22,7 @@ Outputs geo/locations.csv: one row per (street, city) with the point, how it was
   match_method     exact | alias | ordinal | spelling | fuzzy | fuzzy_risky | landmark | municipality | ...
   matched_name     the reference name used
   street_length_m  length of the matched stretch inside the municipality
-  expected_error_m modeled mean distance under address-range or road-length weights; for municipality
+  expected_error_m modeled mean straight-line distance under address-range or road-length weights; for municipality
                    fallbacks, under an assumed distribution over the municipality; not verified incident accuracy
   max_error_m      farthest point of the stretch from the chosen point
   n_pieces         disconnected pieces of the stretch (>1 means the name covers separate roads)

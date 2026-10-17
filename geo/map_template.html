@@ -1113,6 +1113,19 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
   }
   function pointPlaces(li) { return [...new Set(pointGroup(li).members.map(([i]) => placeLabel(D.locations[i][3])))].join(" / "); }
   function locationNote(li) {
+    return locationPlacementNote(li) + " " + locationModelNote(li);
+  }
+  function locationModelNote(li) {
+    const [, , , , precision, error] = D.locations[li];
+    if (["street", "street_nearby", "municipality"].includes(precision) && Number.isFinite(error)) {
+      const assumption = precision === "municipality"
+        ? "Assumes locations are uniformly spread across the municipality"
+        : "Based on the assumed distribution of locations along the matched street";
+      return `Modeled mean straight-line distance: ${dist(error)}. ${assumption}; not measured incident accuracy.`;
+    }
+    return "No validated incident distance-error estimate is available.";
+  }
+  function locationPlacementNote(li) {
     const loc = D.locations[li], note = locationBaseNote(li);
     return loc[8] > 1 && ["street", "street_nearby", "landmark"].includes(loc[4])
       ? note + `; Ambiguous match: ${loc[8]} separate stretches share this name. The report does not identify which stretch`
@@ -1126,21 +1139,21 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
     if (prec === "municipality" && /\b(?:EB|WB|NB|SB|RAMP|EXIT)\b/.test(street)) return "Reported highway direction, ramp or exit could not be resolved reliably; approximate municipality point, not an incident site. The main road was not substituted";
     const correction = method === "county_roads_alias" ? " (reviewed name correction)" : "";
     if (method.startsWith("county_roads") && prec === "landmark") return `Approximate facility/access location from Oneida County CAD${correction}: ${matched}; building, entrance and incident accuracy not independently verified`;
-    if (method.startsWith("county_roads")) return `Street estimate from Oneida County CAD${correction}: ${matched}; ${err != null ? `modeled mean distance along the matched road ${dist(err)}; ` : ""}not a verified incident site`;
+    if (method.startsWith("county_roads")) return `Street estimate from Oneida County CAD${correction}: ${matched}; not a verified incident site`;
     if (prec === "municipality") return "Unmatched street; approximate municipality point, not an incident site";
     if (prec === "landmark") return `Approximate landmark location: ${matched}; incident accuracy unknown`;
     if (prec === "intersection") return "Matched road intersection; incident location not independently verified";
     if (prec === "coordinates") return "Coordinates printed in the source report";
     if (prec === "street_nearby") return "Municipality unknown; tentative street estimate";
     const match = method !== "exact" && matched ? ` matched to ${matched};` : "";
-    return err != null ? `Street estimate;${match} modeled expected error ${dist(err)}, not measured accuracy` : "Estimated location";
+    return `Street estimate;${match} not a verified incident site`;
   }
   function pointDetailsHtml(li) {
     const g = pointGroup(li);
     const types = pointCallTypes(li), top = types.slice(0, 6), other = types.slice(6).reduce((n,[,c])=>n+c,0);
     const summary = `<section class="point-calltypes"><h3>Dispatch types at this point</h3><ul>${top.map(([t,c])=>`<li data-count="${c}">${esc(D.types[t][0])}: ${fmt(c)}</li>`).join("")}${other ? `<li data-count="${other}">Other dispatch types: ${fmt(other)}</li>` : ""}</ul></section>`;
     return `<div class="point-details"><p>${fmt(g.n)} dispatches at this map point. Reported locations are preserved below; this is not a count of unique emergencies.</p>${summary}<h3>Reported locations</h3><ol>` +
-      g.members.map(([i, n]) => { const l = D.locations[i]; return `<li><b>${esc(l[2] || "No street given")}: ${fmt(n)}</b><br>${esc(placeLabel(l[3]))}<br><small>${esc(locationNote(i))}</small></li>`; }).join("") + "</ol></div>";
+      g.members.map(([i, n]) => { const l = D.locations[i]; return `<li><b>${esc(l[2] || "No street given")}: ${fmt(n)}</b><br>${esc(placeLabel(l[3]))}<br><small>${esc(locationPlacementNote(i))}</small><br><small class="location-uncertainty">${esc(locationModelNote(i))}</small></li>`; }).join("") + "</ol></div>";
   }
   function pointCallTypes(li) {
     const g = pointGroup(li);
@@ -2496,7 +2509,8 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
     let errW = [], town = 0, none = 0, failed = 0;
     for (let li = 0; li < D.locations.length; li++) {
       const l = D.locations[li], n = locTotal[li];
-      if (l[4] === "municipality") town += n; else if (l[5] != null) errW.push([l[5], n]);
+      if (l[4] === "municipality") town += n;
+      else if (["street", "street_nearby"].includes(l[4]) && Number.isFinite(l[5])) errW.push([l[5], n]);
     }
     for (let i = 0; i < N; i++) { if (R.q[i]) none++; else if (!R.l[i]) failed++; }
     errW.sort((a, b) => a[0] - b[0]);
@@ -2507,7 +2521,7 @@ body:has(#chart-help-dialog[open]) #map .leaflet-tooltip { display: none; }
     $("about-coverage").innerHTML = `The collection has reports for <b>${days}</b> days: ${D.years.map((y, i) => `<b>${D.yearDays[i]}</b> in ${y}`).join(", ")}. ` +
       `It is what could be recovered from the county's website, not a complete archive, so a day without a report means no report was found, not that no dispatches happened. The coverage calendar shows exactly which days are included.`;
     $("about-location").innerHTML = `The reports usually give a street and a town rather than a house number. Streets are matched to Census roads within the reported municipality, allowing a 200 m boundary tolerance. Reviewed locations across county municipalities use saved Oneida County CAD road references, with exact name matching and the same boundary check. Ramp, exit and travel-direction qualifiers are preserved; an unresolved qualifier is not silently replaced by the main road. Separate matching road stretches are flagged as ambiguous. These points use road-length weighting; named complex/access features are approximate and do not establish a building or entrance. Current reference geometry may differ from historical conditions. Plausible address-range weights guide placement; these are not verified address counts. Circles combine matching dispatches at the same estimated point. Select a point for its reported-location breakdown; original streets and coordinates remain in dispatch downloads. Unmatched streets are grouped at an approximate municipality point, not an incident site. ` +
-      `The median modeled expected error is <b>${med == null ? "unavailable" : fmt(Math.round(med / 10) * 10) + " m"}</b>. This describes the assumed distribution along matched streets, not measured distances to actual incidents or a verified accuracy percentage; long rural roads have greater uncertainty. ` +
+      `The dispatch-weighted median modeled mean straight-line distance is <b>${med == null ? "unavailable" : fmt(Math.round(med / 10) * 10) + " m"}</b>. This describes assumed street-location distributions, not measured distances to actual incidents or a verified accuracy percentage; long rural roads have greater uncertainty. ` +
       `<b>${pct(town / N)}</b> of dispatches have a reported street that could not be matched and use an approximate municipality point (dashed circles). ` +
       `<b>${pct(none / N)}</b> have no reported location and remain unmapped; <b>${fmt(failed)}</b> have a reported location that could not be mapped. Coordinates printed in a report are preserved individually.`;
   }
